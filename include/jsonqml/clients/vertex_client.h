@@ -1,0 +1,49 @@
+#ifndef VERTEXCLIENT_H
+#define VERTEXCLIENT_H
+
+#include <QAbstractItemModel>
+#include "jsonqml/clients/json_client.h"
+
+namespace jsonqml {
+
+class VertexClientPrivate;
+
+class VertexClient : public JsonClient
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QAbstractItemModel* keysmodel READ keysmodel NOTIFY keysModelChanged)
+    Q_PROPERTY(bool sortingEnabled READ sortingEnabled NOTIFY tablePropertiesChanged)
+
+    Q_DISABLE_COPY(VertexClient)
+
+signals:
+    void keysModelChanged();
+    void tablePropertiesChanged();
+
+public slots:
+    void setModelSchema() override;
+    virtual void changeDBConnection();
+
+public:
+    explicit VertexClient(QObject *parent = nullptr);
+
+    QAbstractItemModel *keysmodel();
+    bool sortingEnabled();
+
+    Q_INVOKABLE virtual void readEditorData(int row);
+    Q_INVOKABLE virtual void readEditorId(QString vertex_id);
+    Q_INVOKABLE QString editorId();
+
+protected:
+    VertexClientPrivate* impl_func()
+    { return reinterpret_cast<VertexClientPrivate *>(impl_ptr.get()); }
+    const VertexClientPrivate* impl_func() const
+    { return reinterpret_cast<const VertexClientPrivate *>(impl_ptr.get()); }
+
+    VertexClient(VertexClientPrivate *impl, QObject *parent);
+};
+
+}
+
+#endif // VERTEXCLIENT_H
