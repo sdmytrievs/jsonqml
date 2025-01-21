@@ -2,13 +2,11 @@
 #ifndef DBQUERYMODEL_H
 #define DBQUERYMODEL_H
 
-
+#include <QThread>
 #include "jsonqml/models/select_model.h"
 #include "jsonio/dbquerybase.h"
+#include "jsonqml/arango_document.h"
 
-namespace jsonio {
-  class DBSchemaDocument;
-}
 
 namespace jsonqml {
 
@@ -22,29 +20,42 @@ class DBQueryModel: public SelectModel
 {
     Q_OBJECT
 
-signals:
-    void queryChanged();
+    Q_PROPERTY(bool queryExecuting MEMBER queryExecuting NOTIFY executingChange)
 
+signals:
+    void executingChange();
+
+    /// Notify the finished any db request
+    void finished();
+    /// Report a request that has been executed with an exception
+    void isException(const QString& msg);
+
+    /// Notify the finished query process
+    void finishedQuery();
+
+    /// Execute the query \a query for the given database connection.
+    void CmExecuteQuery(const jsonio::DBQueryBase& query,const std::vector<std::string>& query_fields);
 
 public slots:
-    virtual void queryChange();
+    /// Refresh  documents keys list for table
+    virtual void updateKeyList();
+
 
 public:
-    explicit DBQueryModel(QObject *parent = nullptr);
-    virtual ~DBQueryModel();
+    explicit DBQueryModel(DocumentType type, const QString& schema,
+                          const ArangoDatabase* db_client=&arango_db(),
+                          QObject *parent = nullptr);
 
+    virtual ~DBQueryModel();
 
     /// Execute the query \a query for the given database connection.
     /// uiSettings().lastError() can retrieve verbose information if there is an error in the query.
-    virtual void setQuery(const jsonio::DBQueryBase& query,
-                          const std::vector<std::string>& query_fields,
-                          const jsonio::DBSchemaDocument* dbclient);
+    virtual void executeQuery(const jsonio::DBQueryBase& query, const model_line_t& query_fields);
 
     /// Returns a reference to the const jsonio::DBQueryBase object associated with this model.
     const jsonio::DBQueryBase& query() const;
     /// Returns a reference to the query fields associated with this model.
-    const jsonio::values_t& queryFields() const;
-
+    const model_line_t& queryFields() const;
 
     Q_INVOKABLE QString lastQuery() const;
     Q_INVOKABLE QStringList lastQueryFields() const;
@@ -52,9 +63,15 @@ public:
 protected:
     jsonio::DBQueryBase data_query;
 
-    void resetTable(std::vector<std::vector<std::string>>&& table_data,
-                const std::vector<std::string>& header_data) override;
+    void resetTable(model_table_t&& table_data, const model_line_t& header_data) override;
 
+    ArangoDBDocument* dbdocument;
+    bool query_executing;
+    /// Thead moved db request to
+    QThread db_thread;
+
+    void set_executing(bool val);
+    void reset_dbclient(DocumentType type, const QString& schema, const ArangoDatabase* db_link);
 };
 
 }

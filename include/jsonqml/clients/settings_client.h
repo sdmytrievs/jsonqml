@@ -5,9 +5,6 @@
 #include <QObject>
 #include <QQmlEngine>
 
-namespace jsonio {
-class DataBase;
-}
 
 namespace jsonqml {
 
@@ -35,7 +32,7 @@ class Preferences : public QObject
 
     Q_PROPERTY(QStringList dbConnectList MEMBER db_connect_list NOTIFY dbConnectListChanged)
     Q_PROPERTY(QString dbConnect MEMBER db_connect_current NOTIFY dbConnectChanged)
-    Q_PROPERTY(bool dbConnected READ dbConnected NOTIFY dbdriveChanged)
+    //Q_PROPERTY(bool dbConnected READ dbConnected NOTIFY dbdriveChanged)
 
     Q_PROPERTY(QString dbUrl MEMBER db_url NOTIFY dbConnectChanged)
     Q_PROPERTY(QString dbName MEMBER db_name NOTIFY dbConnectChanged)
@@ -52,19 +49,22 @@ signals:
     void settingsChanged();
     void workDirChanged();
     void scemasPathChanged();
-    void dbdriveChanged();
+    //void dbdriveChanged();
 
     void dbConnectListChanged();
     void dbConnectChanged();
     void dbNamesListChanged();
     void dbUsersListChanged();
 
+public slots:
+    /// Setting the value of the last error that occurred
+    /// and emitting a signal about the error.
+    void setError(const QString& error);
+
 private slots:
     void setDBConnectList();
 
 public:
-    /// Default resourse Database name
-    static std::string resources_database_name;
     /// Jsonui section name in resource file
     static std::string jsonui_section_name;
     /// Use link to database in settings
@@ -80,9 +80,7 @@ public:
 
     ///  Returns information about the last error that occurred
     Q_INVOKABLE QString lastError() const;
-    /// Setting the value of the last error that occurred
-    /// and emitting a signal about the error.
-    Q_INVOKABLE void setError(const QString& error);
+
 
     /// Download new schemas from the folder with the path
     Q_INVOKABLE void changeScemasPath(const QString& path);
@@ -105,13 +103,6 @@ public:
     /// Converting the path of this URL formatted as a local file path,
     /// if necessary, and save it as the current directory
     Q_INVOKABLE QString handleFileChosen(const QString &url);
-
-    /// The current worker Database exists and checked connection for the current credentials group
-    bool dbConnected() const;
-    /// Current work database
-    const jsonio::DataBase& database() const;
-    /// Current resourse database
-    const jsonio::DataBase& resources_database() const;
 
 protected:
     friend Preferences& uiSettings();

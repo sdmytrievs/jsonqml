@@ -23,7 +23,10 @@ signals:
 
 public slots:
     void setModelSchema() override;
-    virtual void changeDBConnection();
+
+protected slots:
+    void setEditorData(std::string schema_name, std::string doc_json);
+    void setEditorOid(std::string doc_id);
 
 public:
     explicit VertexClient(QObject *parent = nullptr);

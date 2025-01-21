@@ -22,6 +22,8 @@ INCLUDEPATH   += $$JSONIO_HEADERS_DIR
 INCLUDEPATH   += $$JSONQML_HEADERS_DIR
 
 HEADERS += \
+    include/jsonqml/arango_database.h \
+    include/jsonqml/arango_document.h \
     include/jsonqml/models/base_model.h \
     include/jsonqml/models/json_model.h \
     include/jsonqml/models/schema_model.h \
@@ -40,6 +42,8 @@ HEADERS += \
 SOURCES += \
     #json_editor_main.cpp \
     main.cpp \
+    src/arango_database.cpp \
+    src/arango_document.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \
     src/models/select_model.cpp \
