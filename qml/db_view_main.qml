@@ -16,7 +16,7 @@ ApplicationWindow {
     property int filetype: 0
 
     Component.onCompleted: {
-        if(Preferences.dbConnected ) {
+        if(Preferences.dbConnected()) {
             tabBar.setCurrentIndex(1)
         }
     }
