@@ -20,7 +20,7 @@ class DBQueryModel: public SelectModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool queryExecuting MEMBER queryExecuting NOTIFY executingChange)
+    Q_PROPERTY(bool queryExecuting MEMBER query_executing NOTIFY executingChange)
 
 signals:
     void executingChange();
@@ -43,7 +43,7 @@ public slots:
 
 public:
     explicit DBQueryModel(DocumentType type, const QString& schema,
-                          const ArangoDatabase* db_client=&arango_db(),
+                          ArangoDatabase* db_client=&arango_db(),
                           QObject *parent = nullptr);
 
     virtual ~DBQueryModel();
@@ -71,7 +71,7 @@ protected:
     QThread db_thread;
 
     void set_executing(bool val);
-    void reset_dbclient(DocumentType type, const QString& schema, const ArangoDatabase* db_link);
+    void reset_dbclient(DocumentType type, const QString& schema, ArangoDatabase* db_link);
 };
 
 }

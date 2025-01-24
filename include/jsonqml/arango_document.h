@@ -16,7 +16,7 @@ class ArangoDBDocument: public QObject
     Q_OBJECT
 
 signals:
-    /// ???? Signal when database driver changed
+    /// Signal when database driver changed
     void changedClient();
 
     /// Notify the finished any db request
@@ -38,7 +38,7 @@ signals:
 
 public slots:
 
-    /// ????? Reset current DB client
+    /// Reset current DB client
     virtual void resetClient();
 
     /// Reset current DB schema
@@ -63,10 +63,7 @@ public slots:
 
 public:
 
-    explicit ArangoDBDocument(DocumentType type, const QString& schema,
-                              const ArangoDatabase* db_client=&arango_db(),
-                              QObject *parent = nullptr);
-
+    ~ArangoDBDocument();
     void lastQueryResult(jsonio::DBQueryBase& query,
                          jsonio::values_t& fields,
                          jsonio::values_table_t& data);
@@ -79,6 +76,10 @@ public:
     static jsonio::DBQueryBase inEdgesQuery(const QString& id_vertex, const QString& edge_collections = "");
 
 protected:
+
+    friend class ArangoDatabase;
+    explicit ArangoDBDocument(const ArangoDatabase* parent_database,
+                              ArangoDBDocumentPrivate* private_doc);
 
     QMutex result_mutex;
     const ArangoDatabase* arango_database=nullptr;

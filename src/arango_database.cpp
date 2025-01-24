@@ -1,10 +1,6 @@
-#include <QUrl>
-#include <QDir>
-
-#include "jsonqml/clients/settings_client.h"
-#include "jsonqml/arango_database.h"
-#include "arango-cpp/arangoconnect.h"
-#include "jsonio/dbconnect.h"
+//#include "jsonqml/clients/settings_client.h"
+#include "arango_database_p.h"
+#include "arango_document_p.h"
 #include "jsonio/dbdriverarango.h"
 
 namespace jsonqml {
@@ -29,98 +25,19 @@ ArangoDatabase& arango_db()
     return data;
 }
 
-/// Private \class ArangoDatabase - monitoring database
-class ArangoDatabasePrivate
+//------------------------------------------------------------------
+
+DatabaseSettings::DatabaseSettings()
 {
-    Q_DISABLE_COPY_MOVE(ArangoDatabasePrivate)
-
-    friend class ArangoDatabase;
-public:
-
-    /// Constructor
-    explicit ArangoDatabasePrivate();
-
-    /// Destructor
-    ~ArangoDatabasePrivate(){}
-
-    void init();
-    void save_db_settings(const std::string& db_group);
-    void read_db_settings(const std::string& db_group);
-    bool update_database();
-
-    /// Current work Database exist
-    bool db_connected() const
-    {
-        return (work_database.get()!=nullptr && work_database->connected());
-    }
-
-protected:
-
-    /// Current database credentials group
-    QString db_connect_current;
-
-    /// The connection's database URL
-    QString db_url;
-    /// The connection's database name
-    QString db_name;
-    /// The connection's user name
-    QString db_user;
-    /// The connection's user password name
-    QString db_user_password;
-    /// Database access  "rw" (read&write) or "ro" (read-only if true)
-    bool db_access;
-    /// The flag to creating the empty database if they are not present
-    /// Work if defined root credentials
-    bool    db_create;
-
-    /// Link to JsonioSettings - storing preferences to JSONIO
-    jsonio::JsonioSettings& jsonio_settings;
-    /// Link to jsonui settings in configuration data
-    jsonio::SectionSettings jsonui_group;
-
-    /// Current work Database
-    std::shared_ptr<jsonio::DataBase> work_database;
-    /// Current resourse Database
-    std::shared_ptr<jsonio::DataBase> resourse_database;
-    /// Current ArangoDB root client
-    std::shared_ptr<arangocpp::ArangoDBRootClient> root_client;
-
-    /// Current root database connection
-    arangocpp::ArangoDBRootClient* root_connect() const
-    {
-        jsonio::JSONIO_THROW_IF(root_client.get()==nullptr, "Preferences", 12,
-                                " the root database connection is not defined.");
-        return root_client.get();
-    }
-
-    void update_work_database(bool create_if_noexist, const arangocpp::ArangoDBConnection& db_data);
-    void update_resource_database(bool create_if_noexist, arangocpp::ArangoDBConnection db_data);
-    void update_root_client(const std::string& db_group);
-    void create_collection_if_no_exist(jsonio::AbstractDBDriver* db_driver);
-    void get_system_lists(const std::string& db_group,
-                          QStringList& db_all_databases,
-                          QStringList& db_all_users);
-};
-
-ArangoDatabasePrivate::ArangoDatabasePrivate():
-    jsonio_settings(jsonio::ioSettings()),
-    jsonui_group(jsonio_settings.section(Preferences::jsonui_section_name)),
-    work_database(nullptr),
-    resourse_database(nullptr)
-{
-    jsonio_settings.set_module_level("jsonqml", "debug");
-    init();
+    db_url = arangocpp::ArangoDBConnection::local_server_endpoint;
+    db_name = arangocpp::ArangoDBConnection::local_server_database;
+    db_user = arangocpp::ArangoDBConnection::local_server_username;
+    db_user_password = arangocpp::ArangoDBConnection::local_server_password;
+    db_access = false;
+    db_create = true;
 }
 
-void ArangoDatabasePrivate::init()
-{
-    auto dbconnection = jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
-    db_connect_current = QString::fromStdString(dbconnection);
-    read_db_settings(dbconnection);
-    update_database();
-}
-
-void ArangoDatabasePrivate::save_db_settings(const std::string& db_group)
+void DatabaseSettings::save_settings(const std::string &db_group, jsonio::JsonioSettings &jsonio_settings)
 {
     auto db_section =jsonio_settings.section(jsonio::arangodb_section(db_group));
     db_section.setValue("DB_URL", db_url.toStdString());
@@ -131,10 +48,10 @@ void ArangoDatabasePrivate::save_db_settings(const std::string& db_group)
     db_section.setValue("DBCreate", db_create);
 
     jsonio_settings.setValue(jsonio::arangodb_section("UseArangoDBInstance"), db_group);
-    jsonui_group.setValue("CurrentDBConnection", db_group);
+    jsonio_settings.section(Preferences::jsonui_section_name).setValue("CurrentDBConnection", db_group);
 }
 
-void ArangoDatabasePrivate::read_db_settings(const std::string& db_group)
+void DatabaseSettings::read_settings(const std::string &db_group, jsonio::JsonioSettings &jsonio_settings)
 {
     auto db_section =jsonio_settings.section(jsonio::arangodb_section(db_group));
 
@@ -156,9 +73,41 @@ void ArangoDatabasePrivate::read_db_settings(const std::string& db_group)
         db_access = (access=="ro");
         db_create = db_section.value("DBCreate", false);
     }
-    ///emit q->dbNamesListChanged();
-    ///emit q->dbUsersListChanged();
-    ui_logger->debug("Changed db credentials to: {}", db_group);
+}
+
+arangocpp::ArangoDBConnection fromSettings(struct DatabaseSettings db_data)
+{
+    arangocpp::ArangoDBConnection connect_data;
+    connect_data.serverUrl = db_data.db_url.toStdString();
+    connect_data.databaseName = db_data.db_name.toStdString();
+    connect_data.user.name = db_data.db_user.toStdString();
+    connect_data.user.password = db_data.db_user_password.toStdString();
+    connect_data.user.access = ( db_data.db_access ? "ro": "rw");
+    return connect_data;
+}
+
+//------------------------------------------------------------------
+
+
+ArangoDatabasePrivate::ArangoDatabasePrivate():
+    jsonio_settings(jsonio::ioSettings()),
+    jsonui_group(jsonio_settings.section(Preferences::jsonui_section_name)),
+    work_database(nullptr),
+    resourse_database(nullptr)
+{
+    jsonio_settings.set_module_level("jsonqml", "debug");
+    init();
+}
+
+void ArangoDatabasePrivate::init()
+{
+    auto dbconnection = jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
+    db_data.db_connect_current = QString::fromStdString(dbconnection);
+    db_data.read_settings(dbconnection, jsonio_settings);
+    //try {
+       std::string err_message;
+       update_database(err_message);
+    //}
 }
 
 //----------------------------------------------------------------------------
@@ -195,34 +144,22 @@ void ArangoDatabasePrivate::create_collection_if_no_exist(jsonio::AbstractDBDriv
     }
 }
 
-void ArangoDatabasePrivate::update_resource_database(bool create_if_noexist, arangocpp::ArangoDBConnection db_data)
+void ArangoDatabasePrivate::update_resource_database()
 {
     try {
-        db_data.databaseName = ArangoDatabase::resources_database_name;
-
-        if(create_if_noexist && !root_connect()->existDatabase(db_data.databaseName)) {
-            root_connect()->createDatabase(db_data.databaseName, {db_data.user});
-        }
-
-        auto db_driver = std::make_shared<jsonio::ArangoDBClient>(db_data);
+        arangocpp::ArangoDBConnection connect_data = fromSettings(db_data);
+        connect_data.databaseName = ArangoDatabase::resources_database_name;
+        auto db_driver = std::make_shared<jsonio::ArangoDBClient>(connect_data);
         if(!db_driver->connected()) {
             resourse_database.reset();
-            uiSettings().setError(QString::fromStdString(db_driver->status()));
-            ui_logger->error(db_driver->status());
+            ui_logger->error("Resource db connect error {}", db_driver->status());
             return;
         }
-        //db_driver->createCollection("impexdefs", "vertex");
-        //db_driver->createCollection("queries", "vertex");
-        //db_driver->createCollection(HelpMainWindow::help_collection_name, "vertex");
-
         if(resourse_database.get() == nullptr) {
             resourse_database.reset(new jsonio::DataBase(db_driver));
         }
         else {
             resourse_database->updateDriver(db_driver);
-            if(!resourse_database->connected()) {
-                ui_logger->warn(resourse_database->status());
-            }
         }
     }
     catch(std::exception& e) {
@@ -231,18 +168,18 @@ void ArangoDatabasePrivate::update_resource_database(bool create_if_noexist, ara
     }
 }
 
-void ArangoDatabasePrivate::update_work_database(bool create_if_noexist, const arangocpp::ArangoDBConnection& db_data)
+void ArangoDatabasePrivate::update_work_database(const arangocpp::ArangoDBConnection& db_link, std::string& error_message)
 {
     try {
-        if(create_if_noexist && !root_connect()->existDatabase(db_data.databaseName)) {
-            root_connect()->createDatabase(db_data.databaseName, {db_data.user});
+        if(db_data.db_create && !root_connect()->existDatabase(db_link.databaseName)) {
+            root_connect()->createDatabase(db_link.databaseName, {db_link.user});
         }
 
-        auto db_driver = std::make_shared<jsonio::ArangoDBClient>(db_data);
+        auto db_driver = std::make_shared<jsonio::ArangoDBClient>(db_link);
         if(!db_driver->connected()) {
             work_database.reset();
-            uiSettings().setError(QString::fromStdString(db_driver->status()));
-            ui_logger->error(db_driver->status());
+            error_message += db_driver->status();
+            ui_logger->error("Database connect error {}", db_driver->status());
             return;
         }
 
@@ -260,13 +197,11 @@ void ArangoDatabasePrivate::update_work_database(bool create_if_noexist, const a
     }
 }
 
-bool ArangoDatabasePrivate::update_database()
+bool ArangoDatabasePrivate::update_database(std::string& error_message)
 {
-    uiSettings().setError(QString());
     try {
-        auto db_group = jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
-        bool db_create = jsonio_settings.section(jsonio::arangodb_section(db_group)).value("DBCreate", false);
-        auto db_connect = jsonio::getFromSettings(jsonio_settings.section(jsonio::arangodb_section(db_group)), false);
+        error_message.clear();
+        arangocpp::ArangoDBConnection db_connect = fromSettings(db_data);
 
         if(work_database.get()!=nullptr) { // compare with old
             jsonio::ArangoDBClient* old_db_link = dynamic_cast<jsonio::ArangoDBClient*>(work_database->theDriver());
@@ -275,29 +210,30 @@ bool ArangoDatabasePrivate::update_database()
             }
         }
 
-        if(db_create) { // try link as root
-            update_root_client(db_group);
+        if(db_data.db_create) { // try link as root
+            update_root_client(db_data.db_connect_current.toStdString());
         }
-
-        update_work_database(db_create, db_connect);
-        update_resource_database(db_create, db_connect);
+        update_work_database(db_connect, error_message);
+        if(resourse_database) { // change only if used before
+          update_resource_database();
+        }
 
         ui_logger->info("Update database connect to: {} {}", db_connect.serverUrl, db_connect.databaseName);
         return true;
     }
     catch(std::exception& e) {
-        uiSettings().setError(e.what());
+        error_message += e.what();
         ui_logger->error("Exception when updating database {}", e.what());
     }
     return true; // clear connection
 }
-
 
 //----------------------------------------------------------------------------
 
 ArangoDatabase::ArangoDatabase()
 {
     impl_ptr.reset(new ArangoDatabasePrivate());
+    resetCollectionsList();
     qDebug() << "ArangoDatabase construct";
 }
 
@@ -323,83 +259,76 @@ void ArangoDatabase::afterDeletedDocument(std::string schema_name, std::string d
     Q_UNUSED(doc_id);
 }
 
-void ArangoDatabase::ConnectTo(const QString &url, const QString &name,
-                               const QString &user, const QString &user_passwd)
-{
-
-}
-
 void ArangoDatabase::ConnectFromSettings()
 {
+    try {
+        std::string err_mess;
+        auto dbconnection = impl_func()->jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
+        impl_func()->db_data.read_settings(dbconnection, impl_func()->jsonio_settings);
+        emit dbConnectChanged();
 
+        if(impl_func()->update_database(err_mess)) {
+            if(err_mess.empty()) {
+                emit dbdriveChanged();
+            }
+            else {
+                emit errorConnection(QString::fromStdString(err_mess));
+            }
+        }
+
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(e.what());
+        ui_logger->error("Exception when updating database {}", e.what());
+    }
 }
 
-QScopedPointer<ArangoDocument> ArangoDatabase::createDocument(DocumentType type, const QString &document_schema_name)
+ArangoDBDocument* ArangoDatabase::createDocument(DocumentType type, const QString &document_schema_name)
 {
-
-}
-
-QScopedPointer<ArangoDocument> ArangoDatabase::createDocumentQuery(DocumentType type, const QString &document_schema_name, const jsonio::DBQueryBase &query, const std::vector<std::string> &query_fields)
-{
-
+    ArangoDBDocument* new_doc = new ArangoDBDocument(this,
+             new ArangoDBDocumentPrivate(type, document_schema_name, impl_func()));
+    return new_doc;
 }
 
 QString ArangoDatabase::dbConnect()
 {
-    return impl_func()->db_connect_current;
+    return impl_func()->db_data.db_connect_current;
 }
 
 QString ArangoDatabase::dbUrl()
 {
-    return impl_func()->db_url;
+    return impl_func()->db_data.db_url;
 }
 
 QString ArangoDatabase::dbName()
 {
-    return impl_func()->db_name;
+    return impl_func()->db_data.db_name;
 }
 
 QString ArangoDatabase::dbUser()
 {
-    return impl_func()->db_user;
+    return impl_func()->db_data.db_user;
 }
 
 QString ArangoDatabase::dbUserPassword()
 {
-    return impl_func()->db_user_password;
+    return impl_func()->db_data.db_user_password;
 }
 
 bool ArangoDatabase::dbAccess()
 {
-    return impl_func()->db_access;
+    return impl_func()->db_data.db_access;
 }
 
-bool ArangoDatabase::dbCreate()
+bool ArangoDatabase::isCreate()
 {
-    return impl_func()->db_create;
+    return impl_func()->db_data.db_create;
 }
 
-void ArangoDatabase::getRootLists(const std::string &db_group, QStringList &db_all_databases, QStringList &db_all_users)
+void ArangoDatabase::getRootLists(const std::string &db_group, QStringList &all_databases, QStringList &all_users)
 {
-    return impl_func()->get_system_lists(db_group, db_all_databases, db_all_users);
+    return impl_func()->get_system_lists(db_group, all_databases, all_users);
 }
-
-
-//void ArangoDatabase::changeDBConnect(const QString &db_group)
-//{
-//    setError(QString());
-//    try {
-//        if(Preferences::use_database) {
-//            db_connect_current = db_group;
-//            auto dbconnection = db_group.toStdString();
-//            impl_func()->read_db_settings(dbconnection);
-//            emit dbConnectChanged();
-//        }
-//    }
-//    catch(std::exception& e) {
-//        setError(e.what());
-//    }
-//}
 
 //------------------------------------------------------------------
 
@@ -487,10 +416,32 @@ jsonio::values_t ArangoDatabase::fieldsFromCollection(const std::string &collect
 {
     auto it = defined_collections.find(collection_name);
     if(it==defined_collections.end()) {
-        return {};
+        return {"_id", "_key"};
     }
     else {
         return it->second.default_query_fields;
+    }
+}
+
+std::string ArangoDatabase::anyVertexSchema()
+{
+    auto list = jsonio::DataBase::usedVertexCollections();
+    if(!list.empty()) {
+        return  list.begin()->first;
+    }
+    else {
+        return "";
+    }
+}
+
+std::string ArangoDatabase::anyEdgeSchema()
+{
+    auto list = jsonio::DataBase::usedEdgeCollections();
+    if(!list.empty()) {
+        return  list.begin()->first;
+    }
+    else {
+        return "";
     }
 }
 

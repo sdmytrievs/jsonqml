@@ -104,15 +104,15 @@ void VertexClientPrivate::read_editor_data(int row)
 
 void VertexClientPrivate::set_editor_data(std::string schema_name, std::string doc_json)
 {
-    if(json_tree_model) {
-        json_tree_model->setupModelData(doc_json, QString::fromStdString(schema_name));
-    }
+    set_json(doc_json, QString::fromStdString(schema_name));
 }
 
 std::string VertexClientPrivate::id_from_editor()
 {
     std::string vertex_id;
-    json_tree_model->current_object().get_value_via_path("_id", vertex_id, vertex_id);
+    if(json_tree_model) {
+        json_tree_model->current_object().get_value_via_path("_id", vertex_id, vertex_id);
+    }
     return vertex_id;
 }
 
@@ -123,13 +123,8 @@ void VertexClientPrivate::id_to_editor(std::string doc_id)
 
 bool VertexClientPrivate::set_json(const std::string& json_string, const QString& schema_name)
 {
-    if(!no_schema_model(current_schema_name) &&
-            !no_schema_model(schema_name) &&
-            schema_name!=current_schema_name) {
-        return false;
-    }
     if(json_tree_model) {
-        json_tree_model->setupModelData(json_string, current_schema_name);
+        json_tree_model->setupModelData(json_string, schema_name);
     }
     return true;
 }
@@ -139,14 +134,14 @@ bool VertexClientPrivate::set_json(const std::string& json_string, const QString
 VertexClient::VertexClient(VertexClientPrivate *impl, QObject *parent):
     JsonClient(impl, parent)
 {
+    connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument, this, &VertexClient::setEditorData);
+    connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid, this, &VertexClient::setEditorOid);
 }
 
 VertexClient::VertexClient(QObject *parent):
     VertexClient(new VertexClientPrivate(), parent)
 {
     // virtual init into JsonClient
-    connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument, this, &VertexClient::setEditorData);
-    connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid, this, &VertexClient::setEditorOid);
 }
 
 void VertexClient::setModelSchema()
@@ -160,12 +155,22 @@ void VertexClient::setModelSchema()
 
 void VertexClient::setEditorData(std::string schema_name, std::string doc_json)
 {
-    impl_func()->set_editor_data(schema_name, doc_json);
+    try {
+        impl_func()->set_editor_data(schema_name, doc_json);
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(e.what());
+    }
 }
 
 void VertexClient::setEditorOid(std::string doc_id)
 {
-    impl_func()->id_to_editor(doc_id);
+    try {
+        impl_func()->id_to_editor(doc_id);
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(e.what());
+    }
 }
 
 void VertexClient::readEditorData(int row)

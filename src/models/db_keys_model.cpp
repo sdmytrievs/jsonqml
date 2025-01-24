@@ -10,7 +10,7 @@ namespace jsonqml {
     Creates an empty DBKeysModel with the given \a parent.
  */
 DBKeysModel::DBKeysModel(DocumentType type, const QString& schema,
-                         const ArangoDatabase* db_client,
+                         ArangoDatabase* db_client,
                          QObject *parent)
     :DBQueryModel(type, schema, db_client, parent)
 {

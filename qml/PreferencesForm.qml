@@ -51,9 +51,9 @@ Item {
 
                 CheckBox {
                     id: createCheck
-                    checked: Preferences.dbCreate
+                    checked: Preferences.isCreate
                     text: qsTr("Create database")
-                    onCheckedChanged: Preferences.dbCreate = checked
+                    onCheckedChanged: Preferences.isCreate = checked
                 }
 
                 Label {

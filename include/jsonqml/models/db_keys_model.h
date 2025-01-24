@@ -45,7 +45,7 @@ public slots:
 
 public:
     explicit DBKeysModel(DocumentType type, const QString& schema,
-                         const ArangoDatabase* db_client=&arango_db(),
+                         ArangoDatabase* db_client=&arango_db(),
                          QObject *parent = nullptr);
     /// Destroys the object and frees any allocated resources.
     virtual ~DBKeysModel();
@@ -57,7 +57,7 @@ public:
     void setQuery(const jsonio::DBQueryBase& query,
                   const model_line_t& query_fields);
 
-    Q_INVOKABLE QString get_schema() const;
+    //Q_INVOKABLE QString get_schema() const;
     Q_INVOKABLE std::string get_id(size_t row) const;
     Q_INVOKABLE void read(size_t row);
     Q_INVOKABLE void read_query(std::string doc_id);

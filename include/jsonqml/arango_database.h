@@ -1,21 +1,20 @@
 ﻿#ifndef ARANGODB_H
 #define ARANGODB_H
 
-#include <string>
 #include <map>
+#include <string>
 #include <QObject>
 #include <QQmlEngine>
-
 #include "jsonio/dbquerybase.h"
-
 
 namespace jsonqml {
 
 
-class ArangoDocument;
+class ArangoDBDocument;
 class ArangoDatabasePrivate;
 
 enum DocumentType { Json, Schema, Vertex, Edge, Resource };
+
 
 class ArangoDatabase : public QObject
 {
@@ -29,26 +28,27 @@ class ArangoDatabase : public QObject
     Q_PROPERTY(QString dbUser READ dbUser NOTIFY dbConnectChanged)
     Q_PROPERTY(QString dbUserPassword READ dbUserPassword NOTIFY dbConnectChanged)
     Q_PROPERTY(bool    dbAccess READ dbAccess NOTIFY dbConnectChanged)
-    Q_PROPERTY(bool    dbCreate READ dbCreate NOTIFY dbConnectChanged)
+    Q_PROPERTY(bool    isCreate READ isCreate NOTIFY dbConnectChanged)
 
 signals:
+    /// Notify about the changed database driver
     void dbdriveChanged();
-    void dbConnectListChanged();
+    /// Notify about the last error that occurred in the database.
+    void errorConnection(QString err);
+
     void dbConnectChanged();
-    void dbNamesListChanged();
-    void dbUsersListChanged();
 
 public slots:
+
     /// Notify about updating the document (may require updating of related ones)
     virtual void afterUpdatedDocument(std::string schema_name, std::string doc_id);
     /// Notify about document deletion (may require deletion of related ones)
     virtual void afterDeletedDocument(std::string schema_name, std::string doc_id);
+
     /// Restore collection descriptors after scemasPathChanged
     void resetCollectionsList();
 
 private slots:
-    void ConnectTo(const QString& url, const QString& name,
-                   const QString& user, const QString& user_passwd);
     void ConnectFromSettings();
 
 public:
@@ -64,28 +64,24 @@ public:
 
 
     QString dbConnect();
-    bool dbConnected();
+    //bool dbConnected();
 
     QString dbUrl();
     QString dbName();
     QString dbUser();
     QString dbUserPassword();
     bool    dbAccess();
-    bool    dbCreate();
+    bool    isCreate();
+
+    /// The current worker Database exists and checked connection for the current credentials group
+    bool dbConnected() const;
+    ArangoDBDocument* createDocument(DocumentType type, const QString& document_schema_name="");
+
 
     void getRootLists(const std::string& db_group,
                           QStringList& db_all_databases,
                           QStringList& db_all_users);
 
-    /// The current worker Database exists and checked connection for the current credentials group
-    bool dbConnected() const;
-
-
-    QScopedPointer<ArangoDocument> createDocument(DocumentType type, const QString& document_schema_name="");
-    QScopedPointer<ArangoDocument> createDocumentQuery(DocumentType type,
-                                                       const QString& document_schema_name="",
-                                                       const jsonio::DBQueryBase& query=jsonio::DBQueryBase::emptyQuery(),
-                                                       const jsonio::values_t& query_fields={});
 
     static void defineCollection(const std::string& collection_name,
                                  const std::string& schema_name,
@@ -98,6 +94,8 @@ public:
     static std::string collectionFromSchema(const std::string& schema_name);
     static std::string schemaFromCollection(const std::string& collection_name);
     static jsonio::values_t fieldsFromCollection(const std::string& collection_name);
+    static std::string anyVertexSchema();
+    static std::string anyEdgeSchema();
 
 protected:
 
@@ -121,10 +119,9 @@ protected:
 
 };
 
-/// Function to connect to default ArangoDatabase object
+/// Default ArangoDatabase object
 extern ArangoDatabase& arango_db();
-/// Function to connect to default resource ArangoDatabase object
-extern ArangoDatabase& resource_db();
+
 
 }
 

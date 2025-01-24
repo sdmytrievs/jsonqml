@@ -35,6 +35,8 @@ HEADERS += \
     include/jsonqml/clients/json_client.h \
     include/jsonqml/clients/vertex_client.h \
     include/jsonqml/clients/edge_client.h \
+    src/arango_database_p.h \
+    src/arango_document_p.h \
     src/clients/json_client_p.h \
     src/clients/vertex_client_p.h \
     src/clients/edge_client_p.h \

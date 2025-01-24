@@ -1,90 +1,68 @@
 
-#include "jsonqml/arango_document.h"
+#include "arango_document_p.h"
 #include "jsonqml/clients/settings_client.h"
-#include "jsonio/dbedgedoc.h"
 
 namespace jsonqml {
 
 extern std::shared_ptr<spdlog::logger> ui_logger;
 
-/// \class ArangoDBDocument
-/// \brief The ArangoDBDocument class object to work with database document.
-class ArangoDBDocumentPrivate
-{
-public:
-
-    explicit ArangoDBDocumentPrivate(DocumentType type, const QString& schema, const jsonio::DataBase& dbconnect);
-    /// Destroys the object and frees any allocated resources.
-    virtual ~ArangoDBDocumentPrivate(){}
-
-    bool is_dbdocument();
-    virtual void set_query(const jsonio::DBQueryBase& query,
-                           const jsonio::values_t& query_fields);
-    virtual void set_default_query();
-    virtual void update_query();
-    virtual bool update_schema(const std::string& new_schema);
-    void execute_query(const jsonio::DBQueryBase &query,
-                       const jsonio::values_t &query_fields);
-
-    virtual std::string read(const std::string& doc_id, std::string &doc_schema);
-    virtual std::string read_query(const std::string& doc_id, std::string& doc_schema);
-    // true if new doc_id
-    virtual bool save(const std::string &json_data, std::string& doc_id);
-    virtual void remove(const std::string& doc_id);
-
-protected:
-    friend class ArangoDBDocument;
-
-    const jsonio::DataBase &database;
-    DocumentType doc_type; // json not implemented to do
-    std::string document_schema_name;
-    bool query_exist;
-    std::shared_ptr<jsonio::DBSchemaDocument> dbdocument;
-
-    jsonio::DBQueryBase last_good_query;
-    jsonio::values_t new_header;
-    jsonio::values_table_t new_table;
-
-    void build_table();
-};
 
 ArangoDBDocumentPrivate::ArangoDBDocumentPrivate(DocumentType type, const QString &schema,
-                                                 const jsonio::DataBase &dbconnect):
-    database(dbconnect),
+                                                 ArangoDatabasePrivate* parent_database):
+    database(parent_database),
     doc_type(type),
     document_schema_name(schema.toStdString()),
     query_exist(false),
     dbdocument(nullptr),
     last_good_query(jsonio::DBQueryBase::emptyQuery())
 {
+    if(document_schema_name.empty()) {
+        switch(doc_type) {
+        case jsonqml::Json:
+        case jsonqml::Resource:
+        case jsonqml::Schema:
+            break;
+        case jsonqml::Vertex:
+            document_schema_name = ArangoDatabase::anyVertexSchema();
+            break;
+        case jsonqml::Edge:
+            document_schema_name = ArangoDatabase::anyEdgeSchema();
+            break;
+        }
+    }
     is_dbdocument();
 }
 
 bool ArangoDBDocumentPrivate::is_dbdocument()
 {
-    if(!dbdocument && database.connected()) {
-        switch(doc_type) {
-        case jsonqml::Resource: // To do
-        case jsonqml::Json:   // To do
-        case jsonqml::Schema:  {
-            jsonio::DBSchemaDocument* new_client = jsonio::DBSchemaDocument::newSchemaDocument(
-                        database, document_schema_name, ArangoDatabase::collectionFromSchema(document_schema_name));
-            dbdocument.reset(new_client);
-        }
-            break;
-        case jsonqml::Vertex: {
-            jsonio::DBVertexDocument* new_client = jsonio::DBVertexDocument::newVertexDocument(
-                        database, document_schema_name);
-            dbdocument.reset(new_client);
-        }
-            break;
-        case jsonqml::Edge: {
-            jsonio::DBEdgeDocument* new_client = jsonio::DBEdgeDocument::newEdgeDocument(
-                        database, document_schema_name);
-            new_client->setMode(true);  // Do we need change it?
-            dbdocument.reset(new_client);
-        }
-            break;
+    if(database->db_connected()) {
+        const jsonio::DataBase& jsonio_db = database->jsonio_database(doc_type==jsonqml::Resource);
+
+        if(!dbdocument) {
+            switch(doc_type) {
+            case jsonqml::Json:   // To do
+
+            case jsonqml::Resource:  // schema document with resource database
+            case jsonqml::Schema:  {
+                jsonio::DBSchemaDocument* new_client = jsonio::DBSchemaDocument::newSchemaDocument(
+                            jsonio_db, document_schema_name, ArangoDatabase::collectionFromSchema(document_schema_name));
+                dbdocument.reset(new_client);
+            }
+                break;
+            case jsonqml::Vertex: {
+                jsonio::DBVertexDocument* new_client = jsonio::DBVertexDocument::newVertexDocument(
+                            jsonio_db, document_schema_name);
+                dbdocument.reset(new_client);
+            }
+                break;
+            case jsonqml::Edge: {
+                jsonio::DBEdgeDocument* new_client = jsonio::DBEdgeDocument::newEdgeDocument(
+                            jsonio_db, document_schema_name);
+                new_client->setMode(true);  // Do we need change it?
+                dbdocument.reset(new_client);
+            }
+                break;
+            }
         }
     }
     return (dbdocument.get() != nullptr);
@@ -95,7 +73,7 @@ void ArangoDBDocumentPrivate::build_table()
     // wait jsonio mutex for finish
     std::this_thread::sleep_for(std::chrono::microseconds(2));
     last_good_query = dbdocument->currentQueryResult().condition();
-    new_header = dbdocument->currentQueryResult().query().fields();
+    last_fields = new_header = dbdocument->currentQueryResult().query().fields();
     new_header.insert(new_header.begin(), "key");
     new_table.clear();
     for(const auto& line: dbdocument->currentQueryResult().queryResult())  {
@@ -122,7 +100,15 @@ void ArangoDBDocumentPrivate::set_default_query()
 void ArangoDBDocumentPrivate::update_query()
 {
     if(is_dbdocument()) {
-        dbdocument->updateQuery();
+        if(dbdocument->queryDefined()) {
+            dbdocument->updateQuery();
+        }
+        else {
+            if(query_exist) {
+                // restore query after delete document
+                dbdocument->setQuery(last_good_query, last_fields);
+            }
+        }
         build_table();
     }
 }
@@ -141,13 +127,26 @@ bool ArangoDBDocumentPrivate::update_schema(const std::string& new_schema)
     return false;
 }
 
+bool ArangoDBDocumentPrivate::remove_document()
+{
+    bool table_changed=false;
+    if(is_dbdocument()) {
+        if(dbdocument->queryDefined()) {
+            new_table={};
+            table_changed=true;
+        }
+        dbdocument.reset();
+    }
+    return table_changed;
+}
+
 void ArangoDBDocumentPrivate::execute_query(const jsonio::DBQueryBase &query,
                                             const jsonio::values_t &query_fields)
 {
     if(is_dbdocument()) {
         new_table = dbdocument->downloadDocuments(query, query_fields);
         last_good_query = query;
-        new_header = query_fields;
+        last_fields = new_header = query_fields;
     }
 }
 
@@ -210,13 +209,25 @@ void ArangoDBDocumentPrivate::remove(const std::string& doc_id)
 //------------------------------------------------------------------------------------
 
 
-ArangoDBDocument::ArangoDBDocument(DocumentType type, const QString &schema, ArangoDatabase *db_client, QObject *parent)
+ArangoDBDocument::ArangoDBDocument(const ArangoDatabase* parent_database,
+                                   ArangoDBDocumentPrivate* private_doc):
+    QObject()
 {
+    arango_database = parent_database;
+    impl_ptr.reset(private_doc);
+
+    // reset client to new database allocation
+    QObject::connect(arango_database, &ArangoDatabase::dbdriveChanged, this, &ArangoDBDocument::reloadQuery);
+    QObject::connect(arango_database, &ArangoDatabase::errorConnection, this, &ArangoDBDocument::resetClient);
 
     QObject::connect(this, &ArangoDBDocument::updatedDocument, arango_database, &ArangoDatabase::afterUpdatedDocument);
     QObject::connect(this, &ArangoDBDocument::deletedDocument, arango_database, &ArangoDatabase::afterDeletedDocument);
 
     QObject::connect(this, &ArangoDBDocument::isException, &uiSettings(), &Preferences::setError);
+}
+
+ArangoDBDocument::~ArangoDBDocument()
+{
 }
 
 void ArangoDBDocument::lastQueryResult(jsonio::DBQueryBase &query,
@@ -229,6 +240,13 @@ void ArangoDBDocument::lastQueryResult(jsonio::DBQueryBase &query,
     impl_func()->new_header = {};
     data = std::move(impl_func()->new_table);
     impl_func()->new_table = {};
+}
+
+void ArangoDBDocument::resetClient()
+{
+    if(impl_func()->remove_document()) {
+        emit finishedQuery();
+    }
 }
 
 void ArangoDBDocument::resetSchema(std::string aschema_name)
@@ -260,6 +278,9 @@ void ArangoDBDocument::reloadQuery()
 
 void ArangoDBDocument::changeQuery(jsonio::DBQueryBase query, std::vector<std::string> query_fields)
 {
+    // only internal jsonio reload tables
+    QObject::connect(arango_database, &ArangoDatabase::dbdriveChanged, this, &ArangoDBDocument::changedClient);
+
     QMutexLocker locker(&result_mutex);
     try {
         impl_func()->set_query(query, query_fields);
@@ -287,9 +308,9 @@ void ArangoDBDocument::executeQuery(jsonio::DBQueryBase query, std::vector<std::
 void ArangoDBDocument::readDocument(std::string doc_id)
 {
     try {
-        ui_logger->debug("read document {}", doc_id);
         std::string schema_doc;
         auto json_data = impl_func()->read(doc_id, schema_doc);
+        ui_logger->debug("read document {} {}", doc_id, schema_doc);
         emit readedDocument(schema_doc, json_data);
     }
     catch(std::exception& e) {

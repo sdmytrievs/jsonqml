@@ -8,7 +8,7 @@ namespace jsonqml {
 
 DBQueryModel::DBQueryModel(DocumentType type,
                            const QString& schema,
-                           const ArangoDatabase* db_client,
+                           ArangoDatabase* db_client,
                            QObject *parent)
     : SelectModel(parent),
       dbdocument(nullptr)
@@ -23,14 +23,14 @@ DBQueryModel::~DBQueryModel()
 }
 
 void DBQueryModel::reset_dbclient(DocumentType type, const QString& schema,
-                                 const ArangoDatabase* db_client)
+                                  ArangoDatabase* db_client)
 {
     qRegisterMetaType<std::vector<std::string> >("std::vector<std::string>");
     qRegisterMetaType<jsonio::DBQueryBase>("jsonio::DBQueryBase");
     qRegisterMetaType<std::string>("std::string");
 
     try {
-        dbdocument = new ArangoDBDocument(type, schema, db_client);
+        dbdocument = db_client->createDocument(type, schema);
 
         QObject::connect(dbdocument, &ArangoDBDocument::finishedQuery, this, &DBQueryModel::updateKeyList);
         QObject::connect(dbdocument, &ArangoDBDocument::finished, [&]() { set_executing(false); } );
