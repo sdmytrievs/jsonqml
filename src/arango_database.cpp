@@ -1,5 +1,3 @@
-//#include "jsonqml/clients/settings_client.h"
-#include "arango_database_p.h"
 #include "arango_document_p.h"
 #include "jsonio/dbdriverarango.h"
 
@@ -99,18 +97,19 @@ ArangoDatabasePrivate::ArangoDatabasePrivate():
     init();
 }
 
+ArangoDatabasePrivate::~ArangoDatabasePrivate()
+{
+
+}
+
 void ArangoDatabasePrivate::init()
 {
     auto dbconnection = jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
     db_data.db_connect_current = QString::fromStdString(dbconnection);
     db_data.read_settings(dbconnection, jsonio_settings);
-    //try {
-       std::string err_message;
-       update_database(err_message);
-    //}
+    std::string err_message;
+    update_database(err_message);
 }
-
-//----------------------------------------------------------------------------
 
 void ArangoDatabasePrivate::update_root_client(const std::string& db_group)
 {
@@ -136,9 +135,9 @@ void ArangoDatabasePrivate::get_system_lists(const std::string& db_group,
 
 void ArangoDatabasePrivate::create_collection_if_no_exist(jsonio::AbstractDBDriver* db_driver)
 {
-    for(const auto& vertex_col: jsonio::DataBase::usedVertexCollections()) {
-        db_driver->create_collection(vertex_col.second, "vertex");
-    }
+    //for(const auto& vertex_col: jsonio::DataBase::usedVertexCollections()) {
+    //    db_driver->create_collection(vertex_col.second, "vertex");
+    //}
     for(const auto& edge_col: jsonio::DataBase::usedEdgeCollections()) {
         db_driver->create_collection(edge_col.second, "edge");
     }
@@ -263,11 +262,12 @@ void ArangoDatabase::ConnectFromSettings()
 {
     try {
         std::string err_mess;
-        auto dbconnection = impl_func()->jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
-        impl_func()->db_data.read_settings(dbconnection, impl_func()->jsonio_settings);
+        auto d = impl_func();
+        auto dbconnection = d->jsonui_group.value<std::string>("CurrentDBConnection","ArangoDBLocal");
+        d->db_data.read_settings(dbconnection, d->jsonio_settings);
         emit dbConnectChanged();
 
-        if(impl_func()->update_database(err_mess)) {
+        if(d->update_database(err_mess)) {
             if(err_mess.empty()) {
                 emit dbdriveChanged();
             }
@@ -275,7 +275,6 @@ void ArangoDatabase::ConnectFromSettings()
                 emit errorConnection(QString::fromStdString(err_mess));
             }
         }
-
     }
     catch(std::exception& e) {
         uiSettings().setError(e.what());

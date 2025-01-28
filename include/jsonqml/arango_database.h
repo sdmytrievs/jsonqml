@@ -47,8 +47,7 @@ public slots:
 
     /// Restore collection descriptors after scemasPathChanged
     void resetCollectionsList();
-
-private slots:
+    /// Change db driver according new settings
     void ConnectFromSettings();
 
 public:
@@ -62,10 +61,7 @@ public:
     /// Destructor
     ~ArangoDatabase();
 
-
     QString dbConnect();
-    //bool dbConnected();
-
     QString dbUrl();
     QString dbName();
     QString dbUser();
@@ -76,7 +72,6 @@ public:
     /// The current worker Database exists and checked connection for the current credentials group
     bool dbConnected() const;
     ArangoDBDocument* createDocument(DocumentType type, const QString& document_schema_name="");
-
 
     void getRootLists(const std::string& db_group,
                           QStringList& db_all_databases,

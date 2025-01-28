@@ -20,7 +20,7 @@ public:
     explicit ArangoDatabasePrivate();
 
     /// Destructor
-    ~ArangoDatabasePrivate(){}
+    virtual ~ArangoDatabasePrivate();
 
     void init();
     /// Update the current database driver. Return false if credentials are not changed;

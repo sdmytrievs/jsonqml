@@ -55,7 +55,6 @@ class Preferences : public QObject
     Q_PROPERTY(bool canEditDocPages MEMBER can_edit_doc_pages NOTIFY settingsChanged)
 
     Q_PROPERTY(QStringList dbConnectList MEMBER db_connect_list NOTIFY dbConnectListChanged)
-    //Q_PROPERTY(bool dbConnected READ dbConnected NOTIFY dbdriveChanged)
 
     Q_PROPERTY(QString dbConnect READ dbConnectCurrent WRITE setConnectCurrent NOTIFY dbConnectChanged)
     Q_PROPERTY(QString dbUrl READ dbUrl WRITE setUrl NOTIFY dbConnectChanged)
@@ -70,16 +69,15 @@ class Preferences : public QObject
 
 signals:
     void errorChanged();
-
     void settingsChanged();
-    void workDirChanged();
-    void scemasPathChanged();
-    void dbdriverChanged();
-
     void dbConnectListChanged();
     void dbConnectChanged();
     void dbNamesListChanged();
     void dbUsersListChanged();
+
+    void workDirChanged();
+    void scemasPathChanged();
+    void dbdriverChanged();
 
 public slots:
     /// Setting the value of the last error that occurred
@@ -183,9 +181,9 @@ protected:
 
     QScopedPointer<PreferencesPrivate> impl_ptr;
     PreferencesPrivate* impl_func()
-              { return reinterpret_cast<PreferencesPrivate *>(impl_ptr.get()); }
+    { return reinterpret_cast<PreferencesPrivate *>(impl_ptr.get()); }
     const PreferencesPrivate* impl_func() const
-              { return reinterpret_cast<const PreferencesPrivate *>(impl_ptr.get()); }
+    { return reinterpret_cast<const PreferencesPrivate *>(impl_ptr.get()); }
 
 };
 

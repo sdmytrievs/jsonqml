@@ -20,7 +20,7 @@ class DBQueryModel: public SelectModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool queryExecuting MEMBER query_executing NOTIFY executingChange)
+    Q_PROPERTY(bool queryExecuting READ queryExecuting NOTIFY executingChange)
 
 signals:
     void executingChange();
@@ -29,9 +29,6 @@ signals:
     void finished();
     /// Report a request that has been executed with an exception
     void isException(const QString& msg);
-
-    /// Notify the finished query process
-    void finishedQuery();
 
     /// Execute the query \a query for the given database connection.
     void CmExecuteQuery(const jsonio::DBQueryBase& query,const std::vector<std::string>& query_fields);
@@ -59,6 +56,8 @@ public:
 
     Q_INVOKABLE QString lastQuery() const;
     Q_INVOKABLE QStringList lastQueryFields() const;
+
+    Q_INVOKABLE bool queryExecuting();
 
 protected:
     jsonio::DBQueryBase data_query;

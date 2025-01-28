@@ -14,12 +14,14 @@ class VertexClient : public JsonClient
 
     Q_PROPERTY(QAbstractItemModel* keysmodel READ keysmodel NOTIFY keysModelChanged)
     Q_PROPERTY(bool sortingEnabled READ sortingEnabled NOTIFY tablePropertiesChanged)
+    Q_PROPERTY(bool queryExecuting READ queryExecuting NOTIFY executingChange)
 
     Q_DISABLE_COPY(VertexClient)
 
 signals:
     void keysModelChanged();
     void tablePropertiesChanged();
+    void executingChange();
 
 public slots:
     void setModelSchema() override;
@@ -33,6 +35,7 @@ public:
 
     QAbstractItemModel *keysmodel();
     bool sortingEnabled();
+    Q_INVOKABLE bool queryExecuting();
 
     Q_INVOKABLE virtual void readEditorData(int row);
     Q_INVOKABLE virtual void readEditorId(QString vertex_id);

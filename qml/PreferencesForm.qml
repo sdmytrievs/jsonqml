@@ -80,7 +80,6 @@ Item {
                     Layout.fillWidth: true
                     editable: true
                     model: Preferences.dbNamesList
-                    onCurrentTextChanged: Preferences.dbName = currentText
                     onAccepted: {
                         if (find(editText) === -1)
                             Preferences.addDBName(editText)
@@ -99,7 +98,6 @@ Item {
                     Layout.fillWidth: true
                     editable: true
                     model: Preferences.dbUsersList
-                    onCurrentTextChanged: Preferences.dbUser = currentText
                     onAccepted: {
                         if (find(editText) === -1)
                             Preferences.addDBUser(editText)
@@ -196,6 +194,8 @@ Item {
             implicitHeight: schemasButton.implicitHeight*2
             text: qsTr("Apply")
             onClicked: {
+                Preferences.dbName = nameBox.currentText
+                Preferences.dbUser = userBox.currentText
                 if(Preferences.applyChanges() ) {
                     tabBar.setCurrentIndex(1)
                 }

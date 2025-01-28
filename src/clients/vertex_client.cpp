@@ -136,12 +136,18 @@ VertexClient::VertexClient(VertexClientPrivate *impl, QObject *parent):
 {
     connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument, this, &VertexClient::setEditorData);
     connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid, this, &VertexClient::setEditorOid);
+    connect(impl_func()->keys_model.get(), &DBKeysModel::executingChange, this, &VertexClient::executingChange);
 }
 
 VertexClient::VertexClient(QObject *parent):
     VertexClient(new VertexClientPrivate(), parent)
 {
     // virtual init into JsonClient
+}
+
+bool VertexClient::queryExecuting()
+{
+    return impl_func()->keys_model->queryExecuting();
 }
 
 void VertexClient::setModelSchema()

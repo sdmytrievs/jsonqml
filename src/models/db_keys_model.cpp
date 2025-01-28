@@ -47,14 +47,12 @@ void DBKeysModel::updateKeyList()
 void DBKeysModel::updateQuery()
 {
     uiSettings().setError(QString());
-    set_executing(true);
     emit cmReloadQuery();
 }
 
 void DBKeysModel::resetSchema(QString new_schema_name)
 {
     uiSettings().setError(QString());
-    set_executing(true);
     emit cmResetSchema(new_schema_name.toStdString());
 }
 
@@ -69,7 +67,6 @@ void DBKeysModel::setQuery(const jsonio::DBQueryBase& query,
                            const std::vector<std::string>& query_fields)
 {
     uiSettings().setError(QString());
-    set_executing(true);
     emit cmChangeQuery(query, query_fields);
 }
 

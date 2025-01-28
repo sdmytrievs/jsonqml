@@ -99,7 +99,7 @@ void PreferencesPrivate::apply_changes_to_static()
     JsonSchemaModel::editID = jsonui_group.value("CanEdit_id", JsonSchemaModel::editID);
     //JsonView::expandedFields = jsonui_group.value("KeepExpanded", JsonView::expandedFields);
     //HelpMainWindow::editHelp = jsonui_group.value( "CanEditDocPages", HelpMainWindow::editHelp );
-    ui_logger->debug("Applied changes to static");
+    ui_logger->debug("Applied changes to internal static values");
 }
 
 void PreferencesPrivate::save_other_settings()
@@ -176,6 +176,7 @@ Preferences::Preferences()
 
     if(Preferences::use_database) {
         QObject::connect(this, &Preferences::scemasPathChanged, &arango_db(), &ArangoDatabase::resetCollectionsList);
+        QObject::connect(this, &Preferences::dbdriverChanged, &arango_db(), &ArangoDatabase::ConnectFromSettings);
         QObject::connect(&arango_db(), &ArangoDatabase::errorConnection, this, &Preferences::setError);
     }
     qDebug() << "Preferences construct";
@@ -260,9 +261,6 @@ QString Preferences::lastError() const
     return err_message;
 }
 
-/*!
-   Set the value of the last error that occurred end emit signal about error.
-*/
 void Preferences::setError(const QString& error)
 {
     qDebug() << "Error " << error;
@@ -308,43 +306,36 @@ bool Preferences::isCreate() const
 void Preferences::setConnectCurrent(const QString &val)
 {
     db_data.db_connect_current = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setUrl(const QString &val)
 {
     db_data.db_url = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setName(const QString &val)
 {
     db_data.db_name = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setUser(const QString &val)
 {
     db_data.db_user = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setUserPassword(const QString &val)
 {
     db_data.db_user_password = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setAccess(bool val)
 {
     db_data.db_access = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::setCreate(bool val)
 {
     db_data.db_create = val;
-    emit dbConnectChanged();
 }
 
 void Preferences::addDBName(const QString &new_name)

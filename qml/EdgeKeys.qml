@@ -46,4 +46,11 @@ Item {
 
         }
     }
+    BusyIndicator {
+      id: edgequery
+      width: 50
+      height: 50
+      anchors.centerIn: parent
+      running: edgeClient.queryExecuting
+    }
 }

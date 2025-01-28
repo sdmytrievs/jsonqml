@@ -19,6 +19,8 @@ signals:
     /// Signal when database driver changed
     void changedClient();
 
+    /// Notify the started any db request
+    void started();
     /// Notify the finished any db request
     void finished();
     /// Report a request that has been executed with an exception

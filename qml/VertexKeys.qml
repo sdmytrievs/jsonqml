@@ -46,4 +46,12 @@ Item {
 
         }
     }
+
+    BusyIndicator {
+      id: vertexquery
+      width: 50
+      height: 50
+      anchors.centerIn: parent
+      running: vertexClient.queryExecuting
+    }
 }

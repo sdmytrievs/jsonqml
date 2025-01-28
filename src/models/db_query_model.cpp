@@ -34,6 +34,7 @@ void DBQueryModel::reset_dbclient(DocumentType type, const QString& schema,
 
         QObject::connect(dbdocument, &ArangoDBDocument::finishedQuery, this, &DBQueryModel::updateKeyList);
         QObject::connect(dbdocument, &ArangoDBDocument::finished, [&]() { set_executing(false); } );
+        QObject::connect(dbdocument, &ArangoDBDocument::started, [&]() { set_executing(true); } );
         QObject::connect(this, &DBQueryModel::CmExecuteQuery, dbdocument, &ArangoDBDocument::executeQuery);
 
         // thread functions
@@ -65,17 +66,10 @@ void DBQueryModel::resetTable(model_table_t&& table_data,
     endResetModel();
 }
 
-/*!
-    Execute the query \a query for the given database connection \a
-    db.
-    lastError() can be used to retrieve verbose information if there
-    was an error setting the query.
-*/
 void DBQueryModel::executeQuery(const jsonio::DBQueryBase& query,
                            const std::vector<std::string>& query_fields)
 {
     uiSettings().setError(QString());
-    set_executing(true);
     emit CmExecuteQuery(query, query_fields);
 }
 
@@ -107,6 +101,11 @@ QStringList DBQueryModel::lastQueryFields() const
                    std::back_inserter(new_list),
                    [](const std::string &v){ return QString::fromStdString(v); });
     return new_list;
+}
+
+bool DBQueryModel::queryExecuting()
+{
+    return query_executing;
 }
 
 }
