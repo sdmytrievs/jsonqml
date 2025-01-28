@@ -93,8 +93,8 @@ std::string ArangoDBDocumentPrivate::schema_from_id(const std::string &doc_id) c
 void ArangoDBDocumentPrivate::set_query(const jsonio::DBQueryBase &query,
                                         const jsonio::values_t &query_fields)
 {
+    query_exist = true;
     if(is_dbdocument()) {
-        query_exist = true;
         dbdocument->setQuery(query, query_fields);
         build_table();
     }

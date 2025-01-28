@@ -78,6 +78,7 @@ signals:
     void workDirChanged();
     void scemasPathChanged();
     void dbdriverChanged();
+    void openVertex();
 
 public slots:
     /// Setting the value of the last error that occurred

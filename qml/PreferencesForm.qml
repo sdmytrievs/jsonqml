@@ -196,9 +196,7 @@ Item {
             onClicked: {
                 Preferences.dbName = nameBox.currentText
                 Preferences.dbUser = userBox.currentText
-                if(Preferences.applyChanges() ) {
-                    tabBar.setCurrentIndex(1)
-                }
+                Preferences.applyChanges()
            }
         }
     }

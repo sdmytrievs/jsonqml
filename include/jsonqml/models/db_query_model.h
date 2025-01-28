@@ -24,19 +24,12 @@ class DBQueryModel: public SelectModel
 
 signals:
     void executingChange();
-
-    /// Notify the finished any db request
-    void finished();
-    /// Report a request that has been executed with an exception
-    void isException(const QString& msg);
-
     /// Execute the query \a query for the given database connection.
     void CmExecuteQuery(const jsonio::DBQueryBase& query,const std::vector<std::string>& query_fields);
 
 public slots:
     /// Refresh  documents keys list for table
     virtual void updateKeyList();
-
 
 public:
     explicit DBQueryModel(DocumentType type, const QString& schema,

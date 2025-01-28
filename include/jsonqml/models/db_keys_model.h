@@ -54,16 +54,18 @@ public:
     Q_INVOKABLE void updateFields(const QStringList& query_fields);
     void updateQuery(const jsonio::DBQueryBase& query);
     void updateFields(const model_line_t& query_fields);
+
+    /// Set the query \a query for the given database connection \a  db.
+    /// settings->lastError() can be used to retrieve verbose information if there
+    ///    was an error setting the query.
     void setQuery(const jsonio::DBQueryBase& query,
                   const model_line_t& query_fields);
 
-    //Q_INVOKABLE QString get_schema() const;
     Q_INVOKABLE std::string get_id(size_t row) const;
     Q_INVOKABLE void read(size_t row);
     Q_INVOKABLE void read_query(std::string doc_id);
     Q_INVOKABLE void save(const std::string& json_data);
     Q_INVOKABLE void remove(size_t row);
-
 };
 
 }

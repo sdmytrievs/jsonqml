@@ -168,7 +168,7 @@ Rectangle {
                         onCurrentChanged: {
                             select(currentIndex, ItemSelectionModel.ClearAndSelect | ItemSelectionModel.Rows)
                             selectedRow =  currentIndex.row;
-                            console.log("SelectedRow: ", selectedRow)
+                            //console.log("SelectedRow: ", selectedRow)
                         }
                     }
 

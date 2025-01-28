@@ -1,14 +1,9 @@
-
 #include "jsonqml/models/db_keys_model.h"
 #include "jsonqml/clients/settings_client.h"
-
 
 namespace jsonqml {
 
 
-/*!
-    Creates an empty DBKeysModel with the given \a parent.
- */
 DBKeysModel::DBKeysModel(DocumentType type, const QString& schema,
                          ArangoDatabase* db_client,
                          QObject *parent)
@@ -56,13 +51,6 @@ void DBKeysModel::resetSchema(QString new_schema_name)
     emit cmResetSchema(new_schema_name.toStdString());
 }
 
-/*!
-    Execute the query \a query for the given database connection \a
-    db.
-
-    lastError() can be used to retrieve verbose information if there
-    was an error setting the query.
-*/
 void DBKeysModel::setQuery(const jsonio::DBQueryBase& query,
                            const std::vector<std::string>& query_fields)
 {
@@ -96,7 +84,6 @@ void DBKeysModel::updateFields(const QStringList &query_fields)
 
 void DBKeysModel::read(size_t row)
 {
-    //uiSettings().setError(QString());
     auto doc_id = get_id(row);
     if(!doc_id.empty()) {
         emit cmRead(doc_id);
@@ -112,13 +99,12 @@ void DBKeysModel::read_query(std::string doc_id)
 
 void DBKeysModel::save(const std::string &json_data)
 {
-    //uiSettings().setError(QString());
+    // reload all model after save -> undifined updated/saved row number
     emit cmUpdate(json_data);
 }
 
 void DBKeysModel::remove(size_t row)
 {
-    //uiSettings().setError(QString());
     auto doc_id = get_id(row);
     if(!doc_id.empty()) {
         emit cmDelete(doc_id);

@@ -8,6 +8,7 @@
 
 namespace jsonqml {
 
+extern std::shared_ptr<spdlog::logger> ui_logger;
 
 VertexClientPrivate::VertexClientPrivate():
     JsonClientPrivate(),
@@ -124,6 +125,7 @@ void VertexClientPrivate::id_to_editor(std::string doc_id)
 bool VertexClientPrivate::set_json(const std::string& json_string, const QString& schema_name)
 {
     if(json_tree_model) {
+        ui_logger->debug("set_json document {} {} ", schema_name.toStdString(), json_string.size());
         json_tree_model->setupModelData(json_string, schema_name);
     }
     return true;
@@ -162,6 +164,7 @@ void VertexClient::setModelSchema()
 void VertexClient::setEditorData(std::string schema_name, std::string doc_json)
 {
     try {
+        ui_logger->debug("set readed document {} {}", doc_json.size(), schema_name);
         impl_func()->set_editor_data(schema_name, doc_json);
     }
     catch(std::exception& e) {
@@ -181,7 +184,9 @@ void VertexClient::setEditorOid(std::string doc_id)
 
 void VertexClient::readEditorData(int row)
 {
-    impl_func()->read_editor_data(row);
+    if(row>=0) {
+        impl_func()->read_editor_data(row);
+    }
 }
 
 void VertexClient::readEditorId(QString vertex_id)

@@ -178,6 +178,7 @@ Preferences::Preferences()
         QObject::connect(this, &Preferences::scemasPathChanged, &arango_db(), &ArangoDatabase::resetCollectionsList);
         QObject::connect(this, &Preferences::dbdriverChanged, &arango_db(), &ArangoDatabase::ConnectFromSettings);
         QObject::connect(&arango_db(), &ArangoDatabase::errorConnection, this, &Preferences::setError);
+        QObject::connect(&arango_db(), &ArangoDatabase::dbdriveChanged, this, &Preferences::openVertex);
     }
     qDebug() << "Preferences construct";
 }

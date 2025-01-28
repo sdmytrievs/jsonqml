@@ -48,7 +48,6 @@ void JsonSchemaModel::setupModelData(const std::string& json_string, const QStri
         throw;
     }
     emit modelExpand();
-
 }
 
 QModelIndex JsonSchemaModel::index(int row, int column, const QModelIndex &parent) const

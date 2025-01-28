@@ -21,6 +21,26 @@ ApplicationWindow {
         }
     }
 
+    function toVertexForm() {
+        tabBar.setCurrentIndex(2)
+    }
+    function toEdgeForm() {
+        tabBar.setCurrentIndex(4)
+    }
+    function toVertexKeys() {
+        tabBar.setCurrentIndex(1)
+    }
+    function toEdgeKeys() {
+        tabBar.setCurrentIndex(3)
+    }
+
+    Connections{
+        target : Preferences
+        function onOpenVertex() {
+            toVertexKeys()
+        }
+    }
+
     minimumWidth: mainLayout.Layout.minimumWidth + 2 * margin
     minimumHeight: mainLayout.Layout.minimumHeight + 2 * margin
 
@@ -100,27 +120,6 @@ ApplicationWindow {
        id: error_label
        text: Preferences.error
        color: "red"
-    }
-
-    FileDialog {
-        visible: false
-        id: fileOpenDialog
-        title: qsTr("Choose a JSON file")
-        fileMode: FileDialog.OpenFile
-        nameFilters: [qsTr("JSON files (*.json)")]
-        currentFolder: Preferences.workDir
-        //onAccepted: client.readJson(fileOpenDialog.selectedFile)
-
-    }
-
-    FileDialog {
-        visible: false
-        id: fileSaveDialog
-        title: qsTr("Save a JSON file")
-        fileMode: FileDialog.SaveFile
-        nameFilters: [qsTr("JSON files (*.json)")]
-        currentFolder: Preferences.workDir
-        // onAccepted: client.saveJson(selectedFile)
     }
 
     FolderDialog {

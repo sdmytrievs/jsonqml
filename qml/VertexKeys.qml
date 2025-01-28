@@ -39,9 +39,9 @@ Item {
 
 
             function doubleClickFunction() {
-                console.log("doubleClick: ", selRow)
+                //console.log("doubleClick: ", selRow)
                 vertexClient.readEditorData(selRow)
-                tabBar.setCurrentIndex(2)
+                toVertexForm()
             }
 
         }

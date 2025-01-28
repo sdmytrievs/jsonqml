@@ -39,9 +39,9 @@ Item {
 
 
             function doubleClickFunction() {
-                console.log("edge doubleClick: ", selRow)
+                //console.log("edge doubleClick: ", selRow)
                 edgeClient.readEditorData(selRow)
-                tabBar.setCurrentIndex(4)
+                toEdgeForm()
             }
 
         }
