@@ -39,11 +39,18 @@ Item {
 
 
             function doubleClickFunction() {
-                console.log("edge doubleClick: ", selRow)
+                //console.log("edge doubleClick: ", selRow)
                 edgeClient.readEditorData(selRow)
-                tabBar.setCurrentIndex(4)
+                toEdgeForm()
             }
 
         }
+    }
+    BusyIndicator {
+      id: edgequery
+      width: 50
+      height: 50
+      anchors.centerIn: parent
+      running: edgeClient.queryExecuting
     }
 }

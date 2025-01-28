@@ -22,7 +22,7 @@ Item {
                 text: qsTr("Incoming edges")
                 onClicked: {
                     edgeClient.setIncomingEdges(vertexClient.editorId())
-                    tabBar.setCurrentIndex(3)
+                    toEdgeKeys()
                 }
             }
             Button {
@@ -31,7 +31,7 @@ Item {
                 text: qsTr("Outgoing edges")
                 onClicked: {
                     edgeClient.setOutgoingEdges(vertexClient.editorId())
-                    tabBar.setCurrentIndex(3)
+                    toEdgeKeys()
                 }
             }
         }
@@ -45,7 +45,6 @@ Item {
             jsonModel: vertexClient.jsonmodel
 
         }
-
     }
 }
 

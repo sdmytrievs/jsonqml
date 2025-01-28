@@ -13,7 +13,7 @@ SelectModel::SelectModel(QObject *parent)
 
 SelectModel::SelectModel(const std::vector<std::string>& list,
                          const std::string& split_regexp,
-                         std::vector<std::string> &&header_data,
+                         model_line_t &&header_data,
                          QObject *parent)
     : QAbstractTableModel(parent),
       header(std::move(header_data))
@@ -24,8 +24,8 @@ SelectModel::SelectModel(const std::vector<std::string>& list,
     set_default_header();
 }
 
-SelectModel::SelectModel(std::vector<std::vector<std::string>> &&table_data,
-                         std::vector<std::string> &&header_data,
+SelectModel::SelectModel(model_table_t &&table_data,
+                         model_line_t &&header_data,
                          QObject *parent)
     : QAbstractTableModel(parent),
       header(std::move(header_data)),
@@ -38,8 +38,8 @@ SelectModel::~SelectModel()
 {
 }
 
-void SelectModel::resetTable(std::vector<std::vector<std::string>>&& table_data,
-                             const std::vector<std::string>& header_data)
+void SelectModel::resetTable(model_table_t&& table_data,
+                             const model_line_t& header_data)
 {
     beginResetModel();
     table = std::move(table_data);

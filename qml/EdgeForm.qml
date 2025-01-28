@@ -21,7 +21,7 @@ Item {
                 icon.source: "qrc:///resources/images/Incoming24.png"
                 onClicked: {
                     vertexClient.readEditorId(edgeClient.incomingVertex())
-                    tabBar.setCurrentIndex(2)
+                    toVertexForm()
                 }
             }
             SelectTableView {
@@ -33,7 +33,7 @@ Item {
 
                 function doubleClickFunction() {
                     vertexClient.readEditorId(edgeClient.incomingVertex())
-                    tabBar.setCurrentIndex(2)
+                    toVertexForm()
                 }
             }
         }
@@ -49,7 +49,7 @@ Item {
                 icon.source: "qrc:///resources/images/Outgoing24.png"
                 onClicked: {
                     vertexClient.readEditorId(edgeClient.outgoingVertex())
-                    tabBar.setCurrentIndex(2)
+                    toVertexForm()
                 }
             }
             SelectTableView {
@@ -61,7 +61,7 @@ Item {
 
                 function doubleClickFunction() {
                     vertexClient.readEditorId(edgeClient.outgoingVertex())
-                    tabBar.setCurrentIndex(2)
+                    toVertexForm()
                 }
             }
 
@@ -76,7 +76,6 @@ Item {
             jsonModel: edgeClient.jsonmodel
 
         }
-
     }
 }
 

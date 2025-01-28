@@ -12,6 +12,11 @@ namespace jsonqml {
 /// Function fetching document from a collection that match the specified condition
 using  GetColor_f = std::function<QColor(int line, int column)>;
 
+/// Record values type
+using model_line_t = std::vector<std::string>;
+
+/// Lines of colums values table
+using model_table_t = std::vector<model_line_t>;
 
 ///  \class SelectModel
 ///  \brief The SelectModel class provides a read-only data model for table data sets.
@@ -31,19 +36,18 @@ public:
     /// Split each line into a list of columns using regexp.
     explicit SelectModel(const std::vector<std::string>& list,
                          const std::string& split_regexp="\t",
-                         std::vector<std::string>&& header_data={},
+                         model_line_t&& header_data={},
                          QObject *parent = nullptr);
 
     ///  Creates a SelectModel for 2D vector data with the given \a parent.
-    explicit SelectModel(std::vector<std::vector<std::string>>&& table_data,
-                         std::vector<std::string>&& header_data={},
+    explicit SelectModel(model_table_t&& table_data,
+                         model_line_t&& header_data={},
                          QObject *parent = nullptr);
 
     /// Destroys the object and frees any allocated resources.
     virtual ~SelectModel();
 
-    virtual void resetTable(std::vector<std::vector<std::string>>&& table_data,
-                const std::vector<std::string>& header_data);
+    virtual void resetTable(model_table_t&& table_data, const model_line_t& header_data);
 
     void setColorFunction(GetColor_f func);
 
@@ -55,8 +59,8 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
 protected:
-    std::vector<std::string> header;
-    std::vector<std::vector<std::string>> table;
+    model_line_t header;
+    model_table_t table;
 
 private:
     bool use_color_function = false;

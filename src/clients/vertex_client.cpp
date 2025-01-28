@@ -3,18 +3,18 @@
 #include "jsonqml/clients/settings_client.h"
 #include "jsonqml/models/schema_model.h"
 #include "jsonqml/models/db_keys_model.h"
+#include "jsonio/dbconnect.h"
 
 
 namespace jsonqml {
 
+extern std::shared_ptr<spdlog::logger> ui_logger;
 
 VertexClientPrivate::VertexClientPrivate():
     JsonClientPrivate(),
-    dbcollection(nullptr),
     keys_model(nullptr),
     sort_proxy_model(nullptr)
 {
-
 }
 
 void VertexClientPrivate::init()
@@ -28,26 +28,16 @@ void VertexClientPrivate::init()
     }
     // set first schema as inital
     update_schema(new_list_default_schema());
-
     // alloc editor model
     json_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
 
-    // define keys model
+    // define keys model and start query
     update_keysmodel();
-
-    // try read first record to editor
-    read_editor_data(0);
 }
 
 QStringList VertexClientPrivate::gen_schema_list() const
 {
-    auto std_schema_list = jsonio::DataBase::getVertexesList();
-    QStringList new_list;
-    //new_list.append(no_schema_name);
-    std::transform(std_schema_list.begin(), std_schema_list.end(),
-                   std::back_inserter(new_list),
-                   [](const std::string &v){ return QString::fromStdString(v); });
-    return new_list;
+    return ArangoDatabase::getVertexesList();
 }
 
 QAbstractItemModel *VertexClientPrivate::keys_list_model() const
@@ -66,7 +56,7 @@ bool VertexClientPrivate::sorting_enabled() const
 bool VertexClientPrivate::update_schema(QString new_schema)
 {
     if(!schema_names_list.contains(new_schema)) {
-        new_schema = no_schema_name;
+        new_schema = new_list_default_schema();
     }
     if(current_schema_name != new_schema) {
         current_schema_name = new_schema;
@@ -84,34 +74,19 @@ void VertexClientPrivate::update_jsonmodel()
 
 void VertexClientPrivate::update_keysmodel()
 {
-    if(!uiSettings().dbConnected()) {
-        dbcollection.reset();
-        sort_proxy_model.reset();
-        keys_model.reset();
-        qDebug() << "update_keysmodel no connection";
-    }
-    else {
-        if(keys_model.get()==nullptr || dbcollection.get()==nullptr) {
-            auto document_schema_name = current_schema_name.toStdString();
-            jsonio::DBVertexDocument* new_client = jsonio::DBVertexDocument::newVertexDocumentQuery(
-                        uiSettings().database(), document_schema_name);  //default query
-            dbcollection.reset(new_client);
-            keys_model.reset(new DBKeysModel(dbcollection));
-        }
-        else {
-            if(keys_model->get_schema()!=current_schema_name) {
-                keys_model->resetSchema(current_schema_name);
-            }
-            else {
-                keys_model->updateQuery();
-            }
-        }
+    if(keys_model.get()==nullptr) {
+        // could be zero, if schema list empty
+        // alloc when refresh list
+        keys_model.reset(new DBKeysModel(Vertex, current_schema_name));
         if(sorting_enabled()) {
             sort_proxy_model.reset(new SortFilterProxyModel());
             sort_proxy_model->setSourceModel(keys_model.get());
         }
-        qDebug() << "update_keysmodel" << keys_model->rowCount() << " " << keys_model->columnCount();
     }
+    else {
+        keys_model->resetSchema(current_schema_name);
+    }
+    qDebug() << "update_keysmodel";
 }
 
 void VertexClientPrivate::read_editor_data(int row)
@@ -121,72 +96,60 @@ void VertexClientPrivate::read_editor_data(int row)
     }
 
     if(row>=0 && keys_model && keys_model->rowCount()>row) {
-        auto jsondata = keys_model->read(row);
-        set_json(std::move(jsondata), keys_model->get_schema());
+        keys_model->read(row);
     }
     else {
         set_json("", current_schema_name);
     }
 }
 
-void VertexClientPrivate::read_editor_id(const std::string& vertex_id)
+void VertexClientPrivate::set_editor_data(std::string schema_name, std::string doc_json)
 {
-    if(!dbcollection) {
-       return;
-    }
-    // could move for model or db
-    // if use query do not need change current schema
-    uiSettings().setError(QString());
-    try  {
-        auto schema_from_id = dbcollection->extractSchemaFromId(vertex_id);
-        auto id_query = jsonio::DBQueryBase("RETURN DOCUMENT(\"" + vertex_id +"\")", jsonio::DBQueryBase::qAQL);
-        auto result = dbcollection->selectQuery(id_query);
-        if(result.size()>0) {
-            if(json_tree_model) {
-                json_tree_model->setupModelData(result[0], QString::fromStdString(schema_from_id));
-            }
-        }
-    }
-    catch(std::exception& e) {
-        uiSettings().setError(e.what());
-    }
+    set_json(doc_json, QString::fromStdString(schema_name));
 }
 
 std::string VertexClientPrivate::id_from_editor()
 {
     std::string vertex_id;
-    json_tree_model->current_object().get_value_via_path("_id", vertex_id, vertex_id);
+    if(json_tree_model) {
+        json_tree_model->current_object().get_value_via_path("_id", vertex_id, vertex_id);
+    }
     return vertex_id;
+}
+
+void VertexClientPrivate::id_to_editor(std::string doc_id)
+{
+   // json_tree_model->current_object().set_value_via_path("_id", doc_id);
 }
 
 bool VertexClientPrivate::set_json(const std::string& json_string, const QString& schema_name)
 {
-    if(!no_schema_model(current_schema_name) &&
-            !no_schema_model(schema_name) &&
-            schema_name!=current_schema_name) {
-        return false;
-    }
-    update_schema(schema_name);
     if(json_tree_model) {
-        json_tree_model->setupModelData(json_string, current_schema_name);
+        ui_logger->debug("set_json document {} {} ", schema_name.toStdString(), json_string.size());
+        json_tree_model->setupModelData(json_string, schema_name);
     }
     return true;
 }
-
 
 //-------------------------------------------------------------------------
 
 VertexClient::VertexClient(VertexClientPrivate *impl, QObject *parent):
     JsonClient(impl, parent)
 {
+    connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument, this, &VertexClient::setEditorData);
+    connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid, this, &VertexClient::setEditorOid);
+    connect(impl_func()->keys_model.get(), &DBKeysModel::executingChange, this, &VertexClient::executingChange);
 }
 
 VertexClient::VertexClient(QObject *parent):
     VertexClient(new VertexClientPrivate(), parent)
 {
     // virtual init into JsonClient
-    QObject::connect(&uiSettings(), &Preferences::dbdriveChanged, this, &VertexClient::changeDBConnection);
-    connect(this, &VertexClient::keysModelChanged, this, [this]{ readEditorData(0); });
+}
+
+bool VertexClient::queryExecuting()
+{
+    return impl_func()->keys_model->queryExecuting();
 }
 
 void VertexClient::setModelSchema()
@@ -198,20 +161,37 @@ void VertexClient::setModelSchema()
     emit keysModelChanged();
 }
 
-void VertexClient::changeDBConnection()
+void VertexClient::setEditorData(std::string schema_name, std::string doc_json)
 {
-    impl_func()->update_keysmodel();
-    emit keysModelChanged();
+    try {
+        ui_logger->debug("set readed document {} {}", doc_json.size(), schema_name);
+        impl_func()->set_editor_data(schema_name, doc_json);
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(e.what());
+    }
+}
+
+void VertexClient::setEditorOid(std::string doc_id)
+{
+    try {
+        impl_func()->id_to_editor(doc_id);
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(e.what());
+    }
 }
 
 void VertexClient::readEditorData(int row)
 {
-    impl_func()->read_editor_data(row);
+    if(row>=0) {
+        impl_func()->read_editor_data(row);
+    }
 }
 
 void VertexClient::readEditorId(QString vertex_id)
 {
-    impl_func()->read_editor_id(vertex_id.toStdString());
+    impl_func()->keys_model->read_query(vertex_id.toStdString());
 }
 
 QString VertexClient::editorId() {

@@ -53,8 +53,6 @@ Rectangle {
             boundsBehavior: Flickable.StopAtBounds
             model: jsonRectangle.jsonModel
 
-
-
             delegate: TreeViewDelegate {
                 leftMargin: 30
                 //editing: true

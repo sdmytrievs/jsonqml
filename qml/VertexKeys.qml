@@ -39,11 +39,19 @@ Item {
 
 
             function doubleClickFunction() {
-                console.log("doubleClick: ", selRow)
+                //console.log("doubleClick: ", selRow)
                 vertexClient.readEditorData(selRow)
-                tabBar.setCurrentIndex(2)
+                toVertexForm()
             }
 
         }
+    }
+
+    BusyIndicator {
+      id: vertexquery
+      width: 50
+      height: 50
+      anchors.centerIn: parent
+      running: vertexClient.queryExecuting
     }
 }

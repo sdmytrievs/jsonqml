@@ -51,9 +51,9 @@ Item {
 
                 CheckBox {
                     id: createCheck
-                    checked: Preferences.dbCreate
+                    checked: Preferences.isCreate
                     text: qsTr("Create database")
-                    onCheckedChanged: Preferences.dbCreate = checked
+                    onCheckedChanged: Preferences.isCreate = checked
                 }
 
                 Label {
@@ -80,7 +80,6 @@ Item {
                     Layout.fillWidth: true
                     editable: true
                     model: Preferences.dbNamesList
-                    onCurrentTextChanged: Preferences.dbName = currentText
                     onAccepted: {
                         if (find(editText) === -1)
                             Preferences.addDBName(editText)
@@ -99,7 +98,6 @@ Item {
                     Layout.fillWidth: true
                     editable: true
                     model: Preferences.dbUsersList
-                    onCurrentTextChanged: Preferences.dbUser = currentText
                     onAccepted: {
                         if (find(editText) === -1)
                             Preferences.addDBUser(editText)
@@ -196,9 +194,9 @@ Item {
             implicitHeight: schemasButton.implicitHeight*2
             text: qsTr("Apply")
             onClicked: {
-                if(Preferences.applyChanges() ) {
-                    tabBar.setCurrentIndex(1)
-                }
+                Preferences.dbName = nameBox.currentText
+                Preferences.dbUser = userBox.currentText
+                Preferences.applyChanges()
            }
         }
     }

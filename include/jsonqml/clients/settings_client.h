@@ -5,14 +5,35 @@
 #include <QObject>
 #include <QQmlEngine>
 
-namespace jsonio {
-class DataBase;
-}
+#include "jsonio/io_settings.h"
 
 namespace jsonqml {
 
-class PreferencesPrivate;
+struct DatabaseSettings
+{
+    /// Current database credentials group
+    QString db_connect_current;
 
+    /// The connection's database URL
+    QString db_url;
+    /// The connection's database name
+    QString db_name;
+    /// The connection's user name
+    QString db_user;
+    /// The connection's user password name
+    QString db_user_password;
+    /// Database access  "rw" (read&write) or "ro" (read-only if true)
+    bool db_access;
+    /// The flag to creating the empty database if they are not present
+    /// Work if defined root credentials
+    bool    db_create;
+
+    DatabaseSettings();
+    void save_settings(const std::string& db_group, jsonio::JsonioSettings& jsonio_settings);
+    void read_settings(const std::string& db_group, jsonio::JsonioSettings& jsonio_settings);
+};
+
+class PreferencesPrivate;
 
 class Preferences : public QObject
 {
@@ -34,37 +55,40 @@ class Preferences : public QObject
     Q_PROPERTY(bool canEditDocPages MEMBER can_edit_doc_pages NOTIFY settingsChanged)
 
     Q_PROPERTY(QStringList dbConnectList MEMBER db_connect_list NOTIFY dbConnectListChanged)
-    Q_PROPERTY(QString dbConnect MEMBER db_connect_current NOTIFY dbConnectChanged)
-    Q_PROPERTY(bool dbConnected READ dbConnected NOTIFY dbdriveChanged)
 
-    Q_PROPERTY(QString dbUrl MEMBER db_url NOTIFY dbConnectChanged)
-    Q_PROPERTY(QString dbName MEMBER db_name NOTIFY dbConnectChanged)
-    Q_PROPERTY(QString dbUser MEMBER db_user NOTIFY dbConnectChanged)
-    Q_PROPERTY(QString dbUserPassword MEMBER db_user_password NOTIFY dbConnectChanged)
-    Q_PROPERTY(bool    dbAccess MEMBER db_access NOTIFY dbConnectChanged)
-    Q_PROPERTY(bool    dbCreate MEMBER db_create NOTIFY dbConnectChanged)
+    Q_PROPERTY(QString dbConnect READ dbConnectCurrent WRITE setConnectCurrent NOTIFY dbConnectChanged)
+    Q_PROPERTY(QString dbUrl READ dbUrl WRITE setUrl NOTIFY dbConnectChanged)
+    Q_PROPERTY(QString dbName READ dbName WRITE setName NOTIFY dbConnectChanged)
+    Q_PROPERTY(QString dbUser READ dbUser WRITE setUser NOTIFY dbConnectChanged)
+    Q_PROPERTY(QString dbUserPassword READ dbUserPassword WRITE setUserPassword NOTIFY dbConnectChanged)
+    Q_PROPERTY(bool    dbAccess READ dbAccess WRITE setAccess NOTIFY dbConnectChanged)
+    Q_PROPERTY(bool    isCreate READ isCreate WRITE setCreate NOTIFY dbConnectChanged)
+
     Q_PROPERTY(QStringList dbNamesList MEMBER db_all_databases NOTIFY dbNamesListChanged)
     Q_PROPERTY(QStringList dbUsersList MEMBER db_all_users NOTIFY dbUsersListChanged)
 
 signals:
     void errorChanged();
-
     void settingsChanged();
-    void workDirChanged();
-    void scemasPathChanged();
-    void dbdriveChanged();
-
     void dbConnectListChanged();
     void dbConnectChanged();
     void dbNamesListChanged();
     void dbUsersListChanged();
 
+    void workDirChanged();
+    void scemasPathChanged();
+    void dbdriverChanged();
+    void openVertex();
+
+public slots:
+    /// Setting the value of the last error that occurred
+    /// and emitting a signal about the error.
+    void setError(const QString& error);
+
 private slots:
     void setDBConnectList();
 
 public:
-    /// Default resourse Database name
-    static std::string resources_database_name;
     /// Jsonui section name in resource file
     static std::string jsonui_section_name;
     /// Use link to database in settings
@@ -74,15 +98,11 @@ public:
 
     /// Constructor
     explicit Preferences();
-
     /// Destructor
     ~Preferences();
 
     ///  Returns information about the last error that occurred
     Q_INVOKABLE QString lastError() const;
-    /// Setting the value of the last error that occurred
-    /// and emitting a signal about the error.
-    Q_INVOKABLE void setError(const QString& error);
 
     /// Download new schemas from the folder with the path
     Q_INVOKABLE void changeScemasPath(const QString& path);
@@ -91,9 +111,11 @@ public:
     Q_INVOKABLE void changeDBConnect(const QString& db_group);
 
     /// Apply and save changes according to data in properties
-    Q_INVOKABLE bool applyChanges();
+    Q_INVOKABLE void applyChanges();
 
-    /// Adde new user
+    Q_INVOKABLE bool dbConnected();
+
+    /// Adde new database
     Q_INVOKABLE void addDBName(const QString& new_name);
     /// Adde new user
     Q_INVOKABLE void addDBUser(const QString& new_user);
@@ -106,12 +128,21 @@ public:
     /// if necessary, and save it as the current directory
     Q_INVOKABLE QString handleFileChosen(const QString &url);
 
-    /// The current worker Database exists and checked connection for the current credentials group
-    bool dbConnected() const;
-    /// Current work database
-    const jsonio::DataBase& database() const;
-    /// Current resourse database
-    const jsonio::DataBase& resources_database() const;
+    QString dbConnectCurrent() const;
+    QString dbUrl() const;
+    QString dbName() const;
+    QString dbUser() const;
+    QString dbUserPassword() const;
+    bool    dbAccess() const;
+    bool    isCreate() const;
+
+    void setConnectCurrent(const QString& val);
+    void setUrl(const QString& val);
+    void setName(const QString& val);
+    void setUser(const QString& val);
+    void setUserPassword(const QString& val);
+    void setAccess(bool val);
+    void setCreate(bool val);
 
 protected:
     friend Preferences& uiSettings();
@@ -140,22 +171,8 @@ protected:
 
     /// List of all defined database connections (credentials)
     QStringList db_connect_list;
-    /// Current database credentials group
-    QString db_connect_current;
-
-    /// The connection's database URL
-    QString db_url;
-    /// The connection's database name
-    QString db_name;
-    /// The connection's user name
-    QString db_user;
-    /// The connection's user password name
-    QString db_user_password;
-    /// Database access  "rw" (read&write) or "ro" (read-only if true)
-    bool db_access;
-    /// The flag to creating the empty database if they are not present
-    /// Work if defined root credentials
-    bool    db_create;
+    /// Current database credentials
+    struct DatabaseSettings db_data;
     /// List of all existing databases according URL
     /// Work if defined root credentials and set flag db_create
     QStringList db_all_databases;
@@ -165,16 +182,16 @@ protected:
 
     QScopedPointer<PreferencesPrivate> impl_ptr;
     PreferencesPrivate* impl_func()
-              { return reinterpret_cast<PreferencesPrivate *>(impl_ptr.get()); }
+    { return reinterpret_cast<PreferencesPrivate *>(impl_ptr.get()); }
     const PreferencesPrivate* impl_func() const
-              { return reinterpret_cast<const PreferencesPrivate *>(impl_ptr.get()); }
+    { return reinterpret_cast<const PreferencesPrivate *>(impl_ptr.get()); }
 
 };
 
 /// Function to connect to only one Preferences object
 extern Preferences& uiSettings();
 
-inline std::string jsonui_section( const std::string& item )
+inline std::string jsonui_section(const std::string& item)
 {
     return  Preferences::jsonui_section_name+"."+item;
 }

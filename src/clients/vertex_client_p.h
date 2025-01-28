@@ -32,17 +32,18 @@ public:
     virtual void update_keysmodel();
 
     virtual void read_editor_data(int row);
-    // read vertex without changes current_schema
-    void read_editor_id(const std::string& vertex_id);
+    void set_editor_data(std::string schema_name, std::string doc_json);
     std::string id_from_editor();
+    void id_to_editor(std::string doc_id);
 
-    virtual bool set_json(const std::string& json_string, const QString& schema_name="") override;
+    bool set_json(const std::string& json_string, const QString& schema_name="") override;
 
 protected:
     int keys_table_mode = RowSortingEnabled;
-    std::shared_ptr<jsonio::DBVertexDocument> dbcollection;
     QSharedPointer<DBKeysModel> keys_model;
     QSharedPointer<SortFilterProxyModel> sort_proxy_model;
+
+    friend class VertexClient;
 };
 
 }

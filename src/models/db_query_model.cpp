@@ -6,22 +6,77 @@
 namespace jsonqml {
 
 
-DBQueryModel::DBQueryModel(QObject *parent)
-    : SelectModel(parent)
+DBQueryModel::DBQueryModel(DocumentType type,
+                           const QString& schema,
+                           ArangoDatabase* db_client,
+                           QObject *parent)
+    : SelectModel(parent),
+      dbdocument(nullptr)
 {
+    reset_dbclient(type, schema, db_client);
 }
 
 DBQueryModel::~DBQueryModel()
 {
+    db_thread.quit();
+    db_thread.wait();
 }
 
-/*!
-    This virtual slot is called whenever the query changes. The
-    default implementation does nothing.
- */
-void DBQueryModel::queryChange()
+void DBQueryModel::reset_dbclient(DocumentType type, const QString& schema,
+                                  ArangoDatabase* db_client)
 {
-    emit queryChanged();
+    qRegisterMetaType<std::vector<std::string> >("std::vector<std::string>");
+    qRegisterMetaType<jsonio::DBQueryBase>("jsonio::DBQueryBase");
+    qRegisterMetaType<std::string>("std::string");
+
+    try {
+        dbdocument = db_client->createDocument(type, schema);
+
+        QObject::connect(dbdocument, &ArangoDBDocument::finishedQuery, this, &DBQueryModel::updateKeyList);
+        QObject::connect(dbdocument, &ArangoDBDocument::finished, [&]() { set_executing(false); } );
+        QObject::connect(dbdocument, &ArangoDBDocument::started, [&]() { set_executing(true); } );
+        QObject::connect(this, &DBQueryModel::CmExecuteQuery, dbdocument, &ArangoDBDocument::executeQuery);
+
+        // thread functions
+        dbdocument->moveToThread(&db_thread);
+        QObject::connect(&db_thread, &QThread::finished, dbdocument, &QObject::deleteLater);
+        db_thread.start();
+    }
+    catch(std::exception& e) {
+        uiSettings().setError(QString(e.what()));
+    }
+}
+
+void DBQueryModel::updateKeyList()
+{
+    std::vector<std::string> new_query_fields;
+    jsonio::values_table_t new_data_table;
+
+    dbdocument->lastQueryResult(data_query, new_query_fields, new_data_table);
+    resetTable(std::move(new_data_table), std::move(new_query_fields));
+    set_executing(false);
+}
+
+void DBQueryModel::resetTable(model_table_t&& table_data,
+                              const model_line_t& header_data)
+{
+    beginResetModel();
+    table = std::move(table_data);
+    header = header_data;
+    endResetModel();
+}
+
+void DBQueryModel::executeQuery(const jsonio::DBQueryBase& query,
+                           const std::vector<std::string>& query_fields)
+{
+    uiSettings().setError(QString());
+    emit CmExecuteQuery(query, query_fields);
+}
+
+void DBQueryModel::set_executing(bool val)
+{
+    query_executing = val;
+    emit executingChange();
 }
 
 const jsonio::DBQueryBase &DBQueryModel::query() const
@@ -29,7 +84,7 @@ const jsonio::DBQueryBase &DBQueryModel::query() const
     return  data_query;
 }
 
-const jsonio::values_t &DBQueryModel::queryFields() const
+const model_line_t &DBQueryModel::queryFields() const
 {
     return header;
 }
@@ -48,37 +103,9 @@ QStringList DBQueryModel::lastQueryFields() const
     return new_list;
 }
 
-void DBQueryModel::setQuery(const jsonio::DBQueryBase& query,
-                            const std::vector<std::string>& query_fields,
-                            const jsonio::DBSchemaDocument* dbclient)
+bool DBQueryModel::queryExecuting()
 {
-    if(dbclient==nullptr) {
-        uiSettings().setError(QString("Do not defined database client"));
-        return;
-    }
-
-    uiSettings().setError(QString());
-    jsonio::values_table_t new_data_table;
-
-    try {
-        new_data_table = dbclient->downloadDocuments(query, query_fields);
-        data_query = query;
-        resetTable(std::move(new_data_table), query_fields);
-        queryChange();
-    }
-    catch(std::exception& e) {
-        uiSettings().setError(e.what());
-    }
-}
-
-
-void DBQueryModel::resetTable(std::vector<std::vector<std::string>>&& table_data,
-                              const std::vector<std::string>& header_data)
-{
-    beginResetModel();
-    table = std::move(table_data);
-    header = header_data;
-    endResetModel();
+    return query_executing;
 }
 
 }
