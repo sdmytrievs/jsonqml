@@ -64,13 +64,12 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
    link_directories("c:/usr/local/lib")
 endif()
 
-# Set the jsonqml source directory path
+# Set the jsonqml header directory path
 set(JSONQML_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
-set(JSONQMOL_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
+set(JSONQML_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 
 # Set the include directories
-#include_directories(${JSONIO_SOURCE_DIR})
-include_directories(${JSONQMOL_HEADER_DIR})
+include_directories(${JSONQML_HEADER_DIR})
 
 # Build jsonqml library
 add_subdirectory(src)
@@ -81,5 +80,5 @@ if(BuildTools)
 endif()
 
 # Install the cmake config files that permit users to use find_package(jsonqml)
-#include(jsonqmlInstallCMakeConfigFiles)
+include(jsonqmlInstallCMakeConfigFiles)
 

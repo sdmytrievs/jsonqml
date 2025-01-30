@@ -18,9 +18,12 @@ set_target_properties(arangodb-view PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(arangodb-view PRIVATE jsonqml)
+target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
 
-#install(TARGETS arangodb-view
-#    BUNDLE DESTINATION .
-#    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+qt_generate_deploy_qml_app_script(
+    TARGET arangodb-view
+    OUTPUT_SCRIPT deploy_script
+)
+#need install not to usr/local
+#install(SCRIPT ${deploy_script})
 

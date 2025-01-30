@@ -4,7 +4,7 @@ set(JSONQML_INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/jsonqml)
 install(EXPORT jsonqmlTargets
     FILE jsonqmlTargets.cmake
     NAMESPACE jsonqml::
-    DESTINATION ${JSONUI_INSTALL_CONFIGDIR}
+    DESTINATION ${JSONQML_INSTALL_CONFIGDIR}
     COMPONENT cmake)
 
 include(CMakePackageConfigHelpers)
