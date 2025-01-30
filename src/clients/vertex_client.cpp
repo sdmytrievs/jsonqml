@@ -125,7 +125,6 @@ void VertexClientPrivate::id_to_editor(std::string doc_id)
 bool VertexClientPrivate::set_json(const std::string& json_string, const QString& schema_name)
 {
     if(json_tree_model) {
-        ui_logger->debug("set_json document {} {} ", schema_name.toStdString(), json_string.size());
         json_tree_model->setupModelData(json_string, schema_name);
     }
     return true;
@@ -136,9 +135,6 @@ bool VertexClientPrivate::set_json(const std::string& json_string, const QString
 VertexClient::VertexClient(VertexClientPrivate *impl, QObject *parent):
     JsonClient(impl, parent)
 {
-    connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument, this, &VertexClient::setEditorData);
-    connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid, this, &VertexClient::setEditorOid);
-    connect(impl_func()->keys_model.get(), &DBKeysModel::executingChange, this, &VertexClient::executingChange);
 }
 
 VertexClient::VertexClient(QObject *parent):
@@ -149,7 +145,10 @@ VertexClient::VertexClient(QObject *parent):
 
 bool VertexClient::queryExecuting()
 {
-    return impl_func()->keys_model->queryExecuting();
+    if(impl_func()->keys_model) {
+        return impl_func()->keys_model->queryExecuting();
+    }
+    return false;
 }
 
 void VertexClient::setModelSchema()
@@ -159,12 +158,20 @@ void VertexClient::setModelSchema()
 
     impl_func()->update_keysmodel();
     emit keysModelChanged();
+
+    if(impl_func()->keys_model) {
+        connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument,
+                this, &VertexClient::setEditorData, Qt::UniqueConnection);
+        connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid,
+                this, &VertexClient::setEditorOid, Qt::UniqueConnection);
+        connect(impl_func()->keys_model.get(), &DBKeysModel::executingChange,
+                this, &VertexClient::executingChange, Qt::UniqueConnection);
+    }
 }
 
 void VertexClient::setEditorData(std::string schema_name, std::string doc_json)
 {
     try {
-        ui_logger->debug("set readed document {} {}", doc_json.size(), schema_name);
         impl_func()->set_editor_data(schema_name, doc_json);
     }
     catch(std::exception& e) {
@@ -191,7 +198,9 @@ void VertexClient::readEditorData(int row)
 
 void VertexClient::readEditorId(QString vertex_id)
 {
-    impl_func()->keys_model->read_query(vertex_id.toStdString());
+    if(impl_func()->keys_model) {
+        impl_func()->keys_model->read_query(vertex_id.toStdString());
+    }
 }
 
 QString VertexClient::editorId() {

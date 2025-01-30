@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qt/qml/tools">
+        <file>db_view_main.qml</file>
+    </qresource>
+</RCC>

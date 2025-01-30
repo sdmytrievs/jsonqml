@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
+
+import jsonqml
 import Qt.jsonqml.qobjectPreferences 1.0
 
 pragma ComponentBehavior: Bound
