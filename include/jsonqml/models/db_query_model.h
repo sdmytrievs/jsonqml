@@ -4,8 +4,8 @@
 
 #include <QThread>
 #include "jsonqml/models/select_model.h"
-#include "jsonio/dbquerybase.h"
 #include "jsonqml/arango_document.h"
+#include "jsonio/dbquerybase.h"
 
 
 namespace jsonqml {
@@ -16,11 +16,12 @@ namespace jsonqml {
 ///
 /// DBQueryModel is a high-level interface for executing selection statements and traversing the result set.
 /// It is built on top of the lower-level jsonio and can provide data to view classes such as QTableView.
-class DBQueryModel: public SelectModel
+class DBQueryModel: public jsonqml::SelectModel
 {
-    Q_OBJECT
 
     Q_PROPERTY(bool queryExecuting READ queryExecuting NOTIFY executingChange)
+
+    Q_OBJECT
 
 signals:
     void executingChange();

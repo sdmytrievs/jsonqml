@@ -1,23 +1,25 @@
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QIcon>
-#include "include/jsonqml/clients/json_client.h"
-#include "include/jsonqml/clients/settings_client.h"
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
+#include <QtQml/QQmlContext>
+#include <QtGui/QIcon>
+#include "jsonqml/clients/edge_client.h"
+#include "jsonqml/clients/settings_client.h"
 
 int main(int argc, char *argv[])
 {
     //qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
     QGuiApplication app(argc, argv);
-    app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png.png"));
-    jsonqml::JSonClient client;
+    app.setWindowIcon(QIcon("qrc:/qt/qml/jsonqml/qml/images/jsonui-logo-icon.png"));
+
+    jsonqml::VertexClient vertexClient;
+    jsonqml::EdgeClient edgeClient;
 
     QQmlApplicationEngine engine;
 
     qmlRegisterSingletonInstance("Qt.jsonqml.qobjectPreferences", 1, 0, "Preferences", &jsonqml::uiSettings());
 
-    const QUrl url("qrc:///qml/json_main.qml");
+    const QUrl url("qrc:/qt/qml/tools/db_view_main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
@@ -25,7 +27,8 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
 
 
-    engine.rootContext()->setContextProperty("client", &client);
+    engine.rootContext()->setContextProperty("vertexClient", &vertexClient);
+    engine.rootContext()->setContextProperty("edgeClient", &edgeClient);
     engine.load(url);
 
     return app.exec();

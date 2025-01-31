@@ -1,6 +1,6 @@
 
-#ifndef DBQUERYMODEL_H
-#define DBQUERYMODEL_H
+#ifndef CSVMODEL_H
+#define CSVMODEL_H
 
 #include "jsonqml/models/select_model.h"
 
@@ -59,4 +59,4 @@ protected:
 
 }
 
-#endif // DBQUERYMODEL_H
+#endif // CSVMODEL_H

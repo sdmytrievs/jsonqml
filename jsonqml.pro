@@ -5,7 +5,7 @@ CONFIG += thread
 CONFIG += c++20
 
 QT += quick
-CONFIG += qmltypes
+#CONFIG += qmltypes
 QML_IMPORT_NAME = Scanner
 QML_IMPORT_MAJOR_VERSION = 1
 
@@ -28,8 +28,8 @@ HEADERS += \
     include/jsonqml/models/json_model.h \
     include/jsonqml/models/schema_model.h \
     include/jsonqml/models/select_model.h \
-    include/jsonqml/models/db_query_model.h \
     include/jsonqml/models/db_keys_model.h \
+    include/jsonqml/models/db_query_model.h \
     include/jsonqml/models/csv_model.h \
     include/jsonqml/clients/settings_client.h \
     include/jsonqml/clients/json_client.h \
@@ -43,7 +43,7 @@ HEADERS += \
 
 SOURCES += \
     #json_editor_main.cpp \
-    main.cpp \
+    #main.cpp \
     src/arango_database.cpp \
     src/arango_document.cpp \
     src/models/json_model.cpp \
@@ -56,12 +56,13 @@ SOURCES += \
     src/clients/settings_client.cpp \
     src/clients/vertex_client.cpp \
     src/clients/json_client.cpp \
+    tools/db_view_main.cpp
 
 #resources.files = main.qml
 resources.prefix = /$${TARGET}
 
-RESOURCES += resources\
-             jsonqml.qrc
+RESOURCES += src/jsonqml.qrc \
+             tools/tools.qrc
 
 win32:LIBS +=  -larango-cpp-static
 !win32:LIBS += -larango-cpp
@@ -85,8 +86,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 # https://github.com/RicardoRagel/qt-qml-sample-app/tree/master/qml
 # https://doc.qt.io/qt-6/qml-qtquick-treeview.html
 
-DISTFILES += \
-    qml/JsonView.qml \
-    qml/json_main.qml
 
 

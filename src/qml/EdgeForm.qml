@@ -18,7 +18,7 @@ Item {
 
             Button {
                 id: inButton
-                icon.source: "qrc:///resources/images/Incoming24.png"
+                icon.source: "qrc:/qt/qml/jsonqml/qml/images/Incoming24.png"
                 onClicked: {
                     vertexClient.readEditorId(edgeClient.incomingVertex())
                     toVertexForm()
@@ -46,7 +46,7 @@ Item {
 
             Button {
                 id: outButton
-                icon.source: "qrc:///resources/images/Outgoing24.png"
+                icon.source: "qrc:/qt/qml/jsonqml/qml/images/Outgoing24.png"
                 onClicked: {
                     vertexClient.readEditorId(edgeClient.outgoingVertex())
                     toVertexForm()
