@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
+
+import jsonqml
 import Qt.jsonqml.qobjectPreferences 1.0
 
 pragma ComponentBehavior: Bound
@@ -45,13 +47,13 @@ ApplicationWindow {
 
                 Button {
                     id: loadButton
-                    icon.source: "qrc:///resources/images/ShowFilesIcon24.png"
+                    icon.source: "qrc:/qt/qml/jsonqml/qml/images/ShowFilesIcon24.png"
                     text: qsTr("Load...")
                     onClicked: fileOpenDialog.open()
                 }
                 Button {
                     id: saveButton
-                    icon.source: "qrc:///resources/images/SaveCurrentRecordIcon24.png"
+                    icon.source: "qrc:/qt/qml/jsonqml/qml/images/SaveCurrentRecordIcon24.png"
                     text: qsTr("Save...")
                     onClicked: {
                         fileSaveDialog.currentFile = fileSaveDialog.currentFolder+"/"+client.fileSchemaExt(schemasList.currentText, "json");
@@ -79,12 +81,13 @@ ApplicationWindow {
             }
         }
 
-        JsonView  {
+        JsonEditor  {
             id: jsonData
             visible: true
             Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
+            jsonModel: client.jsonmodel
         }
 
     }

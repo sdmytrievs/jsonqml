@@ -1,5 +1,7 @@
 module jsonqml
 JsonView 1.0 qml/JsonView.qml
+JsonEditor 1.0 qml/JsonEditor.qml
+JsonDelegate 1.0 qml/JsonDelegate.qml
 SelectTableView 1.0 qml/SelectTableView.qml
 VertexKeys 1.0 qml/VertexKeys.qml
 VertexForm 1.0 qml/VertexForm.qml
