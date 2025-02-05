@@ -1,9 +1,14 @@
 
 #include <QColor>
 #include "jsonqml/models/json_model.h"
+#include "jsonqml/clients/settings_client.h"
+#include "jsonio/service.h"
 
 
 namespace jsonqml {
+
+
+const QStringList JsonBaseModel::type_names= {"string", "bool", "int", "double", "object", "array"};
 
 
 bool JsonBaseModel::set_value_via_type(jsonio::JsonBase* object, const std::string& add_key,
@@ -33,6 +38,102 @@ bool JsonBaseModel::set_value_via_type(jsonio::JsonBase* object, const std::stri
     return true;
 }
 
+jsonio::JsonBase::Type JsonBaseModel::type_from(const QString &field_type, std::string& def_value)
+{
+    jsonio::JsonBase::Type type = jsonio::JsonBase::Null;
+    def_value.clear();
+
+    auto index = type_names.indexOf(field_type, 0, Qt::CaseInsensitive);
+    switch(index) {
+    case -1: type = jsonio::JsonBase::Null; break;
+    case 1:  type = jsonio::JsonBase::Bool;  def_value ="false"; break;
+    case 2: type = jsonio::JsonBase::Int;    def_value ="0";  break;
+    case 3: type = jsonio::JsonBase::Double; def_value ="0"; break;
+    case 0: type = jsonio::JsonBase::String; break;
+    case 4: type = jsonio::JsonBase::Object; break;
+    case 5: type = jsonio::JsonBase::Array; break;
+    }
+    return type;
+}
+
+const QModelIndex JsonBaseModel::addObject(const QModelIndex &cindex, const QString &field_type, const QString &field_name)
+{
+    int row;
+    std::string new_object_key = field_name.toStdString();
+    std::string def_value;
+    jsonio::JsonBase::Type new_object_type = type_from(field_type, def_value);
+    jsonio::trim(new_object_key);
+
+    QModelIndex parent_index;
+    auto item = lineFromIndex(cindex);
+    if(item->isObject() && item->size()<1) {
+        parent_index = cindex.siblingAtColumn(0);
+        row = 0;
+    }
+    else {
+        parent_index = parent(cindex).siblingAtColumn(0);
+        row = cindex.row(); // rowCount(parentIndex);
+    }
+    auto parent_item = lineFromIndex(parent_index);
+
+    try {
+        beginInsertRows(parent_index, row, row);
+        set_value_via_type(parent_item, new_object_key, new_object_type, QString::fromStdString(def_value));
+        endInsertRows();
+    }
+    catch(std::exception& e) {
+        endInsertRows();
+        uiSettings().setError(e.what());
+    }
+    return index(row, 0, parent_index);
+}
+
+void JsonBaseModel::resizeArray(const QModelIndex &index, int new_size)
+{
+    auto item = lineFromIndex(index);
+    if(rowCount(index)) {
+        beginRemoveRows(index.siblingAtColumn(0), 0, rowCount(index));
+        endRemoveRows();
+    }
+    item->array_resize(new_size, "");
+    if(new_size>0) {
+        beginInsertRows(index.siblingAtColumn(0), 0, new_size-1);
+        endInsertRows();
+    }
+}
+
+const QModelIndex JsonBaseModel::cloneObject(const QModelIndex &cindex)
+{
+    auto item = lineFromIndex(cindex);
+    QModelIndex parent_index = parent(cindex);
+    auto parent_item = lineFromIndex(parent_index);
+    if(!parent_item->isArray()) {
+        return cindex;
+    }
+    int row =  cindex.row();
+    auto data = item->dump();
+    try{
+        beginInsertRows(parent_index, row, row);
+        if(set_value_via_type(parent_item, std::to_string(row), item->type(), QString("0")) && !data.empty() ) {
+            parent_item->getChild(row)->loads(data);
+        }
+        endInsertRows();
+    }
+    catch(std::exception& e) {
+        endInsertRows();
+        uiSettings().setError(e.what());
+    }
+    return index( row, 0, parent_index);
+}
+
+void JsonBaseModel::removeObject(const QModelIndex &index)
+{
+    auto line = lineFromIndex(index);
+    beginRemoveRows(parent(index), index.row(), index.row());
+    line->remove();
+    endRemoveRows();
+}
+
 void  JsonBaseModel::setFieldData(const QModelIndex& index, const QString& data)
 {
     auto line =  lineFromIndex(index);
@@ -46,11 +147,10 @@ void  JsonBaseModel::setFieldData(const QModelIndex& index, const QString& data)
         }
         endResetModel();
     }
-    catch(...) {
+    catch(std::exception& e) {
         endResetModel();
-        throw;
+        uiSettings().setError(e.what());
     }
-
 }
 
 //--------------------------------------------------------------------------------------
@@ -96,27 +196,28 @@ void JsonFreeModel::setupModelData(const std::string& json_string, const QString
 
 QModelIndex JsonFreeModel::index(int row, int column, const QModelIndex &parent) const
 {
-    auto parentItem = lineFromIndex(parent);
-    if(parentItem->size()>0) {
-        return createIndex(row, column, parentItem->getChild(row));
+    if (!hasIndex(row, column, parent))
+        return QModelIndex{};
+    auto *parent_item = lineFromIndex(parent);
+    if(parent_item->size()>row) {
+        return createIndex(row, column, parent_item->getChild(row));
     }
     else {
-        return QModelIndex();
+        return QModelIndex{};
     }
 }
 
 QModelIndex JsonFreeModel::parent(const QModelIndex& child) const
 {
     if(!child.isValid()) {
-        return QModelIndex();
+        return QModelIndex{};
     }
-
-    auto childItem = lineFromIndex(child);
-    auto parentItem = childItem->getParent();
-    if( parentItem == &root_node ) {
-        return QModelIndex();
+    auto child_item = lineFromIndex(child);
+    auto parent_item = child_item->getParent();
+    if(parent_item == &root_node) {
+        return QModelIndex{};
     }
-    return createIndex(parentItem->getNdx(), 0, parentItem);
+    return createIndex(parent_item->getNdx(), 0, parent_item);
 }
 
 int JsonFreeModel::rowCount(const QModelIndex& parent) const
@@ -198,5 +299,7 @@ bool JsonFreeModel::setData(const QModelIndex& index, const QVariant& value, int
     }
     return false;
 }
+
+
 
 } // namespace jsonqml

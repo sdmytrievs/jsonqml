@@ -2,7 +2,7 @@
 #define JSONCLIENT_H
 
 #include <QObject>
-#include "jsonqml/models/base_model.h"
+#include "jsonqml/models/json_model.h"
 
 namespace jsonqml {
 

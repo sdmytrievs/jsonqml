@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt.jsonqml.qobjectPreferences 1.0
 
 Rectangle {
     id: jsonRectangle
@@ -9,6 +10,7 @@ Rectangle {
     border.color: "#D0D0D0"
     property var jsonModel
     property var expandedRows
+    property var model_index: jsonModel.index(0, 0)
 
     function contrastColor() {
         return palette.alternateBase
@@ -30,15 +32,15 @@ Rectangle {
         }
     }
 
-    Connections{
-        target : jsonRectangle.jsonModel
-        function onModelAboutToBeReset() {
-            saveExpandedRows()
-        }
-        function onModelExpand() {
-            getExpandedRows()
-        }
-    }
+    //    Connections{
+    //        target : jsonRectangle.jsonModel
+    //        function onModelAboutToBeReset() {
+    //            saveExpandedRows()
+    //        }
+    //        function onModelExpand() {
+    //            getExpandedRows()
+    //        }
+    //    }
 
     ScrollView {
         id: scrollView
@@ -123,7 +125,9 @@ Rectangle {
                         onSingleTapped: {
                             let index = treeView.index(row, column)
                             treeView.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate)
-                            console.log("menu: ", row, "   ", column, "!")
+                            console.log("menu: ", jsonModel.getFieldPath(index))
+                            model_index = index
+                            jsonMenu.popup()
                         }
                     }
                 }
@@ -158,16 +162,109 @@ Rectangle {
             }
 
             Keys.onPressed: function (event) {
-                    if(event.modifiers & Qt.ControlModifier) {
-                        if(event.key === Qt.Key_Tab) {
-                            if(event.modifiers & Qt.ShiftModifier)
-                                console.log('backward')
-                            else
-                                console.log('forward')
-                        }
+                if(event.modifiers & Qt.ControlModifier) {
+                    if(event.key === Qt.Key_Tab) {
+                        if(event.modifiers & Qt.ShiftModifier)
+                            console.log('backward')
+                        else
+                            console.log('forward')
                     }
                 }
+            }
         }
+    }
+
+    Menu {
+        id: jsonMenu
+        implicitWidth: pathItem.implicitContentWidth*1.8
+
+        MenuItem {
+            text: qsTr("Insert")
+            enabled: jsonModel.canBeAdd(model_index)
+            onClicked: {
+                insertDialog.open()
+            }
+        }
+        MenuItem {
+            text: qsTr("Resize")
+            enabled: jsonModel.canBeResized(model_index)
+            onClicked: {
+                sizeBox.value =2
+                resizeDialog.open()
+            }
+        }
+        MenuItem {
+            text: qsTr("Duplicate")
+            enabled: jsonModel.canBeCloned(model_index)
+            onClicked: {
+                jsonModel.cloneObject(model_index)
+            }
+        }
+        MenuItem {
+            text: qsTr("Remove")
+            enabled: jsonModel.canBeRemoved(model_index)
+            onClicked: {
+                jsonModel.removeObject(model_index)
+            }
+        }
+        MenuSeparator {}
+        MenuItem {
+            text: qsTr("Copy")
+            onClicked: {
+                Preferences.copy(jsonModel.getFieldData(model_index))
+            }
+        }
+        MenuItem {
+            id: pathItem
+            text: qsTr("Copy path")
+            onClicked: {
+                Preferences.copy(jsonModel.getFieldPath(model_index))
+            }
+        }
+        MenuItem {
+            text: qsTr("Paste")
+            onClicked: {
+                //saveExpandedRows()
+                jsonModel.setFieldData(model_index, Preferences.paste())
+                //getExpandedRows()
+            }
+        }
+
+    }
+
+    Dialog {
+        id: insertDialog
+        title: "Insert"
+        contentItem: ColumnLayout {
+            implicitHeight: typeBox.implicitHeight*3
+            TextInput {
+                id: inputKey
+                Layout.fillWidth: true
+                text: "new_name"
+            }
+            ComboBox {
+                id: typeBox
+                Layout.fillWidth: true
+                model: jsonModel.typeNames
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: jsonModel.addObject(model_index, typeBox.currentText, inputKey.text)
+    }
+
+    Dialog {
+        id: resizeDialog
+        title: "New Size"
+        contentItem: ColumnLayout {
+            implicitHeight: sizeBox.implicitHeight*2
+            SpinBox {
+                id: sizeBox
+                Layout.fillWidth: true
+                value: 0
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted:  jsonModel.resizeArray(model_index, sizeBox.value)
     }
 
 }

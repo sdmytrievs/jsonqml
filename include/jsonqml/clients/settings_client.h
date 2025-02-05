@@ -128,6 +128,9 @@ public:
     /// if necessary, and save it as the current directory
     Q_INVOKABLE QString handleFileChosen(const QString &url);
 
+    Q_INVOKABLE QString paste();
+    Q_INVOKABLE void copy(const QString& clip_text);
+
     QString dbConnectCurrent() const;
     QString dbUrl() const;
     QString dbName() const;

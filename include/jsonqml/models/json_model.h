@@ -15,7 +15,6 @@ class JsonFreeModel: public JsonBaseModel
     Q_OBJECT
 
 public:
-
     explicit JsonFreeModel(const QStringList& header_names, QObject* parent = nullptr);
     ~JsonFreeModel() {}
 
@@ -28,8 +27,27 @@ public:
     /// Extern update data
     void setupModelData(const std::string& json_string, const QString& schema) override;
 
-private:
+    Q_INVOKABLE bool canBeAdd(const QModelIndex& index) const override
+    {
+        auto line = lineFromIndex(index);
+        return (line->isTop() || line->getParent()->isObject() || (line->isObject() && line->size()<1));
+    }
+    Q_INVOKABLE bool canBeResized(const QModelIndex& index) const override
+    {
+        return  lineFromIndex(index)->isArray();
+    }
+    Q_INVOKABLE bool canBeCloned(const QModelIndex& index) const override
+    {
+        auto line = lineFromIndex(index);
+        return  !line->isTop() && line->getParent()->isArray();
+    }
+    Q_INVOKABLE bool canBeRemoved(const QModelIndex& index) const override
+    {
+        auto line = lineFromIndex(index);
+        return !line->isTop() && line->getParent()->isStructured();
+    }
 
+private:
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
     QModelIndex parent(const QModelIndex& child) const override;
     int rowCount(const QModelIndex& parent) const override;
@@ -38,29 +56,6 @@ private:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
-
-    bool isCanBeResized(const QModelIndex& index) const override
-    {
-        return  lineFromIndex(index)->isArray();
-    }
-
-    bool isCanBeAdd(const QModelIndex& index) const override
-    {
-        auto line = lineFromIndex(index);
-        return (line->isTop() || line->getParent()->isObject() || (line->isObject() && line->size()<1));
-    }
-
-    bool isCanBeRemoved(const QModelIndex& index) const override
-    {
-        auto line = lineFromIndex(index);
-        return !line->isTop() && line->getParent()->isStructured();
-    }
-
-    bool isCanBeCloned(const QModelIndex& index) const override
-    {
-        auto line = lineFromIndex(index);
-        return  !line->isTop() && line->getParent()->isArray();
-    }
 
 protected:
     /// Names of columns

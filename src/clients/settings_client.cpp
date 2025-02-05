@@ -1,5 +1,7 @@
 
 #include <QDir>
+#include <QClipboard>
+#include <QtGui/QGuiApplication>
 
 #include "jsonqml/clients/settings_client.h"
 #include "jsonqml/models/schema_model.h"
@@ -377,6 +379,16 @@ void Preferences::setWorkPath(const QString &path)
     work_directory = flinfo.dir().path();
     impl_func()->set_user_dir(work_directory.toStdString());
     emit workDirChanged();
+}
+
+QString Preferences::paste()
+{
+    return QGuiApplication::clipboard()->text(QClipboard::Clipboard);
+}
+
+void Preferences::copy(const QString& clip_text)
+{
+    QGuiApplication::clipboard()->setText(clip_text/*, QClipboard::Clipboard*/);
 }
 
 }

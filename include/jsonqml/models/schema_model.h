@@ -4,9 +4,7 @@
 #include "jsonqml/models/base_model.h"
 #include "jsonio/jsonschema.h"
 
-
 namespace jsonqml {
-
 
 /// \class JsonSchemaModel
 /// Class for represents the data set and is responsible for fetching the data
@@ -17,7 +15,6 @@ class JsonSchemaModel: public JsonBaseModel
     Q_OBJECT
 
 public:
-
     /// Extern flag to show schema comments into editor
     inline static bool showComments = false;
     /// Extern flag to show enum names into editor
@@ -39,8 +36,15 @@ public:
     /// Extern update data
     void setupModelData(const std::string& json_string, const QString& schema) override;
 
-private:
+    Q_INVOKABLE bool isUnion(const QModelIndex& index) const override;
+    Q_INVOKABLE bool canBeAdd(const QModelIndex& index) const override;
+    Q_INVOKABLE bool canBeResized(const QModelIndex& index) const override;
+    Q_INVOKABLE bool canBeCloned(const QModelIndex& index) const override;
+    Q_INVOKABLE bool canBeRemoved(const QModelIndex& index) const override;
 
+    Q_INVOKABLE void setFieldData(const QModelIndex& index, const QString& data) override;
+
+private:
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
     QModelIndex parent(const QModelIndex& child) const override;
     int rowCount(const QModelIndex& parent) const override;
@@ -49,14 +53,6 @@ private:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
-
-    bool isCanBeResized(const QModelIndex& index) const override;
-    bool isCanBeAdd(const QModelIndex& index) const override;
-    bool isCanBeRemoved(const QModelIndex& index) const override;
-    bool isCanBeCloned(const QModelIndex& index) const override;
-    bool isUnion(const QModelIndex& index) const override;
-
-    void setFieldData(const QModelIndex& index, const QString& data) override;
 
 protected:
     /// Names of columns
@@ -70,7 +66,6 @@ protected:
     {
         return  const_cast<jsonio::JsonSchema&>(root_node);
     }
-
     jsonio::JsonBase* lineFromIndex(const QModelIndex& index) const override;
 
     QString get_value(int column, const jsonio::JsonBase *object) const;

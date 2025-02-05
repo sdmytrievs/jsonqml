@@ -1,7 +1,7 @@
 #include <QColor>
 #include "jsonqml/models/schema_model.h"
+#include "jsonqml/clients/settings_client.h"
 #include "jsonio/io_settings.h"
-
 
 namespace jsonqml {
 
@@ -52,26 +52,28 @@ void JsonSchemaModel::setupModelData(const std::string& json_string, const QStri
 
 QModelIndex JsonSchemaModel::index(int row, int column, const QModelIndex &parent) const
 {
-    auto parentItem = lineFromIndex(parent);
-    if(parentItem->size()>0) {
-        return createIndex(row, column, parentItem->getChild(row));
+    if (!hasIndex(row, column, parent))
+        return QModelIndex{};
+    auto *parent_item = lineFromIndex(parent);
+    if(parent_item->size()>row) {
+        return createIndex(row, column, parent_item->getChild(row));
     }
     else {
-        return QModelIndex();
+        return QModelIndex{};
     }
 }
 
 QModelIndex JsonSchemaModel::parent(const QModelIndex& child) const
 {
     if(!child.isValid()) {
-        return QModelIndex();
+        return QModelIndex{};
     }
-    auto childItem = lineFromIndex(child);
-    auto parentItem = childItem->getParent();
-    if(parentItem == &root_node) {
-        return QModelIndex();
+    auto child_item = lineFromIndex(child);
+    auto parent_item = child_item->getParent();
+    if(parent_item == &root_node) {
+        return QModelIndex{};
     }
-    return createIndex(parentItem->getNdx(), 0, parentItem);
+    return createIndex(parent_item->getNdx(), 0, parent_item);
 }
 
 int JsonSchemaModel::rowCount(const QModelIndex& parent) const
@@ -194,13 +196,13 @@ bool JsonSchemaModel::setData(const QModelIndex& index, const QVariant& value, i
     return false;
 }
 
-bool JsonSchemaModel::isCanBeResized(const QModelIndex &index) const
+bool JsonSchemaModel::canBeResized(const QModelIndex &index) const
 {
     auto item = schemajs(lineFromIndex(index));
     return  item->isArray() || item->isMap();
 }
 
-bool JsonSchemaModel::isCanBeAdd(const QModelIndex &index) const
+bool JsonSchemaModel::canBeAdd(const QModelIndex &index) const
 {
     auto line = schemajs(lineFromIndex(index));
     if(line->isTop() || (line->isStruct() && line->size()<1)) {
@@ -216,13 +218,13 @@ bool JsonSchemaModel::isUnion(const QModelIndex &index) const
     return  item->isUnion();
 }
 
-bool JsonSchemaModel::isCanBeRemoved(const QModelIndex &index) const
+bool JsonSchemaModel::canBeRemoved(const QModelIndex &index) const
 {
     auto line = lineFromIndex(index);
     return  !line->isTop() && line->getParent()->isObject();
 }
 
-bool JsonSchemaModel::isCanBeCloned(const QModelIndex &index) const
+bool JsonSchemaModel::canBeCloned(const QModelIndex &index) const
 {
     auto line = lineFromIndex(index);
     if(line->isTop()) {
@@ -249,10 +251,11 @@ void  JsonSchemaModel::setFieldData(const QModelIndex& index, const QString& dat
         }
         endResetModel();
     }
-    catch(...) {
+    catch(std::exception& e) {
         endResetModel();
-        throw;
+        uiSettings().setError(e.what());
     }
+
 }
 
 //-------------------------------------------------------------------------------------
