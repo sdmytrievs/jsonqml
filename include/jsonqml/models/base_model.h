@@ -14,10 +14,13 @@ class JsonBaseModel: public QAbstractItemModel
     Q_OBJECT
 
     Q_PROPERTY(QStringList typeNames READ typeNames CONSTANT)
+    Q_PROPERTY(bool useComboBox READ useComboBox NOTIFY editorChange)
+    Q_PROPERTY(QStringList editorValues READ editorValues NOTIFY editorChange)
 
 signals:
 
     void modelExpand();
+    void editorChange();
 
 public:
 
@@ -31,6 +34,9 @@ public:
 
     /// Extern update data
     virtual void setupModelData(const std::string& json_string, const QString& schema) = 0;
+
+    Q_INVOKABLE bool isEditable(const QModelIndex &index);
+    Q_INVOKABLE int sizeArray(const QModelIndex &index);
 
     Q_INVOKABLE virtual QString helpName(const QModelIndex& index) const
     {
@@ -85,9 +91,19 @@ public:
     {
         return type_names;
     }
+    bool useComboBox() const
+    {
+        return use_combo_box;
+    }
+    QStringList editorValues() const
+    {
+        return editor_fields_values;
+    }
 
 protected:
     static const QStringList type_names;
+    bool use_combo_box;
+    QStringList editor_fields_values;
 
     virtual jsonio::JsonBase& current_data() const = 0;
     virtual jsonio::JsonBase* lineFromIndex(const QModelIndex& index) const = 0;
@@ -96,6 +112,8 @@ protected:
                                     jsonio::JsonBase::Type add_type, const QVariant& add_value);
 
     jsonio::JsonBase::Type type_from(const QString &field_type, std::string& def_value);
+
+    virtual void check_editor_type(const QModelIndex &index);
 };
 
 

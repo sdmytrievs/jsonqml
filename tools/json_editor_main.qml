@@ -92,6 +92,11 @@ ApplicationWindow {
 
     }
 
+    footer: Label {
+       id: error_label
+       text: Preferences.error
+       color: "red"
+    }
     FileDialog {
         visible: false
         id: fileOpenDialog

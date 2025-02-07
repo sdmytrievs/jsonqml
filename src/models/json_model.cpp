@@ -56,8 +56,36 @@ jsonio::JsonBase::Type JsonBaseModel::type_from(const QString &field_type, std::
     return type;
 }
 
+void JsonBaseModel::check_editor_type(const QModelIndex &index)
+{
+    if(lineFromIndex(index)->isBool()) {
+        use_combo_box = true;
+        editor_fields_values = {"true", "false"};
+    }
+    else {
+        use_combo_box = false;
+        editor_fields_values.clear();
+    }
+    emit editorChange();
+}
+
+bool JsonBaseModel::isEditable(const QModelIndex &index)
+{
+     check_editor_type(index);
+     return flags(index)&Qt::ItemIsEditable;
+}
+
+int JsonBaseModel::sizeArray(const QModelIndex &index)
+{
+    return lineFromIndex(index)->size();
+}
+
 const QModelIndex JsonBaseModel::addObject(const QModelIndex &cindex, const QString &field_type, const QString &field_name)
 {
+    if(field_name.isEmpty()) {
+         uiSettings().setError(" can't add empty key ");
+         return cindex;
+    }
     int row;
     std::string new_object_key = field_name.toStdString();
     std::string def_value;
@@ -72,9 +100,14 @@ const QModelIndex JsonBaseModel::addObject(const QModelIndex &cindex, const QStr
     }
     else {
         parent_index = parent(cindex).siblingAtColumn(0);
-        row = cindex.row(); // rowCount(parentIndex);
+        row = rowCount(parent_index);
     }
     auto parent_item = lineFromIndex(parent_index);
+    auto used_names = parent_item->getUsedKeys();
+    if(std::find(used_names.begin(), used_names.end(), new_object_key) != used_names.end()) {
+        uiSettings().setError(" can't add existing key "+field_name);
+        return cindex;
+    }
 
     try {
         beginInsertRows(parent_index, row, row);
@@ -88,16 +121,18 @@ const QModelIndex JsonBaseModel::addObject(const QModelIndex &cindex, const QStr
     return index(row, 0, parent_index);
 }
 
-void JsonBaseModel::resizeArray(const QModelIndex &index, int new_size)
+void JsonBaseModel::resizeArray(const QModelIndex &cindex, int new_size)
 {
-    auto item = lineFromIndex(index);
-    if(rowCount(index)) {
-        beginRemoveRows(index.siblingAtColumn(0), 0, rowCount(index));
+    auto item = lineFromIndex(cindex);
+    auto old_size = rowCount(cindex);
+    if(old_size>new_size) {
+        beginRemoveRows(cindex, new_size, old_size-1);
+        item->array_resize(new_size, "");
         endRemoveRows();
     }
-    item->array_resize(new_size, "");
-    if(new_size>0) {
-        beginInsertRows(index.siblingAtColumn(0), 0, new_size-1);
+    else if(old_size<new_size) {
+        beginInsertRows(cindex, old_size, new_size-1);
+        item->array_resize(new_size, "");
         endInsertRows();
     }
 }
@@ -110,7 +145,7 @@ const QModelIndex JsonBaseModel::cloneObject(const QModelIndex &cindex)
     if(!parent_item->isArray()) {
         return cindex;
     }
-    int row =  cindex.row();
+    int row =  rowCount(parent_index);
     auto data = item->dump();
     try{
         beginInsertRows(parent_index, row, row);
@@ -238,7 +273,7 @@ int JsonFreeModel::columnCount(const QModelIndex& parent) const
 Qt::ItemFlags JsonFreeModel::flags(const QModelIndex& index) const
 {
     Qt::ItemFlags flags = QAbstractItemModel::flags(index);
-    auto item = lineFromIndex( index );
+    auto item = lineFromIndex(index);
     if(index.column() == 1 && (!item->isObject() && !item->isArray())) {
         flags |= Qt::ItemIsEditable;
         return flags;
@@ -295,6 +330,7 @@ bool JsonFreeModel::setData(const QModelIndex& index, const QVariant& value, int
             auto line = lineFromIndex( index );
             set_value_via_type(line, "",  line->type(), value);
         }
+        emit dataChanged(index, index);
         return true;
     }
     return false;

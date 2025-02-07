@@ -32,15 +32,15 @@ Rectangle {
         }
     }
 
-    //    Connections{
-    //        target : jsonRectangle.jsonModel
-    //        function onModelAboutToBeReset() {
-    //            saveExpandedRows()
-    //        }
-    //        function onModelExpand() {
-    //            getExpandedRows()
-    //        }
-    //    }
+        Connections{
+            target : jsonRectangle.jsonModel
+            function onModelAboutToBeReset() {
+                saveExpandedRows()
+            }
+            function onModelExpand() {
+                getExpandedRows()
+            }
+        }
 
     ScrollView {
         id: scrollView
@@ -53,11 +53,18 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             boundsBehavior: Flickable.StopAtBounds
-            editTriggers: TableView.AnyKeyPressed|TableView.DoubleTapped // TableView.NoEditTriggers
+            editTriggers: TableView.NoEditTriggers //TableView.AnyKeyPressed|TableView.DoubleTapped //
 
             model: jsonRectangle.jsonModel
 
-            selectionModel: ItemSelectionModel {}
+            selectionModel: ItemSelectionModel {
+                id: selModel
+                onCurrentChanged:  (current, previous) =>  {
+                    if(previous.row>=0) {
+                          jsonTreeView.itemAtIndex(previous).editing_mode = false
+                    }
+                }
+            }
 
             columnWidthProvider: function(column) {
                 const width1 = explicitColumnWidth(column)
@@ -77,6 +84,7 @@ Rectangle {
 
                 readonly property real indentation: 20
                 readonly property real padding: 10
+                property bool editing_mode: false
 
                 // Assigned to by TreeView:
                 required property TreeView treeView
@@ -129,7 +137,7 @@ Rectangle {
                             model_index = index
                             jsonMenu.popup()
                         }
-                    }
+                     }
                 }
 
                 Label {
@@ -156,21 +164,46 @@ Rectangle {
                     width: parent.width - padding - x
                     clip: true
                     text: model.display
-                    visible: !jsondelegate.editing
-                }
-
-            }
-
-            Keys.onPressed: function (event) {
-                if(event.modifiers & Qt.ControlModifier) {
-                    if(event.key === Qt.Key_Tab) {
-                        if(event.modifiers & Qt.ShiftModifier)
-                            console.log('backward')
-                        else
-                            console.log('forward')
+                    visible: !editing_mode
+                    TapHandler {
+                        onDoubleTapped: {
+                            let index = treeView.index(row, column)
+                            if(jsonModel.isEditable(index)) {
+                                editing_mode = true
+                            }
+                        }
                     }
                 }
-            }
+
+                TextField {
+                    id: textField
+                    x: padding + (isTreeNode ? (depth + 2) * indentation : 0)
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - padding - x
+                    color: "red"
+                    text: model.display
+                    visible: editing_mode
+                    onEditingFinished: {
+                        editing_mode = false
+                     }
+                    onAccepted: {
+                        let index = treeView.index(row, column)
+                        jsonModel.setData(index, textField.text, Qt.EditRole)
+                    }
+                }
+
+             }
+
+//            Keys.onPressed: function (event) {
+//                if(event.modifiers & Qt.ControlModifier) {
+//                    if(event.key === Qt.Key_Tab) {
+//                        if(event.modifiers & Qt.ShiftModifier)
+//                            console.log('backward')
+//                        else
+//                            console.log('forward')
+//                    }
+//                }
+//            }
         }
     }
 
@@ -189,7 +222,7 @@ Rectangle {
             text: qsTr("Resize")
             enabled: jsonModel.canBeResized(model_index)
             onClicked: {
-                sizeBox.value =2
+                sizeBox.value = jsonModel.sizeArray(model_index)
                 resizeDialog.open()
             }
         }
@@ -224,9 +257,9 @@ Rectangle {
         MenuItem {
             text: qsTr("Paste")
             onClicked: {
-                //saveExpandedRows()
+                saveExpandedRows()
                 jsonModel.setFieldData(model_index, Preferences.paste())
-                //getExpandedRows()
+                getExpandedRows()
             }
         }
 

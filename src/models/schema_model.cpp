@@ -191,6 +191,7 @@ bool JsonSchemaModel::setData(const QModelIndex& index, const QVariant& value, i
         default:
             break;
         }
+        emit dataChanged(index, index);
         return true;
     }
     return false;
