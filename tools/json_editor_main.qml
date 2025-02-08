@@ -87,7 +87,7 @@ ApplicationWindow {
             Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
-            jsonModel: client.jsonmodel
+            json_model: client.jsonmodel
         }
 
     }
@@ -97,6 +97,7 @@ ApplicationWindow {
        text: Preferences.error
        color: "red"
     }
+
     FileDialog {
         visible: false
         id: fileOpenDialog
@@ -104,9 +105,7 @@ ApplicationWindow {
         fileMode: FileDialog.OpenFile
         nameFilters: [qsTr("JSON files (*.json)")]
         currentFolder: Preferences.workDir
-        onAccepted: {
-            client.readJson(fileOpenDialog.selectedFile)
-        }
+        onAccepted:  client.readJson(fileOpenDialog.selectedFile)
     }
 
     FileDialog {

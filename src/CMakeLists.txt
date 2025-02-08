@@ -11,6 +11,7 @@ file(GLOB_RECURSE SOURCE_FILES  *.cpp )
 
 list(APPEND MODULE_QML_FILES
     qml/JsonView.qml
+    qml/JsonEditor.qml
     qml/VertexKeys.qml
     qml/PreferencesForm.qml
     qml/VertexForm.qml

@@ -11,13 +11,13 @@ int main(int argc, char *argv[])
     jsonqml::Preferences::use_database = false;
 
     QGuiApplication app(argc, argv);
-    app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png.png"));
+    app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png"));
     jsonqml::JsonClient client;
 
     QQmlApplicationEngine engine;
     qmlRegisterSingletonInstance("Qt.jsonqml.qobjectPreferences", 1, 0, "Preferences", &jsonqml::uiSettings());
 
-    const QUrl url("qrc:/qt/qml/tools/json_editor_main.qml");
+    const QUrl url("qrc:/qt/qml/tools2/json_editor_main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)

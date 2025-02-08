@@ -8,9 +8,9 @@ Rectangle {
     color: contrastColor()
     border.width: 2
     border.color: "#D0D0D0"
-    property var jsonModel
-    property var expandedRows
-    property var model_index: jsonModel.index(0, 0)
+    property var json_model
+    property var expanded_rows
+    property var model_index: json_model.index(0, 0)
 
     function contrastColor() {
         return palette.alternateBase
@@ -18,29 +18,29 @@ Rectangle {
     }
 
     function saveExpandedRows() {
-        expandedRows = []
+        expanded_rows = []
         for(var i=0; i<jsonTreeView.rows; i++) {
             if(jsonTreeView.isExpanded(i)) {
-                expandedRows.push(i)
+                expanded_rows.push(i)
             }
         }
     }
 
     function getExpandedRows() {
-        for(var i=0; i<expandedRows.length; i++) {
-            jsonTreeView.expand(expandedRows[i])
+        for(var i=0; i<expanded_rows.length; i++) {
+            jsonTreeView.expand(expanded_rows[i])
         }
     }
 
-        Connections{
-            target : jsonRectangle.jsonModel
-            function onModelAboutToBeReset() {
-                saveExpandedRows()
-            }
-            function onModelExpand() {
-                getExpandedRows()
-            }
+    Connections{
+        target : jsonRectangle.json_model
+        function onModelAboutToBeReset() {
+            saveExpandedRows()
         }
+        function onModelExpand() {
+            getExpandedRows()
+        }
+    }
 
     ScrollView {
         id: scrollView
@@ -49,21 +49,21 @@ Rectangle {
 
         contentItem: TreeView {
             id: jsonTreeView
-            clip: true
             Layout.fillWidth: true
             Layout.fillHeight: true
+            clip: true
             boundsBehavior: Flickable.StopAtBounds
-            editTriggers: TableView.NoEditTriggers //TableView.AnyKeyPressed|TableView.DoubleTapped //
+            editTriggers: TableView.NoEditTriggers
 
-            model: jsonRectangle.jsonModel
+            model: jsonRectangle.json_model
 
             selectionModel: ItemSelectionModel {
                 id: selModel
                 onCurrentChanged:  (current, previous) =>  {
-                    if(previous.row>=0) {
-                          jsonTreeView.itemAtIndex(previous).editing_mode = false
-                    }
-                }
+                                       if(previous.row>=0) {
+                                           jsonTreeView.itemAtIndex(previous).editing_mode = false
+                                       }
+                                   }
             }
 
             columnWidthProvider: function(column) {
@@ -133,11 +133,11 @@ Rectangle {
                         onSingleTapped: {
                             let index = treeView.index(row, column)
                             treeView.selectionModel.setCurrentIndex(index, ItemSelectionModel.NoUpdate)
-                            console.log("menu: ", jsonModel.getFieldPath(index))
+                            console.log("menu: ", treeView.model.getFieldPath(index))
                             model_index = index
                             jsonMenu.popup()
                         }
-                     }
+                    }
                 }
 
                 Label {
@@ -168,8 +168,12 @@ Rectangle {
                     TapHandler {
                         onDoubleTapped: {
                             let index = treeView.index(row, column)
-                            if(jsonModel.isEditable(index)) {
+                            if(json_model.isEditable(index)) {
                                 editing_mode = true
+                                if(json_model.useComboBox) {
+                                   checkField.currentIndex = checkField.find(model.display)
+                                }
+                                model_index = index
                             }
                         }
                     }
@@ -182,28 +186,47 @@ Rectangle {
                     width: parent.width - padding - x
                     color: "red"
                     text: model.display
-                    visible: editing_mode
+                    visible: editing_mode && !json_model.useComboBox
                     onEditingFinished: {
                         editing_mode = false
-                     }
+                    }
                     onAccepted: {
-                        let index = treeView.index(row, column)
-                        jsonModel.setData(index, textField.text, Qt.EditRole)
+                        model.edit = text
+                        //let index = treeView.index(row, column)
+                        //json_model.setData(index, textField.text, Qt.EditRole)
                     }
                 }
 
-             }
+                ComboBox {
+                    id: checkField
+                    textRole: "text"
+                    valueRole: "value"
+                    x: padding + (isTreeNode ? (depth + 2) * indentation : 0)
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - padding - x
+                    visible: editing_mode && json_model.useComboBox
+                    model: json_model.editorValues
 
-//            Keys.onPressed: function (event) {
-//                if(event.modifiers & Qt.ControlModifier) {
-//                    if(event.key === Qt.Key_Tab) {
-//                        if(event.modifiers & Qt.ShiftModifier)
-//                            console.log('backward')
-//                        else
-//                            console.log('forward')
-//                    }
-//                }
-//            }
+                    onActivated: {
+                        console.log("ComboBox: ", currentValue)
+                        let index = treeView.index(row, column)
+                        json_model.setData(index, currentValue, Qt.EditRole)
+                        editing_mode = false
+                    }
+                }
+
+            }
+
+            //            Keys.onPressed: function (event) {
+            //                if(event.modifiers & Qt.ControlModifier) {
+            //                    if(event.key === Qt.Key_Tab) {
+            //                        if(event.modifiers & Qt.ShiftModifier)
+            //                            console.log('backward')
+            //                        else
+            //                            console.log('forward')
+            //                    }
+            //                }
+            //            }
         }
     }
 
@@ -213,52 +236,52 @@ Rectangle {
 
         MenuItem {
             text: qsTr("Insert")
-            enabled: jsonModel.canBeAdd(model_index)
+            enabled: json_model.canBeAdd(model_index)
             onClicked: {
                 insertDialog.open()
             }
         }
         MenuItem {
             text: qsTr("Resize")
-            enabled: jsonModel.canBeResized(model_index)
+            enabled: json_model.canBeResized(model_index)
             onClicked: {
-                sizeBox.value = jsonModel.sizeArray(model_index)
+                sizeBox.value = json_model.sizeArray(model_index)
                 resizeDialog.open()
             }
         }
         MenuItem {
             text: qsTr("Duplicate")
-            enabled: jsonModel.canBeCloned(model_index)
+            enabled: json_model.canBeCloned(model_index)
             onClicked: {
-                jsonModel.cloneObject(model_index)
+                json_model.cloneObject(model_index)
             }
         }
         MenuItem {
             text: qsTr("Remove")
-            enabled: jsonModel.canBeRemoved(model_index)
+            enabled: json_model.canBeRemoved(model_index)
             onClicked: {
-                jsonModel.removeObject(model_index)
+                json_model.removeObject(model_index)
             }
         }
         MenuSeparator {}
         MenuItem {
             text: qsTr("Copy")
             onClicked: {
-                Preferences.copy(jsonModel.getFieldData(model_index))
+                Preferences.copy(json_model.getFieldData(model_index))
             }
         }
         MenuItem {
             id: pathItem
             text: qsTr("Copy path")
             onClicked: {
-                Preferences.copy(jsonModel.getFieldPath(model_index))
+                Preferences.copy(json_model.getFieldPath(model_index))
             }
         }
         MenuItem {
             text: qsTr("Paste")
             onClicked: {
                 saveExpandedRows()
-                jsonModel.setFieldData(model_index, Preferences.paste())
+                json_model.setFieldData(model_index, Preferences.paste())
                 getExpandedRows()
             }
         }
@@ -278,11 +301,11 @@ Rectangle {
             ComboBox {
                 id: typeBox
                 Layout.fillWidth: true
-                model: jsonModel.typeNames
+                model: json_model.typeNames
             }
         }
         standardButtons: Dialog.Ok | Dialog.Cancel
-        onAccepted: jsonModel.addObject(model_index, typeBox.currentText, inputKey.text)
+        onAccepted: json_model.addObject(model_index, typeBox.currentText, inputKey.text)
     }
 
     Dialog {
@@ -297,7 +320,7 @@ Rectangle {
             }
         }
         standardButtons: Dialog.Ok | Dialog.Cancel
-        onAccepted:  jsonModel.resizeArray(model_index, sizeBox.value)
+        onAccepted:  json_model.resizeArray(model_index, sizeBox.value)
     }
 
 }

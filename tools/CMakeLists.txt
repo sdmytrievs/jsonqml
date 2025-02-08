@@ -27,3 +27,15 @@ qt_generate_deploy_qml_app_script(
 #need install not to usr/local
 #install(SCRIPT ${deploy_script})
 
+qt_add_executable(json_editor  json_editor_main.cpp)
+
+qt_add_qml_module(json_editor
+    URI tools2
+    VERSION 1.0
+    RESOURCE_PREFIX /qt/qml
+    QML_FILES json_editor_main.qml
+)
+
+target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+
+

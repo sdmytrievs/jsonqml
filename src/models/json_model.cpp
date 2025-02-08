@@ -58,13 +58,14 @@ jsonio::JsonBase::Type JsonBaseModel::type_from(const QString &field_type, std::
 
 void JsonBaseModel::check_editor_type(const QModelIndex &index)
 {
+    use_combo_box = false;
+    editor_fields_values.clear();
     if(lineFromIndex(index)->isBool()) {
         use_combo_box = true;
-        editor_fields_values = {"true", "false"};
-    }
-    else {
-        use_combo_box = false;
-        editor_fields_values.clear();
+        editor_fields_values.push_back(QVariantMap({{QString("value"), true},
+                                                    {QString("text"), "true"}}));
+        editor_fields_values.push_back(QVariantMap({{QString("value"), false},
+                                                    {QString("text"), "false"}}));
     }
     emit editorChange();
 }

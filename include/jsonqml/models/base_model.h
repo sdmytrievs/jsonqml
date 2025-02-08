@@ -15,7 +15,7 @@ class JsonBaseModel: public QAbstractItemModel
 
     Q_PROPERTY(QStringList typeNames READ typeNames CONSTANT)
     Q_PROPERTY(bool useComboBox READ useComboBox NOTIFY editorChange)
-    Q_PROPERTY(QStringList editorValues READ editorValues NOTIFY editorChange)
+    Q_PROPERTY(QList<QVariantMap> editorValues READ editorValues NOTIFY editorChange)
 
 signals:
 
@@ -95,7 +95,7 @@ public:
     {
         return use_combo_box;
     }
-    QStringList editorValues() const
+    QList<QVariantMap> editorValues() const
     {
         return editor_fields_values;
     }
@@ -103,7 +103,7 @@ public:
 protected:
     static const QStringList type_names;
     bool use_combo_box;
-    QStringList editor_fields_values;
+    QList<QVariantMap> editor_fields_values;
 
     virtual jsonio::JsonBase& current_data() const = 0;
     virtual jsonio::JsonBase* lineFromIndex(const QModelIndex& index) const = 0;

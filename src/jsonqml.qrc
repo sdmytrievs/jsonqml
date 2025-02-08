@@ -14,6 +14,5 @@
         <file>qml/images/SaveCurrentRecordIcon24.png</file>
         <file>qml/images/ShowFilesIcon24.png</file>
         <file>qml/JsonEditor.qml</file>
-        <file>qml/JsonDelegate.qml</file>
     </qresource>
 </RCC>
