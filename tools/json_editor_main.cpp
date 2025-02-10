@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 {
     //qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     jsonqml::Preferences::use_database = false;
+    jsonio::JsonioSettings::settingsFileName = "jsonqml-config.json";
 
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png"));

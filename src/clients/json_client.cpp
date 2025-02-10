@@ -73,7 +73,6 @@ bool JsonClientPrivate::set_json(const std::string& json_string, const QString& 
     return true;
 }
 
-
 //--------------------------------------------------------------------------
 
 JsonClient::JsonClient(JsonClientPrivate* impl, QObject *parent):
@@ -91,10 +90,7 @@ JsonClient::JsonClient(QObject *parent):
 {
 }
 
-JsonClient::~JsonClient()
-{
-
-}
+JsonClient::~JsonClient() {}
 
 const QString &JsonClient::schema()
 {
@@ -118,6 +114,7 @@ const QStringList &JsonClient::headerNames()
 
 void JsonClient::setModelSchema()
 {
+    emit jsonModelAboutChanged();
     impl_func()->update_jsonmodel();
     emit jsonModelChanged();
     impl_func()->new_tree_model.reset();
@@ -126,7 +123,6 @@ void JsonClient::setModelSchema()
 void JsonClient::updateSchemaList()
 {
     auto new_list = impl_func()->gen_schema_list();
-    qDebug() << "updateSchemaList " << new_list.size();
     setSchemaList(new_list);
 }
 

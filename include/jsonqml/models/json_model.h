@@ -16,7 +16,7 @@ class JsonFreeModel: public JsonBaseModel
 
 public:
     explicit JsonFreeModel(const QStringList& header_names, QObject* parent = nullptr);
-    ~JsonFreeModel() {}
+    ~JsonFreeModel();
 
     /// Return internal data to const link
     const jsonio::JsonBase& current_object() const override
@@ -29,22 +29,23 @@ public:
 
     Q_INVOKABLE bool canBeAdd(const QModelIndex& index) const override
     {
-        auto line = lineFromIndex(index);
-        return (line->isTop() || line->getParent()->isObject() || (line->isObject() && line->size()<1));
+        auto item = lineFromIndex(index);
+        return (item->isTop() || item->getParent()->isObject() ||
+                (item->isObject() && item->size()<1));
     }
     Q_INVOKABLE bool canBeResized(const QModelIndex& index) const override
     {
-        return  lineFromIndex(index)->isArray();
+        return lineFromIndex(index)->isArray();
     }
     Q_INVOKABLE bool canBeCloned(const QModelIndex& index) const override
     {
-        auto line = lineFromIndex(index);
-        return  !line->isTop() && line->getParent()->isArray();
+        auto item = lineFromIndex(index);
+        return  !item->isTop() && item->getParent()->isArray();
     }
     Q_INVOKABLE bool canBeRemoved(const QModelIndex& index) const override
     {
-        auto line = lineFromIndex(index);
-        return !line->isTop() && line->getParent()->isStructured();
+        auto item = lineFromIndex(index);
+        return !item->isTop() && item->getParent()->isStructured();
     }
 
 private:

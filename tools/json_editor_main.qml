@@ -87,6 +87,7 @@ ApplicationWindow {
             Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
+            json_client: client
             json_model: client.jsonmodel
         }
 

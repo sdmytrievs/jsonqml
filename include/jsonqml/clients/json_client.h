@@ -24,6 +24,7 @@ signals:
     void listChanged();
     void schemaChanged();
     void jsonModelChanged();
+    void jsonModelAboutChanged();
 
 public slots:
     virtual void setModelSchema();

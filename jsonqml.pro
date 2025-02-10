@@ -45,6 +45,7 @@ SOURCES += \
     #main.cpp \
     src/arango_database.cpp \
     src/arango_document.cpp \
+    src/models/base_model.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \
     src/models/select_model.cpp \

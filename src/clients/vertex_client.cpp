@@ -70,6 +70,9 @@ void VertexClientPrivate::update_jsonmodel()
     if(json_tree_model) {
         json_tree_model->setupModelData("", current_schema_name);
     }
+    else {
+        json_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
+    }
 }
 
 void VertexClientPrivate::update_keysmodel()

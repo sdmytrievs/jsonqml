@@ -45,6 +45,11 @@ void EdgeClientPrivate::update_jsonmodel()
     if(json_tree_model) {
         json_tree_model->setupModelData("", current_schema_name);
     }
+    else {
+        json_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
+        in_model.reset(new DBQueryModel(Vertex, ""));
+        out_model.reset(new DBQueryModel(Vertex, ""));
+    }
 }
 
 void EdgeClientPrivate::update_keysmodel()

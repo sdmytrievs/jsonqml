@@ -25,7 +25,7 @@ public:
     JsonSchemaModel(const QString& schema_name,
                     const QStringList& header_names,
                     QObject* parent = nullptr);
-    ~JsonSchemaModel() {}
+    ~JsonSchemaModel();
 
     /// Return internal data to const link
     const jsonio::JsonBase& current_object() const override

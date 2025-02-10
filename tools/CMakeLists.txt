@@ -1,5 +1,7 @@
 
 message(STATUS "Building jsonqml tools: ${BuildTools}")
+file(COPY "${CMAKE_SOURCE_DIR}/resources/data/schemas" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
+file(COPY "${CMAKE_SOURCE_DIR}/resources/jsonqml-config.json" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/")
 
 qt_add_executable(arangodb-view  db_view_main.cpp)
 

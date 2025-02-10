@@ -8,9 +8,11 @@ Rectangle {
     color: contrastColor()
     border.width: 2
     border.color: "#D0D0D0"
+
+    property var json_client
     property var json_model
     property var expanded_rows
-    property var model_index: json_model.index(0, 0)
+    property var model_index: json_model.index(-1, -1)
 
     function contrastColor() {
         return palette.alternateBase
@@ -39,6 +41,15 @@ Rectangle {
         }
         function onModelExpand() {
             getExpandedRows()
+        }
+    }
+
+    Connections{
+        target : jsonRectangle.json_client
+        function onJsonModelAboutChanged() {
+            console.log("onJsonModelChanged")
+            expanded_rows = []
+            model_index = json_model.index(-1, -1)
         }
     }
 
@@ -260,7 +271,7 @@ Rectangle {
             text: qsTr("Resize")
             enabled: json_model.canBeResized(model_index)
             onClicked: {
-                sizeBox.value = json_model.sizeArray(model_index)
+                sizeBox.value = json_model.rowCount(model_index)
                 resizeDialog.open()
             }
         }

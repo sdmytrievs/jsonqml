@@ -1,7 +1,7 @@
 #include <QColor>
 #include "jsonqml/models/schema_model.h"
 #include "jsonqml/clients/settings_client.h"
-#include "jsonio/io_settings.h"
+//#include "jsonio/io_settings.h"
 
 namespace jsonqml {
 extern std::shared_ptr<spdlog::logger> ui_logger;
@@ -16,6 +16,8 @@ JsonSchemaModel::JsonSchemaModel(const QString& schema_name,
 {
     setupModelData("", schema_name);
 }
+
+JsonSchemaModel::~JsonSchemaModel() {}
 
 jsonio::JsonBase* JsonSchemaModel::lineFromIndex(const QModelIndex &index ) const
 {
@@ -52,9 +54,10 @@ void JsonSchemaModel::setupModelData(const std::string& json_string, const QStri
 
 QModelIndex JsonSchemaModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent))
+    if(!hasIndex(row, column, parent)) {
         return QModelIndex{};
-    auto *parent_item = lineFromIndex(parent);
+    }
+    auto * parent_item = lineFromIndex(parent);
     if(parent_item->size()>row) {
         return createIndex(row, column, parent_item->getChild(row));
     }
@@ -101,12 +104,10 @@ Qt::ItemFlags JsonSchemaModel::flags(const QModelIndex& index) const
         return (flags & ~Qt::ItemIsEditable);
     }
     if(index.column()==1 && !(item->isObject()||item->isArray()||get_map_enumdef(index)!= nullptr)) {
-        flags |= Qt::ItemIsEditable;
-        return flags;
+        return (flags | Qt::ItemIsEditable);
     }
     if(index.column()==0 && !item->isTop() && schemajs(item->getParent())->isMap()) {
-        flags |= Qt::ItemIsEditable;
-        return flags;
+        return (flags | Qt::ItemIsEditable);
     }
     return (flags & ~Qt::ItemIsEditable);
 }
@@ -119,23 +120,21 @@ QVariant JsonSchemaModel::headerData(int section, Qt::Orientation orientation, i
     return QVariant();
 }
 
-
 QVariant JsonSchemaModel::data(const QModelIndex& index, int role) const
 {
     if(!index.isValid()) {
         return QVariant();
     }
 
-    auto node = lineFromIndex( index );
+    auto item = lineFromIndex(index);
     switch(role)  {
     case Qt::DisplayRole:
         if(useEnumNames) {
-            auto enumdef = get_i32_enumdef(schemajs(node));
+            auto enumdef = get_i32_enumdef(schemajs(item));
             if(enumdef != nullptr) {
                 int idx;
-                node->get_to(idx);
+                item->get_to(idx);
                 std::string name = enumdef->value2name(idx);
-
                 if(index.column()==1) {
                     return  QString::fromStdString(name);
                 }
@@ -148,18 +147,18 @@ QVariant JsonSchemaModel::data(const QModelIndex& index, int role) const
             auto mapenum = get_map_enumdef( index );
             if(mapenum != nullptr) {
                 std::string name;
-                node->get_to(name);
+                item->get_to(name);
                 return  QString::fromStdString(mapenum->name2description(name));
             }
         }
-        return get_value(index.column(), node);
+        return get_value(index.column(), item);
     case Qt::EditRole:
-        return get_value(index.column(), node);
+        return get_value(index.column(), item);
     case Qt::ToolTipRole:
     case Qt::StatusTipRole:
-        return  QString::fromStdString(schemajs(node)->getFullDescription());
+        return  QString::fromStdString(schemajs(item)->getFullDescription());
     case Qt::ForegroundRole:  {
-        if(index.column()==0 && !node->isTop() && !schemajs(node->getParent())->isMap()) {
+        if(index.column()==0 && !item->isTop() && !schemajs(item->getParent())->isMap()) {
             return QVariant(QColor(Qt::darkCyan));
         }
     }
@@ -172,15 +171,15 @@ QVariant JsonSchemaModel::data(const QModelIndex& index, int role) const
 bool JsonSchemaModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     if(index.isValid() && role==Qt::EditRole) {
-        auto line = lineFromIndex(index);
+        auto item = lineFromIndex(index);
         switch(index.column()) {
         case 0: {
-            auto lineschema = schemajs(line);
+            auto lineschema = schemajs(item);
             lineschema->setMapKey(value.toString().toStdString());
         }
             break;
         case 1:
-            set_value_via_type(line, "", line->type(), value);
+            set_value_via_type(item, "", item->type(), value.toString().toStdString());
             break;
         default:
             break;
@@ -227,7 +226,7 @@ bool JsonSchemaModel::canBeCloned(const QModelIndex &index) const
 bool JsonSchemaModel::canBeRemoved(const QModelIndex &index) const
 {
     auto item = lineFromIndex(index);
-    return !item->isTop() && item->getParent()->isObject();
+    return !item->isTop() && (item->getParent()->isObject()||item->getParent()->isArray());
 }
 
 const QModelIndex JsonSchemaModel::addObject(const QModelIndex &cindex,
@@ -249,6 +248,7 @@ const QModelIndex JsonSchemaModel::addObject(const QModelIndex &cindex,
         parent_index = parent(cindex).siblingAtColumn(0);
         row = rowCount(parent_index);
     }
+
     auto parent_item = schemajs(lineFromIndex(parent_index));
     auto field_top_schema_name = parent_item->getStructName();
     std::string new_object_key = field_name.toStdString();
@@ -262,12 +262,12 @@ const QModelIndex JsonSchemaModel::addObject(const QModelIndex &cindex,
         uiSettings().setError(" can't add undefined field into "+ QString::fromStdString(field_top_schema_name));
         return cindex;
     }
-    std::string def_value = field_def->defaultValue();
-    jsonio::JsonBase::Type  new_object_type = jsonio::JsonSchema::fieldtype2basetype(field_def->type(0));
+    std::string def_value = item->checked_value(item->type(), field_def->defaultValue());
+    jsonio::JsonBase::Type new_object_type = jsonio::JsonSchema::fieldtype2basetype(field_def->type(0));
 
     try {
         beginResetModel();
-        set_value_via_type(parent_item, new_object_key, new_object_type, QString::fromStdString(def_value));
+        set_value_via_type(parent_item, new_object_key, new_object_type, def_value);
         endResetModel();
     }
     catch(std::exception& e) {
@@ -284,19 +284,17 @@ const QModelIndex JsonSchemaModel::cloneObject(const QModelIndex &cindex)
     auto parent_item = lineFromIndex(parent_index);
     int row = rowCount(parent_index);
     auto data = item->dump();
-    try{
+    auto defval = item->checked_value(item->type(), "");
+
+    try  {
         // fixed existent keys in map
         auto new_object_key = std::to_string(row);
         auto used_names = parent_item->getUsedKeys();
         while(std::find(used_names.begin(), used_names.end(), new_object_key) != used_names.end()) {
              new_object_key += "0";
         }
-        QString def_val;
-        if(item->isNumber()) {
-           def_val="0";
-        }
         beginInsertRows(parent_index, row, row);
-        if(set_value_via_type(parent_item, new_object_key, item->type(), def_val) && !data.empty()) {
+        if(set_value_via_type(parent_item, new_object_key, item->type(), defval) && !data.empty()) {
             parent_item->getChild(row)->loads(data);
         }
         endInsertRows();
@@ -360,7 +358,6 @@ QStringList JsonSchemaModel::fieldNames(const QModelIndex &index) const
     std::transform(no_used_list.begin(), no_used_list.end(),
                    std::back_inserter(list),
                    [](const std::string &v){ return QString::fromStdString(v); });
-    qDebug() << "list " << list;
     return list;
 }
 
@@ -413,7 +410,7 @@ void JsonSchemaModel::enums_to_combobox(const jsonio::EnumDef* enumdef)
 {
     for(const auto& itname: enumdef->all_names()) {
         editor_fields_values.push_back(QVariantMap({{QString("value"), enumdef->name2value(itname)},
-                                                    {QString("text"), itname.c_str()}}));
+                                                    {QString("text"),  QString::fromStdString(itname)}}));
     }
 }
 

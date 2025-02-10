@@ -19,18 +19,14 @@ class JsonBaseModel: public QAbstractItemModel
     Q_PROPERTY(QList<QVariantMap> editorValues READ editorValues NOTIFY editorChange)
 
 signals:
-
     void modelExpand();
     void editorChange();
 
 public:
+    JsonBaseModel(QObject* parent = nullptr);
+    ~JsonBaseModel();
 
-    JsonBaseModel(QObject* parent = nullptr):
-        QAbstractItemModel(parent)
-    {}
-    ~JsonBaseModel() {}
-
-    /// Return internal data to const link
+    /// Return internal data as const link
     virtual const jsonio::JsonBase& current_object() const = 0;
 
     /// Extern update data
@@ -40,8 +36,8 @@ public:
     {
        return false;
     }
+
     Q_INVOKABLE bool isEditable(const QModelIndex &index);
-    Q_INVOKABLE int sizeArray(const QModelIndex &index);
 
     Q_INVOKABLE virtual QString helpName(const QModelIndex& index) const
     {
@@ -79,17 +75,8 @@ public:
     Q_INVOKABLE virtual const QModelIndex cloneObject(const QModelIndex& index);
     Q_INVOKABLE virtual void removeObject(const QModelIndex& index);
 
-    //virtual void delObjectsUnion(const QModelIndex& index) {}
-    //virtual void resetObject(const QModelIndex& index);
-
-    Q_INVOKABLE virtual QString getFieldPath(const QModelIndex& index) const
-    {
-        return QString::fromStdString(lineFromIndex(index)->get_path());
-    }
-    Q_INVOKABLE virtual QString getFieldData(const QModelIndex& index) const
-    {
-        return QString::fromStdString(lineFromIndex(index)->dump());
-    }
+    Q_INVOKABLE virtual QString getFieldPath(const QModelIndex& index) const;
+    Q_INVOKABLE virtual QString getFieldData(const QModelIndex& index) const;
     Q_INVOKABLE virtual void setFieldData(const QModelIndex& index, const QString& data);
 
     QStringList typeNames() const
@@ -114,9 +101,9 @@ protected:
     virtual jsonio::JsonBase* lineFromIndex(const QModelIndex& index) const = 0;
 
     virtual bool set_value_via_type(jsonio::JsonBase* object, const std::string& add_key,
-                                    jsonio::JsonBase::Type add_type, const QVariant& add_value);
+                                    jsonio::JsonBase::Type add_type, const std::string& add_value);
 
-    jsonio::JsonBase::Type type_from(const QString &field_type, std::string& def_value);
+    jsonio::JsonBase::Type type_from(const QString &field_type);
 
     virtual void check_editor_type(const QModelIndex &index);
 };
