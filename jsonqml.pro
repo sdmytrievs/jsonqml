@@ -57,7 +57,8 @@ SOURCES += \
     src/clients/vertex_client.cpp \
     src/clients/json_client.cpp \
     #tools/db_view_main.cpp \
-    tools/json_editor_main.cpp
+    tools/charts_view_main.cpp \
+    #tools/json_editor_main.cpp
 
 #resources.files = main.qml
 resources.prefix = /$${TARGET}
