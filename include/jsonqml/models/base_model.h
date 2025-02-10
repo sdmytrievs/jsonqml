@@ -14,6 +14,7 @@ class JsonBaseModel: public QAbstractItemModel
     Q_OBJECT
 
     Q_PROPERTY(QStringList typeNames READ typeNames CONSTANT)
+    Q_PROPERTY(bool useSchema READ useSchema CONSTANT)
     Q_PROPERTY(bool useComboBox READ useComboBox NOTIFY editorChange)
     Q_PROPERTY(QList<QVariantMap> editorValues READ editorValues NOTIFY editorChange)
 
@@ -35,6 +36,10 @@ public:
     /// Extern update data
     virtual void setupModelData(const std::string& json_string, const QString& schema) = 0;
 
+    virtual bool useSchema() const
+    {
+       return false;
+    }
     Q_INVOKABLE bool isEditable(const QModelIndex &index);
     Q_INVOKABLE int sizeArray(const QModelIndex &index);
 

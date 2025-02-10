@@ -60,8 +60,11 @@ Rectangle {
             selectionModel: ItemSelectionModel {
                 id: selModel
                 onCurrentChanged:  (current, previous) =>  {
-                                       if(previous.row>=0) {
-                                           jsonTreeView.itemAtIndex(previous).editing_mode = false
+                                       if(previous) {
+                                           var item =  jsonTreeView.itemAtIndex(previous)
+                                           if(item) {
+                                               item.editing_mode = false
+                                           }
                                        }
                                    }
             }
@@ -171,7 +174,11 @@ Rectangle {
                             if(json_model.isEditable(index)) {
                                 editing_mode = true
                                 if(json_model.useComboBox) {
-                                   checkField.currentIndex = checkField.find(model.display)
+                                    var data = model.display
+                                    if(column === 0) {
+                                        data = json_model.data(treeView.index(row, 1), Qt.DisplayRole);
+                                    }
+                                    checkField.currentIndex = checkField.find(data)
                                 }
                                 model_index = index
                             }
@@ -208,10 +215,12 @@ Rectangle {
                     model: json_model.editorValues
 
                     onActivated: {
-                        console.log("ComboBox: ", currentValue)
+                        editing_mode = false
                         let index = treeView.index(row, column)
                         json_model.setData(index, currentValue, Qt.EditRole)
-                        editing_mode = false
+                        if(column === 0) {
+                            json_model.setData(treeView.index(row, 1), currentText, Qt.EditRole);
+                        }
                     }
                 }
 
@@ -238,7 +247,13 @@ Rectangle {
             text: qsTr("Insert")
             enabled: json_model.canBeAdd(model_index)
             onClicked: {
-                insertDialog.open()
+                if(json_model.useSchema) {
+                    namesBox.model = json_model.fieldNames(model_index)
+                    selectDialog.open()
+                }
+                else {
+                    insertDialog.open()
+                }
             }
         }
         MenuItem {
@@ -306,6 +321,24 @@ Rectangle {
         }
         standardButtons: Dialog.Ok | Dialog.Cancel
         onAccepted: json_model.addObject(model_index, typeBox.currentText, inputKey.text)
+    }
+
+    Dialog {
+        id: selectDialog
+        title: "Insert"
+        contentItem: ColumnLayout {
+            implicitHeight: namesBox.implicitHeight*3
+            ComboBox {
+                id: namesBox
+                Layout.fillWidth: true
+            }
+        }
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        onAccepted: {
+            saveExpandedRows()
+            json_model.addObject(model_index, "object", namesBox.currentText)
+            getExpandedRows()
+         }
     }
 
     Dialog {

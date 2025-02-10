@@ -68,6 +68,8 @@ win32:LIBS +=  -larango-cpp-static
 !win32:LIBS += -larango-cpp
 
 OBJECTS_DIR   = obj
+MOC_DIR = tmp
+UI_DIR  = $$MOC_DIR
 
 include($$JSONIO_DIR/jsonio.pri)
 

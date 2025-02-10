@@ -146,11 +146,11 @@ const QModelIndex JsonBaseModel::cloneObject(const QModelIndex &cindex)
     if(!parent_item->isArray()) {
         return cindex;
     }
-    int row =  rowCount(parent_index);
+    int row = rowCount(parent_index);
     auto data = item->dump();
     try{
         beginInsertRows(parent_index, row, row);
-        if(set_value_via_type(parent_item, std::to_string(row), item->type(), QString("0")) && !data.empty() ) {
+        if(set_value_via_type(parent_item, std::to_string(row), item->type(), QString("0")) && !data.empty()) {
             parent_item->getChild(row)->loads(data);
         }
         endInsertRows();
@@ -172,7 +172,7 @@ void JsonBaseModel::removeObject(const QModelIndex &index)
 
 void  JsonBaseModel::setFieldData(const QModelIndex& index, const QString& data)
 {
-    auto line =  lineFromIndex(index);
+    auto line = lineFromIndex(index);
     try {
         beginResetModel();
         if(data.isEmpty()) {
