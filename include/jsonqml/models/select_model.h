@@ -2,10 +2,11 @@
 #ifndef SELECTMODEL_H
 #define SELECTMODEL_H
 
-
+#include <string>
+#include <vector>
+#include <functional>
 #include <QAbstractTableModel>
 #include <QSortFilterProxyModel>
-
 
 namespace jsonqml {
 
@@ -17,6 +18,17 @@ using model_line_t = std::vector<std::string>;
 
 /// Lines of colums values table
 using model_table_t = std::vector<model_line_t>;
+
+enum TableFlag {
+    RowSortingEnabled =   0x0010,///< Added sorting into colums
+    GraphDataEnabled =  0x0004,  ///< Connect 2d graphic for columns
+    TableIsEditable =   0x0002,  ///< Enable editing
+    MenuEnabled = 0x0001,        ///< Disable context menu
+    NoTableFlags = 0             ///< Use only show mode
+};
+Q_DECLARE_FLAGS(TableFlags, TableFlag)
+//Q_DECLARE_OPERATORS_FOR_FLAGS(TableFlags)
+//Q_FLAGS(TableFlags)
 
 ///  \class SelectModel
 ///  \brief The SelectModel class provides a read-only data model for table data sets.

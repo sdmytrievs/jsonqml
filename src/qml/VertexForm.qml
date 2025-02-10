@@ -42,7 +42,7 @@ Item {
             //Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
-            jsonModel: vertexClient.jsonmodel
+            json_model: vertexClient.jsonmodel
 
         }
     }

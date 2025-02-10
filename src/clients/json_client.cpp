@@ -47,11 +47,12 @@ bool JsonClientPrivate::update_schema(QString new_schema)
 void JsonClientPrivate::update_jsonmodel()
 {
     if(no_schema_model(current_schema_name)) {
-        json_tree_model.reset(new JsonFreeModel(header_names));
+        new_tree_model.reset(new JsonFreeModel(header_names));
     }
     else {
-        json_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
+        new_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
     }
+    json_tree_model.swap(new_tree_model);
 }
 
 const jsonio::JsonBase &JsonClientPrivate::get_json(const QString&) const
@@ -72,7 +73,6 @@ bool JsonClientPrivate::set_json(const std::string& json_string, const QString& 
     return true;
 }
 
-
 //--------------------------------------------------------------------------
 
 JsonClient::JsonClient(JsonClientPrivate* impl, QObject *parent):
@@ -90,10 +90,7 @@ JsonClient::JsonClient(QObject *parent):
 {
 }
 
-JsonClient::~JsonClient()
-{
-
-}
+JsonClient::~JsonClient() {}
 
 const QString &JsonClient::schema()
 {
@@ -117,20 +114,22 @@ const QStringList &JsonClient::headerNames()
 
 void JsonClient::setModelSchema()
 {
+    emit jsonModelAboutChanged();
     impl_func()->update_jsonmodel();
     emit jsonModelChanged();
+    impl_func()->new_tree_model.reset();
 }
 
 void JsonClient::updateSchemaList()
 {
     auto new_list = impl_func()->gen_schema_list();
-    qDebug() << "updateSchemaList " << new_list.size();
     setSchemaList(new_list);
 }
 
 void JsonClient::setSchema(const QString &new_schema)
 {
     if(impl_func()->update_schema(new_schema)) {
+        qDebug() << "setSchema " << new_schema;
         emit schemaChanged();
     }
 }

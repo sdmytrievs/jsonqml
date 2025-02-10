@@ -43,6 +43,8 @@ protected:
 
     QStringList header_names;
     QSharedPointer<JsonBaseModel> json_tree_model;
+    // protect qml error messages when swap models
+    QSharedPointer<JsonBaseModel> new_tree_model;
 };
 
 }

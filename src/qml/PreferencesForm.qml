@@ -84,7 +84,6 @@ Item {
                         if (find(editText) === -1)
                             Preferences.addDBName(editText)
                     }
-
                 }
 
                 Label {

@@ -5,7 +5,7 @@ CONFIG += thread
 CONFIG += c++20
 
 QT += quick
-#CONFIG += qmltypes
+CONFIG += qmltypes
 QML_IMPORT_NAME = Scanner
 QML_IMPORT_MAJOR_VERSION = 1
 
@@ -42,10 +42,10 @@ HEADERS += \
     src/clients/edge_client_p.h \
 
 SOURCES += \
-    #json_editor_main.cpp \
     #main.cpp \
     src/arango_database.cpp \
     src/arango_document.cpp \
+    src/models/base_model.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \
     src/models/select_model.cpp \
@@ -56,7 +56,8 @@ SOURCES += \
     src/clients/settings_client.cpp \
     src/clients/vertex_client.cpp \
     src/clients/json_client.cpp \
-    tools/db_view_main.cpp
+    #tools/db_view_main.cpp \
+    tools/json_editor_main.cpp
 
 #resources.files = main.qml
 resources.prefix = /$${TARGET}
@@ -68,6 +69,8 @@ win32:LIBS +=  -larango-cpp-static
 !win32:LIBS += -larango-cpp
 
 OBJECTS_DIR   = obj
+MOC_DIR = tmp
+UI_DIR  = $$MOC_DIR
 
 include($$JSONIO_DIR/jsonio.pri)
 

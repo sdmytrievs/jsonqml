@@ -73,7 +73,7 @@ Item {
             Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
-            jsonModel: edgeClient.jsonmodel
+            json_model: edgeClient.jsonmodel
 
         }
     }

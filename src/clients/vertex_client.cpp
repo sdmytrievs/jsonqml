@@ -70,6 +70,9 @@ void VertexClientPrivate::update_jsonmodel()
     if(json_tree_model) {
         json_tree_model->setupModelData("", current_schema_name);
     }
+    else {
+        json_tree_model.reset(new JsonSchemaModel(current_schema_name, header_names));
+    }
 }
 
 void VertexClientPrivate::update_keysmodel()
@@ -135,6 +138,14 @@ bool VertexClientPrivate::set_json(const std::string& json_string, const QString
 VertexClient::VertexClient(VertexClientPrivate *impl, QObject *parent):
     JsonClient(impl, parent)
 {
+    if(impl_func()->keys_model) {
+            connect(impl_func()->keys_model.get(), &DBKeysModel::readedDocument,
+                    this, &VertexClient::setEditorData, Qt::UniqueConnection);
+            connect(impl_func()->keys_model.get(), &DBKeysModel::updatedOid,
+                    this, &VertexClient::setEditorOid, Qt::UniqueConnection);
+            connect(impl_func()->keys_model.get(), &DBKeysModel::executingChange,
+                    this, &VertexClient::executingChange, Qt::UniqueConnection);
+        }
 }
 
 VertexClient::VertexClient(QObject *parent):

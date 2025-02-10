@@ -13,5 +13,6 @@
         <file>qml/images/jsonui-logo-icon.png</file>
         <file>qml/images/SaveCurrentRecordIcon24.png</file>
         <file>qml/images/ShowFilesIcon24.png</file>
+        <file>qml/JsonEditor.qml</file>
     </qresource>
 </RCC>

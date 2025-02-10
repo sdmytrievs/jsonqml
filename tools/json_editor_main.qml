@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
+
+import jsonqml
 import Qt.jsonqml.qobjectPreferences 1.0
 
 pragma ComponentBehavior: Bound
@@ -45,13 +47,13 @@ ApplicationWindow {
 
                 Button {
                     id: loadButton
-                    icon.source: "qrc:///resources/images/ShowFilesIcon24.png"
+                    icon.source: "qrc:/qt/qml/jsonqml/qml/images/ShowFilesIcon24.png"
                     text: qsTr("Load...")
                     onClicked: fileOpenDialog.open()
                 }
                 Button {
                     id: saveButton
-                    icon.source: "qrc:///resources/images/SaveCurrentRecordIcon24.png"
+                    icon.source: "qrc:/qt/qml/jsonqml/qml/images/SaveCurrentRecordIcon24.png"
                     text: qsTr("Save...")
                     onClicked: {
                         fileSaveDialog.currentFile = fileSaveDialog.currentFolder+"/"+client.fileSchemaExt(schemasList.currentText, "json");
@@ -79,14 +81,22 @@ ApplicationWindow {
             }
         }
 
-        JsonView  {
+        JsonEditor  {
             id: jsonData
             visible: true
             Layout.margins : appWindow.margin
             Layout.fillWidth: true
             Layout.fillHeight: true
+            json_client: client
+            json_model: client.jsonmodel
         }
 
+    }
+
+    footer: Label {
+       id: error_label
+       text: Preferences.error
+       color: "red"
     }
 
     FileDialog {
@@ -96,9 +106,7 @@ ApplicationWindow {
         fileMode: FileDialog.OpenFile
         nameFilters: [qsTr("JSON files (*.json)")]
         currentFolder: Preferences.workDir
-        onAccepted: {
-            client.readJson(fileOpenDialog.selectedFile)
-        }
+        onAccepted:  client.readJson(fileOpenDialog.selectedFile)
     }
 
     FileDialog {
