@@ -5,6 +5,7 @@ CONFIG += thread
 CONFIG += c++20
 
 QT += quick
+QT += charts printsupport svg
 CONFIG += qmltypes
 QML_IMPORT_NAME = Scanner
 QML_IMPORT_MAJOR_VERSION = 1
@@ -24,6 +25,9 @@ INCLUDEPATH   += $$JSONQML_HEADERS_DIR
 HEADERS += \
     include/jsonqml/arango_database.h \
     include/jsonqml/arango_document.h \
+    include/jsonqml/charts/chart_model.h \
+    include/jsonqml/charts/chart_view.h \
+    include/jsonqml/charts/graph_data.h \
     include/jsonqml/models/base_model.h \
     include/jsonqml/models/json_model.h \
     include/jsonqml/models/schema_model.h \
@@ -37,6 +41,7 @@ HEADERS += \
     include/jsonqml/clients/edge_client.h \
     src/arango_database_p.h \
     src/arango_document_p.h \
+    src/charts/markershapes.h \
     src/clients/json_client_p.h \
     src/clients/vertex_client_p.h \
     src/clients/edge_client_p.h \
@@ -45,6 +50,10 @@ SOURCES += \
     #main.cpp \
     src/arango_database.cpp \
     src/arango_document.cpp \
+    src/charts/chart_model.cpp \
+    src/charts/chart_view.cpp \
+    src/charts/graph_data.cpp \
+    src/charts/markershapes.cpp \
     src/models/base_model.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \

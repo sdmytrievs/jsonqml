@@ -64,18 +64,15 @@ QModelIndex JsonFreeModel::parent(const QModelIndex& child) const
     if(!child.isValid()) {
         return QModelIndex{};
     }
-    auto child_item = lineFromIndex(child);
-    auto parent_item = child_item->getParent();
-    if(parent_item == &root_node) {
-        return QModelIndex{};
-    }
-    return createIndex(parent_item->getNdx(), 0, parent_item);
+    auto* child_item = lineFromIndex(child);
+    auto* parent_item = child_item->getParent();
+    return parent_item != &root_node ? createIndex(parent_item->getNdx(), 0, parent_item) : QModelIndex{};
 }
 
 int JsonFreeModel::rowCount(const QModelIndex& parent) const
 {
-    if(!parent.isValid()) {
-        return root_node.size();
+    if(parent.column()> 0) {
+        return 0;
     }
     return lineFromIndex(parent)->size();
 }

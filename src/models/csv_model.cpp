@@ -4,8 +4,6 @@
 #include "jsonio/service.h"
 #include "jsonio/jsondetail.h"
 
-
-
 namespace jsonqml {
 
 CSVModel::CSVModel(QObject *parent)
@@ -61,7 +59,7 @@ QVariant CSVModel::data(const QModelIndex &index, int role) const
     if(!index.isValid()) {
         return QVariant();
     }
-    if(role== Qt::DisplayRole|| role==Qt::EditRole) {
+    if(role==Qt::DisplayRole || role==Qt::EditRole) {
         if(index.row()<table.size() && index.column()<table[index.row()].size()) {
             if(is_number_clmn[index.column()]) {
                 double val=0;
@@ -110,8 +108,10 @@ bool CSVModel::setData(const QModelIndex &index, const QVariant &value, int role
 
 Qt::ItemFlags CSVModel::flags(const QModelIndex& index) const
 {
-    Qt::ItemFlags flags = QAbstractTableModel::flags(index);
-    return (flags | Qt::ItemIsEditable);
+    if(!index.isValid()) {
+       return Qt::NoItemFlags;
+    }
+    return (QAbstractItemModel::flags(index) | Qt::ItemIsEditable);
 }
 
 void CSVModel::matrix_from_csv_string(std::string&& value_csv)

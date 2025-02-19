@@ -1,0 +1,16 @@
+{
+     "vbool" :   true,
+     "vint" :   -100,
+     "vdouble" :   1e-10,
+     "vstring" :   "Test string",
+     "vlist" :   [
+          1.7,
+          2.7,
+          3.7,
+          5.7
+     ],
+     "vmap" :   {
+          "key1" :   "val1",
+          "key2" :   "val2"
+     }
+}

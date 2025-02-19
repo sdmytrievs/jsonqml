@@ -46,7 +46,7 @@ if(BUILD_SHARED_LIBS)
 
     add_library(jsonqml::jsonqml ALIAS jsonqml)
     target_link_libraries(jsonqml PUBLIC jsonio::jsonio)
-    target_link_libraries(jsonqml PUBLIC Qt6::Gui Qt6::Quick)
+    target_link_libraries(jsonqml PUBLIC Qt6::Gui Qt6::Quick Qt6::Charts Qt6::Svg)
 
     install( TARGETS jsonqml
          EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)

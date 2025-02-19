@@ -66,14 +66,12 @@ QHash<int, QByteArray> SelectModel::roleNames() const
 
 int SelectModel::rowCount(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
-    return table.size();
+    return index.isValid() ? 0 : table.size();
 }
 
 int SelectModel::columnCount(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
-    return header.size();
+    return index.isValid() ? 0 : header.size();
 }
 
 /*!
