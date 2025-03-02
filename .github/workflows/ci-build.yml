@@ -46,6 +46,8 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          channels: conda-forge,defaults
+          channel-priority: true
           activate-environment: jsonqml
           environment-file: environment.devenv.yml
           auto-activate-base: false
