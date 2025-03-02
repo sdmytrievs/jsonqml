@@ -1,12 +1,5 @@
 name: jsonqml
 
 dependencies:
-  - gxx_linux-64>=9.4.0  # [linux]
-  - cmake>=3.13
-  - ninja # [unix]
-  - make  # [win]
-  - git
-  - ccache  # [unix]
   - qt6-main
   - qt6-charts
-  - mesa-libgl-devel-cos7-x86_64 # [unix]
