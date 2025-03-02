@@ -1,0 +1,71 @@
+name: CIbuild
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        include:
+          - os: ubuntu-latest
+            build_dir: build-linux
+            conda_platform: linux-64
+            artifact_name: jsonqml-linux
+          - os: windows-latest
+            build_dir: build-windows
+            conda_platform: win-64
+            artifact_name: jsonqml-windows.zip
+          - os: macos-latest
+            build_dir: build-macos
+            conda_platform: osx-64
+            artifact_name: jsonqml-macos.dmg
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: >
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: jsonqml
+          environment-file: environment.devenv.yml
+          auto-activate-base: false
+          auto-update-conda: true
+          mamba-version: "*"
+
+      - name: Check conda
+        id: strings
+        shell: bash
+        run: |
+          conda list
+
+      - name: Install Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          conda-install-dependencies.sh
+
+      - name: Configure CMake
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }} -S ${{ github.workspace }}
+
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target install
