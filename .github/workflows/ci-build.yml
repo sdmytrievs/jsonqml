@@ -58,7 +58,7 @@ jobs:
           conda list
 
       - name: Install Dependencies
-        if: matrix.os == 'ubuntu-latest' or matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: |
           conda-install-dependencies.sh
 
