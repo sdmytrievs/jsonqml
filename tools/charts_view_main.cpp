@@ -2,7 +2,7 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 #include <QtGui/QIcon>
-#include "jsonqml/clients/json_client.h"
+#include "jsonqml/clients/chart_client.h"
 #include "jsonqml/clients/settings_client.h"
 
 int main(int argc, char *argv[])
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png"));
-    jsonqml::JsonClient client;
+    jsonqml::ChartClient client;
 
     QQmlApplicationEngine engine;
     qmlRegisterSingletonInstance("Qt.jsonqml.qobjectPreferences", 1, 0, "Preferences", &jsonqml::uiSettings());

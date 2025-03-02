@@ -30,6 +30,27 @@ ApplicationWindow {
     minimumWidth: mainLayout.Layout.minimumWidth + 2 * margin
     minimumHeight: mainLayout.Layout.minimumHeight + 2 * margin
 
+    header: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+            ToolButton {
+                icon.source: "qrc:/qt/qml/jsonqml/qml/images/ShowFilesIcon24.png"
+                onClicked: fileOpenDialog.open()
+            }
+            ToolButton {
+                icon.source: "qrc:/qt/qml/jsonqml/qml/images/SaveCurrentRecordIcon24.png"
+                onClicked: fileSaveDialog.open()
+            }
+            Label {
+                text: client.csvfile
+                elide: Label.ElideLeft
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+                Layout.fillWidth: true
+            }
+        }
+    }
+
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
@@ -65,6 +86,14 @@ ApplicationWindow {
                 id: dataForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+
+                keysModel: client.csvmodel
+                sortingEnabled: client.sortingEnabled
+                onSelectedRowChanged: selRow = selectedRow
+
+                function doubleClickFunction() {
+                    console.log("csv doubleClick: ", selRow)
+                }
             }
 
             Item {
@@ -89,11 +118,24 @@ ApplicationWindow {
        color: "red"
     }
 
-    FolderDialog {
-        id: folderDialog
-        title: qsTr("Choose a folder with schemas")
+    FileDialog {
+        visible: false
+        id: fileOpenDialog
+        title: qsTr("Choose a CSV file")
+        fileMode: FileDialog.OpenFile
+        nameFilters: [qsTr("CSV files (*.csv)")]
         currentFolder: Preferences.workDir
-        onAccepted: Preferences.changeScemasPath(selectedFolder)
+        onAccepted:  client.readCSV(selectedFile)
+    }
+
+    FileDialog {
+        visible: false
+        id: fileSaveDialog
+        title: qsTr("Save a CSV file")
+        fileMode: FileDialog.SaveFile
+        nameFilters: [qsTr("CSV files (*.csv)")]
+        currentFolder: Preferences.workDir
+        onAccepted: client.saveCSV(selectedFile)
     }
 
 }

@@ -93,10 +93,10 @@ public:
         return (line<ycolumns.size() ? ycolumns[line] : 0);
     }
     /// Get line name
-    std::string getName(size_t line) const
+    QString getName(size_t line) const
     {
         //        return std::to_string(line);
-        return m_model->headerData(getYColumn(line), Qt::Horizontal, Qt::DisplayRole).toString().toStdString();
+        return m_model->headerData(getYColumn(line), Qt::Horizontal, Qt::DisplayRole).toString();
     }
 
     /// Get number of Abscissa lines

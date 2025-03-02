@@ -36,7 +36,7 @@ void SeriesLineData::toJsonNode(jsonio::JsonBase& object) const
     object.set_value_via_path("grd", red);
     object.set_value_via_path("ggr", green);
     object.set_value_via_path("gbl", blue);
-    object.set_value_via_path("gnm", name);
+    object.set_value_via_path("gnm", name.toStdString());
 }
 
 void SeriesLineData::fromJsonNode(const jsonio::JsonBase& object)
@@ -50,7 +50,9 @@ void SeriesLineData::fromJsonNode(const jsonio::JsonBase& object)
     object.get_value_via_path("grd", red, 25);
     object.get_value_via_path("ggr", green, 0);
     object.get_value_via_path("gbl", blue, 150);
-    object.get_value_via_path("gnm", name, std::string(""));
+    std::string aname;
+    object.get_value_via_path("gnm", aname, std::string(""));
+    name = QString::fromStdString(aname);
 }
 #endif
 
@@ -66,7 +68,7 @@ void SeriesLineData::toJsonObject(QJsonObject& json) const
     json["grd"] = red;
     json["ggr"] = green;
     json["gbl"] = blue;
-    json["gnm"] = QString::fromStdString(name);
+    json["gnm"] = name;
 }
 
 void SeriesLineData::fromJsonObject(const QJsonObject& json)
@@ -80,7 +82,7 @@ void SeriesLineData::fromJsonObject(const QJsonObject& json)
     red = json["grd"].toInt(25);
     green = json["ggr"].toInt(0);
     blue = json["gbl"].toInt(150);
-    name = json["gnm"].toString("").toStdString();
+    name = json["gnm"].toString("");
 }
 
 //---------------------------------------------------------------------------
@@ -90,40 +92,57 @@ void SeriesLineData::fromJsonObject(const QJsonObject& json)
 jsonqml::ChartData::~ChartData()
 {}
 
-void ChartData::setGraphType(int newtype)
+void ChartData::updateXSelections()
 {
-    graph_type = newtype;
-    auto model_type = static_cast<GRAPHTYPES>(graph_type);
-    for( auto& model: modelsdata) {
-        model->setGraphType(model_type);
+    size_t defined_lines = linesdata.size();
+    size_t nlines = 0;
+
+    for(size_t ii=0; ii<modelsdata.size(); ii++)  {
+        auto numx_colms = modelsdata[ii]->getAbscissaNumber();
+        auto nlin =  modelsdata[ii]->getSeriesNumber();
+        for(size_t jj=0; jj<nlin; jj++, nlines++)  {
+            if(nlines >= defined_lines) {
+                jsonio::JSONIO_THROW("ChartData", 10, "error into graph data..");
+            }
+            if(linesdata[nlines].getXColumn() >= numx_colms) {
+                linesdata[nlines].setXColumn(-1);
+            }
+        }
     }
 }
 
-void ChartData::setMinMaxRegion(double reg[4])
+void ChartData::updateYSelections(bool update_names)
 {
-    region[0] = reg[0];
-    region[1] = reg[1];
-    region[2] = reg[2];
-    region[3] = reg[3];
-    part[0] = reg[0]+(reg[1]-reg[0])/3;
-    part[1] = reg[1]-(reg[1]-reg[0])/3;
-    part[2] = reg[2]+(reg[3]-reg[2])/3;
-    part[3] = reg[3]-(reg[3]-reg[2])/3;
+    size_t defined_lines = linesdata.size();
+    size_t nlines = 0;
+
+    for(size_t ii=0; ii<modelsdata.size(); ii++)  {
+        auto nlin =  modelsdata[ii]->getSeriesNumber();
+        for(size_t jj=0; jj<nlin; jj++, nlines++)  {
+            if(nlines >= defined_lines) {
+                linesdata.push_back(SeriesLineData(jj, nlin, modelsdata[ii]->getName(jj)));
+            }
+            else if(update_names) {
+                linesdata[nlines].setName(modelsdata[ii]->getName(jj));
+            }
+        }
+    }
+    linesdata.resize(nlines);
 }
 
 #ifndef NO_JSONIO
 void ChartData::toJsonNode(jsonio::JsonBase& object) const
 {
     object.clear();
-    object.set_value_via_path("title", title );
+    object.set_value_via_path("title", title.toStdString());
     object.set_value_via_path("graphType", graph_type);
 
     // define grid of plot
     object.set_value_via_path("axisTypeX", axis_typeX);
     object.set_value_via_path("axisTypeY", axis_typeY);
     object.set_value_via_path("axisFont", axis_font.toString().toStdString());
-    object.set_value_via_path("xName", xname);
-    object.set_value_via_path("yName", yname);
+    object.set_value_via_path("xName", xname.toStdString());
+    object.set_value_via_path("yName", yname.toStdString());
 
     object.set_value_via_path("region", region);
     object.set_value_via_path("part", part);
@@ -146,10 +165,12 @@ void ChartData::toJsonNode(jsonio::JsonBase& object) const
 void ChartData::fromJsonNode(const jsonio::JsonBase& object)
 {
     size_t ii;
+    std::string str_buf;
     std::vector<double> reg_part;
     std::vector<int> b_col_vec;
 
-    object.get_value_via_path<std::string>("title", title, "title");
+    object.get_value_via_path<std::string>("title", str_buf, "title");
+    title = QString::fromStdString(str_buf);
     object.get_value_via_path<int>("graphType", graph_type, LineChart);
 
     // define grid of plot
@@ -161,8 +182,10 @@ void ChartData::fromJsonNode(const jsonio::JsonBase& object)
         axis_font.fromString(fnt_name.c_str());
     }
 
-    object.get_value_via_path<std::string>("xName", xname, "x");
-    object.get_value_via_path<std::string>("yName", yname, "y");
+    object.get_value_via_path<std::string>("xName", str_buf, "x");
+    xname = QString::fromStdString(str_buf);
+    object.get_value_via_path<std::string>("yName", str_buf, "y");
+    yname = QString::fromStdString(str_buf);
 
     if(object.get_value_via_path("region", reg_part, {}) && reg_part.size() >= 4) {
         for(ii=0; ii<4; ii++) {
@@ -209,13 +232,13 @@ void ChartData::fromJsonNode(const jsonio::JsonBase& object)
 
 void ChartData::toJsonObject(QJsonObject& json) const
 {
-    json["title"] =  QString::fromStdString(title);
+    json["title"] =  title;
     json["graphType"] = graph_type;
     json["axisTypeX"] = axis_typeX;
     json["axisTypeY"] = axis_typeY;
     json["axisFont"] = axis_font.toString();
-    json["xName"] =  QString::fromStdString(xname);
-    json["yName"] = QString::fromStdString(yname);
+    json["xName"] =  xname;
+    json["yName"] = yname;
 
     QJsonArray regArray;
     QJsonArray partArray;
@@ -252,14 +275,14 @@ void ChartData::toJsonObject(QJsonObject& json) const
 void ChartData::fromJsonObject(const QJsonObject& json)
 {
     size_t ii;
-    title = json["title"].toString("Graph title").toStdString();
+    title = json["title"].toString("Graph title");
     graph_type = json["graphType"].toInt(LineChart);
     axis_typeX = json["axisTypeX"].toInt(5);
     axis_typeY = json["axisTypeY"].toInt(5);
     QString fntname = json["axisFont"].toString("Sans Serif");
     axis_font.fromString(fntname);
-    xname = json["xName"].toString("x").toStdString();
-    yname = json["yName"].toString("y").toStdString();
+    xname = json["xName"].toString("x");
+    yname = json["yName"].toString("y");
 
     QJsonArray regArray = json["region"].toArray();
     QJsonArray partArray = json["part"].toArray();
@@ -296,42 +319,97 @@ void ChartData::fromJsonObject(const QJsonObject& json)
     setGraphType(graph_type);
 }
 
-void ChartData::updateXSelections()
+void ChartData::setGraphType(int newtype)
 {
-    size_t defined_lines = linesdata.size();
-    size_t nlines = 0;
-
-    for(size_t ii=0; ii<modelsdata.size(); ii++)  {
-        auto numx_colms = modelsdata[ii]->getAbscissaNumber();
-        auto nlin =  modelsdata[ii]->getSeriesNumber();
-        for(size_t jj=0; jj<nlin; jj++, nlines++)  {
-            if(nlines >= defined_lines) {
-                jsonio::JSONIO_THROW("ChartData", 10, "error into graph data..");
-            }
-            if(linesdata[nlines].getXColumn() >= numx_colms) {
-                linesdata[nlines].setXColumn(-1);
-            }
-        }
+    graph_type = newtype;
+    auto model_type = static_cast<GRAPHTYPES>(graph_type);
+    for( auto& model: modelsdata) {
+        model->setGraphType(model_type);
     }
 }
 
-void ChartData::updateYSelections(bool update_names)
+void ChartData::setMinMaxRegion(double reg[4])
 {
-    size_t defined_lines = linesdata.size();
-    size_t nlines = 0;
+    region[0] = reg[0];
+    region[1] = reg[1];
+    region[2] = reg[2];
+    region[3] = reg[3];
+    part[0] = reg[0]+(reg[1]-reg[0])/3;
+    part[1] = reg[1]-(reg[1]-reg[0])/3;
+    part[2] = reg[2]+(reg[3]-reg[2])/3;
+    part[3] = reg[3]-(reg[3]-reg[2])/3;
+}
 
-    for(size_t ii=0; ii<modelsdata.size(); ii++)  {
-        auto nlin =  modelsdata[ii]->getSeriesNumber();
-        for(size_t jj=0; jj<nlin; jj++, nlines++)  {
-            if(nlines >= defined_lines) {
-                linesdata.push_back(SeriesLineData(jj, nlin, modelsdata[ii]->getName(jj)));
-            }
-            else if(update_names) {
-                linesdata[nlines].setName(modelsdata[ii]->getName(jj));
-            }
-        }
-    }
-    linesdata.resize(nlines);
+double ChartData::xMin() const
+{
+    return region[0];
+}
+void ChartData::setxMin(double val)
+{
+    region[0] = val;
+}
+
+double ChartData::xMax() const
+{
+    return region[1];
+}
+void ChartData::setxMax(double val)
+{
+    region[1] = val;
+}
+
+double ChartData::yMin() const
+{
+    return region[2];
+}
+void ChartData::setyMin(double val)
+{
+    region[2] = val;
+}
+
+double ChartData::yMax() const
+{
+    return region[3];
+}
+void ChartData::setyMax(double val)
+{
+    region[3] = val;
+}
+
+double ChartData::fxMin() const
+{
+    return part[0];
+}
+void ChartData::setfxMin(double val)
+{
+    part[0] = val;
+}
+
+double ChartData::fxMax() const
+{
+    return part[1];
+}
+void ChartData::setfxMax(double val)
+{
+    part[1] = val;
+}
+
+double ChartData::fyMin() const
+{
+    return part[2];
+}
+void ChartData::setfyMin(double val)
+{
+    part[2] = val;
+}
+
+double ChartData::fyMax() const
+{
+    return part[3];
+}
+void ChartData::setfyMax(double val)
+{
+    part[3] = val;
 }
 
 } // namespace jsonqml

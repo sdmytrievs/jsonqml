@@ -76,7 +76,7 @@ QVariant CSVModel::data(const QModelIndex &index, int role) const
 
 QVariant CSVModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    switch( role ) {
+    switch(role) {
     case Qt::DisplayRole:
         if( orientation == Qt::Horizontal ) {
             QString head;
@@ -91,7 +91,7 @@ QVariant CSVModel::headerData(int section, Qt::Orientation orientation, int role
     default:
         break;
     }
-    return CSVModel::headerData(section, orientation, role);
+    return SelectModel::headerData(section, orientation, role);
 }
 
 bool CSVModel::setData(const QModelIndex &index, const QVariant &value, int role)

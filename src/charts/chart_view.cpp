@@ -176,7 +176,7 @@ QXYSeries* PlotChartViewPrivate::new_series_line(const SeriesLineData& linedata)
     else {
         series = new QLineSeries;
     }
-    series->setName(QString::fromStdString(linedata.getName()));
+    series->setName(linedata.getName());
     QPen pen = series->pen();
     getLinePen(pen, linedata);
     series->setPen(pen);
@@ -197,7 +197,7 @@ QScatterSeries* PlotChartViewPrivate::new_scatter_series(const SeriesLineData& l
 
 void PlotChartViewPrivate::update_scatter_series(QScatterSeries* series, const SeriesLineData& linedata)
 {
-    series->setName(QString::fromStdString(linedata.getName()));
+    series->setName(linedata.getName());
     series->setPen( QPen(Qt::transparent));
     series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
     auto msize = linedata.getMarkerSize()+2;
@@ -282,7 +282,7 @@ void PlotChartViewPrivate::show_area_chart()
             if(upper_series)  {
                 QAreaSeries *area = new QAreaSeries(upper_series, lower_series);
                 // define colors
-                area->setName(QString::fromStdString(linedata.getName()));
+                area->setName(linedata.getName());
                 QPen pen = area->pen();
                 getLinePen(pen, linedata);
                 area->setPen(pen);
@@ -345,12 +345,11 @@ void PlotChartViewPrivate::updateGrid()
     auto title_font = gr_data->axis_font;
     title_font.setPointSize(title_font.pointSize()+2);
     chart->setTitleFont(title_font);
-    chart->setTitle(QString::fromStdString(gr_data->title));
+    chart->setTitle(gr_data->title);
 
     if(!axisX || !axisY) {
         return;
     }
-
     updateMinMax();
     chart->setBackgroundBrush(gr_data->getBackgroundColor());
 
@@ -358,7 +357,7 @@ void PlotChartViewPrivate::updateGrid()
     //axisX->setMinorTickCount(4);
     axisX->setTitleFont(title_font);
     axisX->setLabelsFont(gr_data->axis_font);
-    axisX->setTitleText(QString::fromStdString(gr_data->xname));
+    axisX->setTitleText(gr_data->xname);
     auto penX = axisX->linePen();
     penX.setWidth(3);
     penX.setColor(Qt::darkGray);
@@ -368,7 +367,7 @@ void PlotChartViewPrivate::updateGrid()
     //axisY->setMinorTickCount(4);
     axisY->setTitleFont(title_font);
     axisY->setLabelsFont(gr_data->axis_font);
-    axisY->setTitleText(QString::fromStdString(gr_data->yname));
+    axisY->setTitleText(gr_data->yname);
     axisY->setLinePen(penX);
 
     // must be setPen(QChartPrivate::defaultPen()) for lines and points
@@ -554,7 +553,7 @@ void PlotChartViewPrivate::update_area_line(size_t nline)
     }
 
     if(gr_areas[nline].get()) {
-        gr_areas[nline]->setName(QString::fromStdString(gr_data->lineData(nline).getName()));
+        gr_areas[nline]->setName(gr_data->lineData(nline).getName());
         QPen pen = gr_areas[nline]->pen();
         getLinePen( pen, gr_data->lineData(nline)  );
         gr_areas[nline]->setPen(pen);

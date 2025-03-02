@@ -53,7 +53,6 @@ protected:
     void reset_clmn_type();
     void matrix_from_csv_string(std::string&& value_csv);
     std::string matrix_to_csv_string();
-
 };
 
 

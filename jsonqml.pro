@@ -28,6 +28,7 @@ HEADERS += \
     include/jsonqml/charts/chart_model.h \
     include/jsonqml/charts/chart_view.h \
     include/jsonqml/charts/graph_data.h \
+    include/jsonqml/clients/chart_client.h \
     include/jsonqml/models/base_model.h \
     include/jsonqml/models/json_model.h \
     include/jsonqml/models/schema_model.h \
@@ -54,6 +55,7 @@ SOURCES += \
     src/charts/chart_view.cpp \
     src/charts/graph_data.cpp \
     src/charts/markershapes.cpp \
+    src/clients/chart_client.cpp \
     src/models/base_model.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \
@@ -98,6 +100,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 # https://github.com/RicardoRagel/qt-qml-sample-app/tree/master/qml
 # https://doc.qt.io/qt-6/qml-qtquick-treeview.html
+
+DISTFILES += \
+    Form.qml \
+    FormForm.ui.qml \
+    resources/tmp/ChartSettings.qml
 
 
 
