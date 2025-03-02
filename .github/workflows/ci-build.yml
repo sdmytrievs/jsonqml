@@ -53,13 +53,12 @@ jobs:
           mamba-version: "*"
 
       - name: Check conda
-        id: strings
         shell: bash
         run: |
           conda list
 
       - name: Install Dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' or matrix.os == 'macos-latest'
         run: |
           conda-install-dependencies.sh
 
