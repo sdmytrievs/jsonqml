@@ -1,5 +1,5 @@
 name: jsonqml
 
 dependencies:
-  - qt6-main
-  - qt6-charts
+  - qt-main
+
