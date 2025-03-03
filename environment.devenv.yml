@@ -2,7 +2,6 @@ name: jsonqml
 
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
   - clangxx_osx-64  # [osx]

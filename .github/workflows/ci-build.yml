@@ -57,14 +57,6 @@ jobs:
           conda install conda-devenv
           conda devenv
 
-      - name: Check conda
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          conda info
-          conda list
-          printenv | sort
-
       - name: Building, Testing & Installing jsonqml
         if: matrix.os != 'windows-latest'
         shell: bash -l {0}
@@ -86,3 +78,8 @@ jobs:
           cmake -GNinja .. -DCMAKE_BUILD_TYPE=${{ matrix.config }} || goto :eof
           ninja || goto :eof
           ninja install || goto :eof
+
+    - name: Check conda
+      run: |
+        conda list
+
