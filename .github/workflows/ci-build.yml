@@ -44,9 +44,10 @@ jobs:
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
+          python-version: 3.10
           channels: conda-forge,defaults
           channel-priority: true
           use-only-tar-bz2: true  # IMPORTANT: This needs to be set true for caching of miniconda packages to work properly!
@@ -55,7 +56,7 @@ jobs:
         run: |
           conda config --set always_yes yes --set changeps1 no
           conda config --add channels conda-forge
-          conda install conda-devenv
+          conda install conda-devenv=2
           conda devenv
 
       - name: Building, Testing & Installing jsonqml
