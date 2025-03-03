@@ -12,6 +12,7 @@ dependencies:
   - make  # [unix]
   - ninja
   - curl
+  - mesa-libgl-devel-cos7-x86_64 # [unix]
   - qt=6.7.2
   - spdlog
-  - vs2019_win-64  # [win]
+  - vs2022_win-64  # [win]

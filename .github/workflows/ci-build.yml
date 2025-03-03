@@ -17,7 +17,6 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-          - macos-latest
         include:
           - os: ubuntu-latest
             build_dir: build-linux
@@ -27,10 +26,6 @@ jobs:
             build_dir: build-windows
             conda_platform: win-64
             artifact_name: jsonqml-windows.zip
-          - os: macos-latest
-            build_dir: build-macos
-            conda_platform: osx-64
-            artifact_name: jsonqml-macos.dmg
 
     steps:
 
