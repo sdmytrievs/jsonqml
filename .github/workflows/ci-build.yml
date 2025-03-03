@@ -49,19 +49,20 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: jsonqml
-          environment-file: environment.devenv.yml
-          auto-activate-base: false
+          environment-file: benvironment.yml
+          #auto-activate-base: false
           auto-update-conda: true
 
       - name: Check conda
         shell: bash
         run: |
+          conda info
           conda list
+          printenv | sort
 
       - name: Install Dependencies
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          conda-install-dependencies.sh
+        run: ./conda-install-dependencies.sh
 
       - name: Configure CMake
         run: >

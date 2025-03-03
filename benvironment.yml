@@ -1,0 +1,5 @@
+name: jsonqml
+channels:
+  - conda-forge
+dependencies:
+  - qt
