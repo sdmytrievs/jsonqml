@@ -79,7 +79,3 @@ jobs:
           ninja || goto :eof
           ninja install || goto :eof
 
-    - name: Check conda
-      run: |
-        conda list
-
