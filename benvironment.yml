@@ -2,4 +2,6 @@ name: jsonqml
 channels:
   - conda-forge
 dependencies:
-  - qt
+  - curl
+  - qt6
+  - spdlog
