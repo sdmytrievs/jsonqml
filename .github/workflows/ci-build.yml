@@ -50,8 +50,8 @@ jobs:
           channel-priority: true
           activate-environment: jsonqml
           environment-file: benvironment.yml
-          #auto-activate-base: false
-          auto-update-conda: true
+          auto-activate-base: false
+          #auto-update-conda: true
 
       - name: Check conda
         shell: bash
