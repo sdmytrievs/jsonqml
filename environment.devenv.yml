@@ -1,5 +1,18 @@
 name: jsonqml
 
-dependencies:
-  - qt-main
+channels:
+  - conda-forge
+  - defaults
 
+dependencies:
+  - clangxx_osx-64  # [osx]
+  - cmake
+  - doxygen =1.9.1  # [linux]
+  - git
+  - gxx_linux-64  # [linux]
+  - make  # [unix]
+  - ninja
+  - curl
+  - qt=6.7.2
+  - spdlog
+  - vs2019_win-64  # [win]
