@@ -50,7 +50,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find Qt dependencies
 find_package(Qt6 6.2 COMPONENTS Gui Quick REQUIRED)
-qt_standard_project_setup(REQUIRES 6.8)
+qt_standard_project_setup(REQUIRES 6.7)
 
 # Find other dependencies
 include(jsonqmlFindDeps)

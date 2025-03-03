@@ -69,7 +69,7 @@ jobs:
         shell: cmd
         run: |
           call conda activate jsonqml || goto :eof
-          ./conda-install-dependencies.bat || goto :eof
+          call conda-install-dependencies.bat || goto :eof
           mkdir .build && cd .build || goto :eof
           cmake -GNinja .. -DCMAKE_BUILD_TYPE=${{ matrix.config }} || goto :eof
           ninja || goto :eof
