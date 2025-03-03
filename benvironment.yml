@@ -3,5 +3,5 @@ channels:
   - conda-forge
 dependencies:
   - curl
-  - qt6
+  - qt=6.7.2
   - spdlog
