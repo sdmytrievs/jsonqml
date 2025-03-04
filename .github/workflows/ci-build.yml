@@ -1,4 +1,4 @@
-name: CIbuild
+name: ci-build
 on:
   push:
     branches:
@@ -17,15 +17,17 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
+          - macos-latest
         include:
           - os: ubuntu-latest
-            build_dir: build-linux
             conda_platform: linux-64
             artifact_name: jsonqml-linux
           - os: windows-latest
-            build_dir: build-windows
             conda_platform: win-64
-            artifact_name: jsonqml-windows.zip
+            artifact_name: jsonqml-windows
+          - os: macos-latest
+            conda_platform: osx-64
+            artifact_name: jsonqml-macos
 
     steps:
 
@@ -42,9 +44,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: false
-          channels: conda-forge,defaults
+          channels: conda-forge, defaults
           channel-priority: true
-          #use-only-tar-bz2: true  # IMPORTANT: This needs to be set true for caching of miniconda packages to work properly!
 
       - name: Configuring Conda Environment
         run: |
@@ -70,8 +71,10 @@ jobs:
         run: |
           call conda activate jsonqml || goto :eof
           call conda-install-dependencies.bat || goto :eof
-          mkdir .build && cd .build || goto :eof
-          cmake -GNinja .. -DCMAKE_BUILD_TYPE=${{ matrix.config }} || goto :eof
-          ninja || goto :eof
-          ninja install || goto :eof
+          cmake -DCMAKE_BUILD_TYPE=Release -DBULID_REMOTE_TESTS=OFF  -A x64 -S . -B build  || goto :eof
+          cmake --build build --target install || goto :eof
+
+      - name: Check conda
+        run: |
+          conda list
 

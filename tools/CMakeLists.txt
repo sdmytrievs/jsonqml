@@ -20,7 +20,12 @@ set_target_properties(arangodb-view PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml-static)
+else()
+  target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
+endif()
+
 
 qt_generate_deploy_qml_app_script(
     TARGET arangodb-view
@@ -38,6 +43,11 @@ qt_add_qml_module(json_editor
     QML_FILES json_editor_main.qml
 )
 
-target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  target_link_libraries(json_editor PRIVATE jsonqml::jsonqml-static)
+else()
+  target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+endif()
 
 

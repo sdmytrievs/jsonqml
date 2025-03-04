@@ -50,6 +50,41 @@ if(BUILD_SHARED_LIBS)
 
     install( TARGETS jsonqml
          EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+    install( TARGETS jsonqmlplugin
+              EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+
+endif()
+
+# Check if a static library is to be built
+if(BUILD_STATIC_LIBS)
+
+   qt_add_library(jsonqml-static STATIC)
+   qt_add_qml_module(jsonqml-static
+       URI jsonqml
+       VERSION 1.0
+       RESOURCE_PREFIX /qt/qml
+       SOURCES
+          ${SOURCE_FILES} ${HEADER_FILES_TOP} ${HEADER_FILES}
+       QML_FILES
+          ${MODULE_QML_FILES}
+       RESOURCES
+          ${MODULE_IMAGES}
+   )
+
+   add_library(jsonqml::jsonqml-static ALIAS jsonqml-static)
+   target_link_libraries(jsonqml-static PUBLIC jsonio::jsonio-static)
+   target_link_libraries(jsonqml-static PUBLIC Qt6::Gui Qt6::Quick)
+
+   install( TARGETS jsonqml-static_resources_1
+       EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+   install( TARGETS jsonqml-static_resources_2
+       EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+   install( TARGETS jsonqml-static
+       EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+   install( TARGETS jsonqml-staticplugin_init
+        EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+   install( TARGETS jsonqml-staticplugin
+        EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
 
 endif()
 

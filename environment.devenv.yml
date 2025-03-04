@@ -4,15 +4,12 @@ channels:
   - conda-forge
 
 dependencies:
-  - clangxx_osx-64  # [osx]
   - cmake
   - doxygen =1.9.1  # [linux]
   - git
-  - gxx_linux-64  # [linux]
   - make  # [unix]
   - ninja
   - curl
   - mesa-libgl-devel-cos7-x86_64 # [unix]
   - qt=6.7.2
   - spdlog
-  - vs2022_win-64  # [win]
