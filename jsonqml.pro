@@ -90,4 +90,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 # https://doc.qt.io/qt-6/qml-qtquick-treeview.html
 
 
-
+#https://github.com/marketplace/actions/zip-release
+#https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow

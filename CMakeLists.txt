@@ -25,6 +25,7 @@ include(CondaAware)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_STATIC_LIBS "Build static libraries" ON)
 option(BuildTools "Build BuildTools" ON)
+option(DeployApp "Deploy applications" OFF)
 
 # Used into conda only
 if(DEFINED ENV{CONDA_PREFIX})

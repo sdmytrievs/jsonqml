@@ -26,14 +26,6 @@ else()
   target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
 endif()
 
-
-qt_generate_deploy_qml_app_script(
-    TARGET arangodb-view
-    OUTPUT_SCRIPT deploy_script
-)
-#need install not to usr/local
-#install(SCRIPT ${deploy_script})
-
 qt_add_executable(json_editor  json_editor_main.cpp)
 
 qt_add_qml_module(json_editor
@@ -43,11 +35,22 @@ qt_add_qml_module(json_editor
     QML_FILES json_editor_main.qml
 )
 
-
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
   target_link_libraries(json_editor PRIVATE jsonqml::jsonqml-static)
 else()
   target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+endif()
+
+if(DeployApp)
+  #need install not to usr/local
+  qt_generate_deploy_qml_app_script(
+      TARGET arangodb-view
+      OUTPUT_SCRIPT deploy_script
+  )
+
+  install(SCRIPT ${deploy_script})
+  install(TARGETS arangodb-view EXPORT jsonqmlTargets DESTINATION "bin")
+  install(TARGETS json_editor EXPORT jsonqmlTargets DESTINATION "bin")
 endif()
 
 

@@ -64,6 +64,8 @@ jobs:
           cmake -GNinja .. -DCMAKE_BUILD_TYPE=Release
           ninja
           ninja install
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          ls
 
       - name: Building, Testing & Installing jsonqml (Windows)
         if: matrix.os == 'windows-latest'
@@ -71,7 +73,7 @@ jobs:
         run: |
           call conda activate jsonqml || goto :eof
           call conda-install-dependencies.bat || goto :eof
-          cmake -DCMAKE_BUILD_TYPE=Release -DBULID_REMOTE_TESTS=OFF  -A x64 -S . -B build  || goto :eof
+          cmake -DCMAKE_BUILD_TYPE=Release -A x64 -S . -B build  || goto :eof
           cmake --build build --target install || goto :eof
 
       - name: Check conda
