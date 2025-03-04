@@ -50,8 +50,8 @@ if(BUILD_SHARED_LIBS)
 
     install( TARGETS jsonqml
          EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
-    #install( TARGETS jsonqmlplugin
-    #          EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
+    install( TARGETS jsonqmlplugin
+              EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
 
 endif()
 
