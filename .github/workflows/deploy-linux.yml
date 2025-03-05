@@ -60,4 +60,5 @@ jobs:
         run: |
           cd ${{ steps.strings.outputs.deploy-output-dir }}
           ls
+          ldd ./bin/arangodb-view
 
