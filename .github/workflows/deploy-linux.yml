@@ -62,3 +62,26 @@ jobs:
           ls
           ldd ./bin/arangodb-view
 
+      - name: zipping files and folders easily
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: ${{ steps.strings.outputs.deploy-output-dir }}
+          dest: result.zip
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-app
+          path: '${{ steps.strings.outputs.deploy-output-dir }}/result.zip'
+
+  deploy:
+   runs-on: ubuntu-latest
+   needs: build
+
+   steps:
+
+     - name: Download artifact from build job
+       uses: actions/download-artifact@v4
+       with:
+         name: linux-app
+
