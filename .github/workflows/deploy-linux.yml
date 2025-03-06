@@ -88,9 +88,8 @@ jobs:
           path: ${{ steps.strings2.outputs.deploy-output-name }}
 
       - name: Upload apk to Google Drive
-        uses: logickoder/google-drive-upload@test
-        with:
-         credentials: ${{ secrets.GCD_CRED }}
-         filename: "${{ steps.strings2.outputs.deploy-output-name }}"
-         folderID: ${{ secrets.DRIVE_FOLDER_ID }}
-         overwrite: "true"
+        uses: willo32/google-drive-upload-action@v1
+           with:
+              target:  "${{ steps.strings2.outputs.deploy-output-name }}"
+              credentials: ${{ secrets.GCD_CRED }}
+              parent_folder_id: ${{ secrets.DRIVE_FOLDER_ID }}
