@@ -63,15 +63,16 @@ jobs:
           ldd ./bin/arangodb-view
 
       - name: zipping files and folders
-      - uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r deploy.zip ${{ steps.strings.outputs.deploy-output-dir }}
+        shell: bash -l {0}
+        run: |
+          cd ${{ github.workspace }}
+          zip -qq -r deploy.zip deploy
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: linux-app
-          path: deploy.zip
+          path: "${{ github.workspace }}/deploy.zip"
 
   deploy:
    runs-on: ubuntu-latest
