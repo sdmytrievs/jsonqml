@@ -15,7 +15,7 @@ cd arango-cpp
 echo "Configuring..."
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH="%CONDA_PREFIX%\Library" -DBUILD_EXAMPLES=OFF  -DBULID_LOCAL_TESTS=OFF -DBULID_REMOTE_TESTS=OFF  -A x64 -S . -B build
 echo "Building..."
-cmake --build build --target install
+cmake --build build --target install  --config Release
 
 cd ..
 
@@ -32,7 +32,7 @@ cd jsonio
 echo "Configuring..."
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH="%CONDA_PREFIX%\Library" -DBuildExamples=OFF  -DBuildTests=OFF -A x64 -S . -B build
 echo "Building..."
-cmake --build build --target install
+cmake --build build --target install  --config Release
 
 cd ..\..
 
