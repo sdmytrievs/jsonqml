@@ -32,7 +32,7 @@ jobs:
         shell: cmake -P {0}
         run: |
           string(TIMESTAMP current_date "%Y-%m-%d" UTC)
-          echo "name=now::${current_date}" >> "$GITHUB_OUTPUT"
+          message("::set-output name=now::${current_date}")
 
       - name: Set deploy dir
         id: strings
@@ -44,7 +44,7 @@ jobs:
         id: strings2
         shell: bash
         run: >
-          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.name }}.zip" >> "$GITHUB_OUTPUT"
+          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3

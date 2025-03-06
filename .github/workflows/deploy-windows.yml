@@ -2,7 +2,7 @@ name: deploy-windows
 on:
   push:
     branches:
-      - main1
+      - main
   release:
     types:
       - published
@@ -33,7 +33,6 @@ jobs:
         run: |
           string(TIMESTAMP current_date "%Y-%m-%d" UTC)
           message("::set-output name=now::${current_date}")
-          echo "name=now::${current_date}" >> "$GITHUB_OUTPUT"
 
       - name: Set deploy dir
         id: strings
@@ -45,7 +44,7 @@ jobs:
         id: strings2
         shell: bash
         run: >
-          echo "deploy-output-name=jsonqml-windows-${{ github.sha }}-${{ steps.timestamp.outputs.name }}.zip" >> "$GITHUB_OUTPUT"
+          echo "deploy-output-name=jsonqml-windows-${{ github.sha }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
