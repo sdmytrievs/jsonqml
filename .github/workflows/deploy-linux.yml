@@ -26,11 +26,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Timestamp  # Idea from https://tinyurl.com/47wz7vpv
+        id: timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+          message("::set-output name=now::${current_date}")
+
       - name: Set reusable strings
         id: strings
         shell: bash
         run: >
-          echo "deploy-output-dir=${{ github.workspace }}/deploy" >> "$GITHUB_OUTPUT"
+          echo "deploy-output-dir=${{ github.workspace }}/deploy-linux" >> "$GITHUB_OUTPUT"
+          echo "deploy-output-name=jsonqml-linux-${{ github.ref }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
@@ -62,17 +70,17 @@ jobs:
           ls
           ldd ./bin/arangodb-view
 
-      - name: zipping files and folders
+      - name: Zipping files and folders
         shell: bash -l {0}
         run: |
           cd ${{ github.workspace }}
-          zip -qq -r deploy.zip deploy
+          zip -qq -r ${{ steps.strings.outputs.deploy-output-name }} deploy-linux
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: linux-app
-          path: "${{ github.workspace }}/deploy.zip"
+          path: "${{ github.workspace }}/${{ steps.strings.outputs.deploy-output-name }}"
 
   deploy:
    runs-on: ubuntu-latest
