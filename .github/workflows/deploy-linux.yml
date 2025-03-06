@@ -31,7 +31,7 @@ jobs:
         id: timestamp
         shell: cmake -P {0}
         run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H" UTC)
+          string(TIMESTAMP current_date "%Y-%m-%d" UTC)
           message("::set-output name=now::${current_date}")
 
       - name: Set deploy dir
