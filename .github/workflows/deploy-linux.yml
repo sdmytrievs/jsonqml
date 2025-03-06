@@ -30,15 +30,20 @@ jobs:
         id: timestamp
         shell: cmake -P {0}
         run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+          string(TIMESTAMP current_date "%Y-%m-%d-%H" UTC)
           message("::set-output name=now::${current_date}")
 
-      - name: Set reusable strings
+      - name: Set deploy dir
         id: strings
         shell: bash
         run: >
           echo "deploy-output-dir=${{ github.workspace }}/deploy-linux" >> "$GITHUB_OUTPUT"
-          echo "deploy-output-name=jsonqml-linux-${{ github.ref }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
+
+     - name: Set deploy dir
+       id: strings2
+       shell: bash
+       run: >
+          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
@@ -74,13 +79,13 @@ jobs:
         shell: bash -l {0}
         run: |
           cd ${{ github.workspace }}
-          zip -qq -r ${{ steps.strings.outputs.deploy-output-name }} deploy-linux
+          zip -qq -r ${{ steps.strings2.outputs.deploy-output-name }} deploy-linux
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: linux-app
-          path: "${{ github.workspace }}/${{ steps.strings.outputs.deploy-output-name }}"
+          path: ${{ steps.strings2.outputs.deploy-output-name }}
 
   deploy:
    runs-on: ubuntu-latest
