@@ -78,7 +78,7 @@ jobs:
         shell: cmd
         run: |
           cd ${{ github.workspace }}
-          zip -qq -r ${{ steps.strings2.outputs.deploy-output-name }} deploy-windows
+          7z a ${{ steps.strings2.outputs.deploy-output-name }} deploy-windows
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
