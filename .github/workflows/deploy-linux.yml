@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload apk to Google Drive
         uses: willo32/google-drive-upload-action@v1
-           with:
-              target:  "${{ steps.strings2.outputs.deploy-output-name }}"
-              credentials: ${{ secrets.GCD_CRED }}
-              parent_folder_id: ${{ secrets.DRIVE_FOLDER_ID }}
+        with:
+           target:  "${{ steps.strings2.outputs.deploy-output-name }}"
+           credentials: ${{ secrets.GCD_CRED }}
+           parent_folder_id: ${{ secrets.DRIVE_FOLDER_ID }}
