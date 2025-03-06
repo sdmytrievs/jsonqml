@@ -2,7 +2,7 @@ name: deploy-linux
 on:
   push:
     branches:
-      - main1
+      - main
   release:
     types:
       - published
@@ -27,12 +27,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Timestamp  # Idea from https://tinyurl.com/47wz7vpv
+      - name: Timestamp
         id: timestamp
         shell: cmake -P {0}
         run: |
           string(TIMESTAMP current_date "%Y-%m-%d" UTC)
-          message("::set-output name=now::${current_date}")
+          echo "name=now::${current_date}" >> "$GITHUB_OUTPUT"
 
       - name: Set deploy dir
         id: strings
@@ -40,11 +40,11 @@ jobs:
         run: >
           echo "deploy-output-dir=${{ github.workspace }}/deploy-linux" >> "$GITHUB_OUTPUT"
 
-      - name: Set deploy dir
+      - name: Set deploy name
         id: strings2
         shell: bash
         run: >
-          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
+          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.name }}.zip" >> "$GITHUB_OUTPUT"
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
@@ -89,7 +89,7 @@ jobs:
           path: ${{ steps.strings2.outputs.deploy-output-name }}
 
       # https://timife.hashnode.dev/streamline-your-workflow-automating-app-deployment-to-google-drive-with-github-actions
-      - name: Upload apk to Google Drive  # https://github.com/marketplace/actions/google-drive-upload
+      - name: Upload artifact to Google Drive  # https://github.com/marketplace/actions/google-drive-upload
         uses: willo32/google-drive-upload-action@v1
         with:
            target:  "${{ steps.strings2.outputs.deploy-output-name }}"
