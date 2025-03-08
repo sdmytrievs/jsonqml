@@ -75,6 +75,16 @@ if(BUILD_STATIC_LIBS)
    target_link_libraries(jsonqml-static PUBLIC jsonio::jsonio-static)
    target_link_libraries(jsonqml-static PUBLIC Qt6::Gui Qt6::Quick)
 
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+     target_link_libraries( jsonqml-static PRIVATE libcurl)
+else()
+     target_link_libraries( jsonqml-static PRIVATE curl)
+endif()
+if(USE_SPDLOG_PRECOMPILED)
+    target_compile_definitions(jsonqml-static PUBLIC USE_SPDLOG_PRECOMPILED)
+    target_link_libraries(jsonqml-static PUBLIC spdlog::spdlog )
+endif()
+
    install( TARGETS jsonqml-static_resources_1
        EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
    install( TARGETS jsonqml-static_resources_2

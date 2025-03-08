@@ -1,3 +1,12 @@
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+find_library(CURL_LIB libcurl)
+else()
+find_library(CURL_LIB curl)
+endif()
+if(NOT CURL_LIB)
+  message(FATAL_ERROR "curl library not found")
+endif()
+
 find_package(arango-cpp REQUIRED)
 if(NOT arango-cpp_FOUND)
     message(FATAL_ERROR "arango-cpp library not found")
