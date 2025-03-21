@@ -28,6 +28,7 @@ HEADERS += \
     include/jsonqml/charts/chart_model.h \
     include/jsonqml/charts/chart_view.h \
     include/jsonqml/charts/graph_data.h \
+    include/jsonqml/clients/table_client.h \
     include/jsonqml/clients/chart_client.h \
     include/jsonqml/models/base_model.h \
     include/jsonqml/models/json_model.h \
@@ -46,6 +47,7 @@ HEADERS += \
     src/clients/json_client_p.h \
     src/clients/vertex_client_p.h \
     src/clients/edge_client_p.h \
+    src/clients/table_client_p.h \
 
 SOURCES += \
     #main.cpp \
@@ -55,6 +57,7 @@ SOURCES += \
     src/charts/chart_view.cpp \
     src/charts/graph_data.cpp \
     src/charts/markershapes.cpp \
+    src/clients/table_client.cpp \
     src/clients/chart_client.cpp \
     src/models/base_model.cpp \
     src/models/json_model.cpp \
