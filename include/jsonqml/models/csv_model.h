@@ -29,7 +29,10 @@ public:
     void setXColumns(const std::vector<int>& clmns);
     void setYColumns(const std::vector<int>& clmns);
     Q_INVOKABLE bool is_number(int section) {
-        return is_number_clmn[section];
+        if(section>0 && section<is_number_clmn.size()) {
+            return is_number_clmn[section];
+        }
+        return false;
     }
 
     QVariant data(const QModelIndex& item, int role = Qt::DisplayRole) const override;

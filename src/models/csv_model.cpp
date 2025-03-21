@@ -96,7 +96,8 @@ QVariant CSVModel::headerData(int section, Qt::Orientation orientation, int role
 
 bool CSVModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if(index.isValid() && (role == Qt::EditRole)) {
+    Q_UNUSED( role );
+    if(index.isValid()) {
         if(index.row()<table.size() && index.column()<table[index.row()].size()) {
             table[index.row()][index.column()]=value.toString().toStdString();
         }
@@ -111,6 +112,7 @@ Qt::ItemFlags CSVModel::flags(const QModelIndex& index) const
     if(!index.isValid()) {
        return Qt::NoItemFlags;
     }
+    //return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
     return (QAbstractItemModel::flags(index) | Qt::ItemIsEditable);
 }
 

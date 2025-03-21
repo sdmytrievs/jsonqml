@@ -24,6 +24,13 @@ signals:
     void csvFileChanged();
 
 public slots:
+    void selectAll();
+    void copySelected();
+    void copyWithNames();
+    void pasteSelected();
+    void pasteWithNames();
+    void toggleX(int column);
+    void toggleY(int column);
 
 public:
     explicit ChartClient(QObject *parent = nullptr);

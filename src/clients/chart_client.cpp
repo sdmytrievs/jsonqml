@@ -131,4 +131,40 @@ void ChartClient::saveCSV(const QString &url)
     }
 }
 
+void ChartClient::selectAll()
+{
+
+}
+
+void ChartClient::copySelected()
+{
+
+}
+
+void ChartClient::copyWithNames()
+{
+
+}
+
+void ChartClient::pasteSelected()
+{
+
+}
+
+void ChartClient::pasteWithNames()
+{
+
+}
+
+void ChartClient::toggleX(int column)
+{
+
+}
+
+void ChartClient::toggleY(int column)
+{
+
+}
+
+
 }

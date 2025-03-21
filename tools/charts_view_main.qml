@@ -82,18 +82,14 @@ ApplicationWindow {
             Layout.fillHeight: true
             currentIndex: tabBar.currentIndex
 
-            SelectTableView {
+            EditTableView {
                 id: dataForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
                 keysModel: client.csvmodel
-                sortingEnabled: client.sortingEnabled
-                onSelectedRowChanged: selRow = selectedRow
-
-                function doubleClickFunction() {
-                    console.log("csv doubleClick: ", selRow)
-                }
+                sortingEnabled: false //client.sortingEnabled
+                chartEnabled: true
             }
 
             Item {
