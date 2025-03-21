@@ -1,8 +1,10 @@
 #ifndef CHARTCLIENT_H
 #define CHARTCLIENT_H
 
+#include <memory>
 #include <QObject>
-#include "jsonqml/models/csv_model.h"
+#include <QAbstractItemModel>
+#include <QItemSelectionModel>
 
 namespace jsonqml {
 
@@ -24,11 +26,9 @@ signals:
     void csvFileChanged();
 
 public slots:
-    void selectAll();
-    void copySelected();
-    void copyWithNames();
-    void pasteSelected();
-    void pasteWithNames();
+    void copySelected(const QModelIndexList& selection);
+    void copyWithNames(const QModelIndexList& selection);
+    void pasteSelected(const QModelIndexList& selection);
     void toggleX(int column);
     void toggleY(int column);
 
@@ -45,6 +45,7 @@ public:
 
     Q_INVOKABLE void readCSV(const QString& path);
     Q_INVOKABLE void saveCSV(const QString& path);
+    Q_INVOKABLE QItemSelection selectAll();
 
 protected:
     QString csv_file{"File"};

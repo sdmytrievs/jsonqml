@@ -22,6 +22,9 @@ Rectangle {
     function darkerColor(col) {
         return Qt.styleHints.colorScheme === Qt.Light ? Qt.darker(col, 1.2) : col
     }
+    function isNumber(column) {
+        return keysModel.sourceModel.is_number(column)
+    }
 
     color: contrastColor()
 
@@ -205,12 +208,25 @@ Rectangle {
                             anchors.centerIn: parent
                         }
 
-                        TableView.editDelegate: TextField {
+                        TableView.editDelegate: Rectangle {
+                            id: delegate
                             anchors.fill: cell
-                            visible: editing && keysModel.sourceModel.is_number(column)
-                            text: display
-                            validator:  DoubleValidator{}
-                            TableView.onCommit: display = text
+                            property string textvalue
+
+                            TextField {
+                                anchors.fill: delegate
+                                visible: isNumber(column)
+                                text: display
+                                validator:  DoubleValidator{}
+                                onEditingFinished: textvalue = text
+                            }
+                            TextField {
+                                anchors.fill: delegate
+                                visible: !isNumber(column)
+                                text: display
+                                onEditingFinished: textvalue = text
+                            }
+                            TableView.onCommit: display = textvalue
                         }
                         MouseArea {
                             anchors.fill: cell
@@ -237,7 +253,7 @@ Rectangle {
 
     Menu {
         id: tableMenu
-        implicitWidth: pasteItem.implicitContentWidth*1.8
+        implicitWidth: copyitem.implicitContentWidth*1.8
 
         MenuItem {
             text: qsTr("Select row")
@@ -256,7 +272,7 @@ Rectangle {
         MenuItem {
             text: qsTr("Select all")
             onClicked: {
-                client.selectAll();
+                selModel.select(client.selectAll(), ItemSelectionModel.Select)
             }
         }
         MenuSeparator {}
@@ -264,34 +280,31 @@ Rectangle {
             text: qsTr("Copy")
             enabled: selModel.hasSelection
             onClicked: {
-                client.copySelected();
+                client.copySelected(selModel.selectedIndexes);
             }
         }
         MenuItem {
+            id: copyitem
             text: qsTr("Copy with names")
             enabled: selModel.hasSelection
             onClicked: {
-                client.copyWithNames();
+                client.copyWithNames(selModel.selectedIndexes);
             }
         }
         MenuItem {
             text: qsTr("Paste")
             onClicked: {
-                client.pasteSelected();
-            }
-        }
-        MenuItem {
-            id: pasteItem
-            text: qsTr("Paste with names")
-            onClicked: {
-                client.pasteWithNames();
+                if(!selModel.hasSelection) {
+                   selModel.select(keysModel.index((menu_row>0 ? menu_row:0), menu_column), ItemSelectionModel.Select)
+                }
+                client.pasteSelected(selModel.selectedIndexes);
             }
         }
         MenuSeparator {}
         MenuItem {
             id: pathItem
             visible: chartEnabled
-            enabled:  keysModel.sourceModel.is_number(menu_column)
+            enabled:  isNumber(menu_column)
             text: qsTr("Toggle X")
             onClicked: {
                 client.toggleX(menu_column);
@@ -300,7 +313,7 @@ Rectangle {
         MenuItem {
             text: qsTr("Toggle Y")
             visible: chartEnabled
-            enabled:  keysModel.sourceModel.is_number(menu_column)
+            enabled:  isNumber(menu_column)
             onClicked: {
                 client.toggleY(menu_column);
             }
