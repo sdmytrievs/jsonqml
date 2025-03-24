@@ -5,7 +5,7 @@ import QtQuick.Layouts
 
 
 Rectangle {
-    id: tableItem
+    id: tableItem1
     property var keysModel
     property bool sortingEnabled: false
     property bool chartEnabled: true

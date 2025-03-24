@@ -15,5 +15,6 @@
         <file>qml/images/ShowFilesIcon24.png</file>
         <file>qml/JsonEditor.qml</file>
         <file>qml/EditTableView.qml</file>
+        <file>qml/ChartsPreferences.qml</file>
     </qresource>
 </RCC>

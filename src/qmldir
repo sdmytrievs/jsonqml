@@ -8,3 +8,4 @@ VertexForm 1.0 qml/VertexForm.qml
 EdgeKeys 1.0 qml/EdgeKeys.qml
 EdgeForm 1.0 qml/EdgeForm.qml
 PreferencesForm 1.0 qml/PreferencesForm.qml
+ChartsPreferences 1.0 qml/ChartsPreferences.qml

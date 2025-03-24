@@ -10,14 +10,16 @@ file(GLOB_RECURSE HEADER_FILES  *.h )
 file(GLOB_RECURSE SOURCE_FILES  *.cpp )
 
 list(APPEND MODULE_QML_FILES
+    qml/PreferencesForm.qml
+    qml/SelectTableView.qml
     qml/JsonView.qml
     qml/JsonEditor.qml
     qml/VertexKeys.qml
-    qml/PreferencesForm.qml
     qml/VertexForm.qml
-    qml/SelectTableView.qml
     qml/EdgeKeys.qml
     qml/EdgeForm.qml
+    qml/EditTableView.qml
+    qml/ChartsPreferences.qml
 )
 
 list(APPEND MODULE_IMAGES

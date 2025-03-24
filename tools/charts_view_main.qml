@@ -12,7 +12,7 @@ ApplicationWindow {
     id: appWindow
     title: qsTr("Charts QML")
     width: 640
-    height: 480
+    height: 520
     visible: true
     readonly property int margin: 10
     property int filetype: 0
@@ -98,7 +98,7 @@ ApplicationWindow {
                 Layout.fillWidth: true
             }
 
-            Item {
+            ChartsPreferences {
                 id: settingsForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
