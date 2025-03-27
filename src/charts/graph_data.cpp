@@ -8,89 +8,23 @@
 
 namespace jsonqml {
 
-QColor colorAt(const QColor &start, const QColor &end, qreal pos)
-{
-    Q_ASSERT(pos >= 0.0 && pos <= 1.0);
-    qreal r = start.redF() + ((end.redF() - start.redF()) * pos);
-    qreal g = start.greenF() + ((end.greenF() - start.greenF()) * pos);
-    qreal b = start.blueF() + ((end.blueF() - start.blueF()) * pos);
-    QColor c;
-    c.setRgbF(r, g, b);
-    return c;
-}
-
-//---------------------------------------------------------------------------
-// SeriesLineData
-//---------------------------------------------------------------------------
-
-#ifndef NO_JSONIO
-void SeriesLineData::toJsonNode(jsonio::JsonBase& object) const
-{
-    object.clear();
-    object.set_value_via_path("gpt", marker_shape);
-    object.set_value_via_path("gps", marker_size);
-    object.set_value_via_path("gls", pen_size);
-    object.set_value_via_path("glt", pen_style);
-    object.set_value_via_path("gsp", spline);
-    object.set_value_via_path("gndx", xcolumn);
-    object.set_value_via_path("grd", red);
-    object.set_value_via_path("ggr", green);
-    object.set_value_via_path("gbl", blue);
-    object.set_value_via_path("gnm", name.toStdString());
-}
-
-void SeriesLineData::fromJsonNode(const jsonio::JsonBase& object)
-{
-    object.get_value_via_path("gpt", marker_shape, 0);
-    object.get_value_via_path("gps", marker_size, 4);
-    object.get_value_via_path("gls", pen_size, 2);
-    object.get_value_via_path("glt", pen_style, 0);
-    object.get_value_via_path("gsp", spline, 0);
-    object.get_value_via_path("gndx", xcolumn, -1);
-    object.get_value_via_path("grd", red, 25);
-    object.get_value_via_path("ggr", green, 0);
-    object.get_value_via_path("gbl", blue, 150);
-    std::string aname;
-    object.get_value_via_path("gnm", aname, std::string(""));
-    name = QString::fromStdString(aname);
-}
-#endif
-
-
-void SeriesLineData::toJsonObject(QJsonObject& json) const
-{
-    json["gpt"] = marker_shape;
-    json["gps"] = marker_size;
-    json["gls"] = pen_size;
-    json["glt"] = pen_style;
-    json["gsp"] = spline;
-    json["gndx"] = xcolumn;
-    json["grd"] = red;
-    json["ggr"] = green;
-    json["gbl"] = blue;
-    json["gnm"] = name;
-}
-
-void SeriesLineData::fromJsonObject(const QJsonObject& json)
-{
-    marker_shape = json["gpt"].toInt(0);
-    marker_size = json["gps"].toInt(4);
-    pen_size = json["gls"].toInt(2);
-    pen_style = json["glt"].toInt(0);
-    spline = json["gsp"].toInt(0);
-    xcolumn = json["gndx"].toInt(-1);
-    red = json["grd"].toInt(25);
-    green = json["ggr"].toInt(0);
-    blue = json["gbl"].toInt(150);
-    name = json["gnm"].toString("");
-}
-
-//---------------------------------------------------------------------------
-// ChartData
-//---------------------------------------------------------------------------
-
 jsonqml::ChartData::~ChartData()
 {}
+
+int ChartData::plot(size_t line, size_t *modelline) const
+{
+    size_t sizecnt=0;
+    for(size_t ii=0 ; ii<modelsdata.size(); ii++) {
+        sizecnt += modelsdata[ii]->getSeriesNumber();
+        if(line < sizecnt)  {
+            if(modelline) {
+                *modelline = line - sizecnt + modelsdata[ii]->getSeriesNumber();
+            }
+            return static_cast<int>(ii);
+        }
+    }
+    return -1;
+}
 
 void ChartData::updateXSelections()
 {
@@ -104,11 +38,12 @@ void ChartData::updateXSelections()
             if(nlines >= defined_lines) {
                 jsonio::JSONIO_THROW("ChartData", 10, "error into graph data..");
             }
-            if(linesdata[nlines].getXColumn() >= numx_colms) {
+            if(linesdata[nlines].xColumn() >= numx_colms) {
                 linesdata[nlines].setXColumn(-1);
             }
         }
     }
+    emit changedXSelections();
 }
 
 void ChartData::updateYSelections(bool update_names)
@@ -128,6 +63,7 @@ void ChartData::updateYSelections(bool update_names)
         }
     }
     linesdata.resize(nlines);
+    emit changedYSelections();
 }
 
 #ifndef NO_JSONIO
@@ -226,6 +162,8 @@ void ChartData::fromJsonNode(const jsonio::JsonBase& object)
     }
     // refresh model type
     setGraphType(graph_type);
+
+    emit dataChanged();
 }
 
 #endif
@@ -317,6 +255,8 @@ void ChartData::fromJsonObject(const QJsonObject& json)
     }
     // refresh model type
     setGraphType(graph_type);
+
+    emit dataChanged();
 }
 
 void ChartData::setGraphType(int newtype)
@@ -326,6 +266,15 @@ void ChartData::setGraphType(int newtype)
     for( auto& model: modelsdata) {
         model->setGraphType(model_type);
     }
+}
+
+int ChartData::seriesNumber() const
+{
+    int nmb = 0;
+    for(const auto& model: modelsdata) {
+        nmb += static_cast<int>(model->getSeriesNumber());
+    }
+    return nmb;
 }
 
 void ChartData::setMinMaxRegion(double reg[4])
@@ -410,6 +359,26 @@ double ChartData::fyMax() const
 void ChartData::setfyMax(double val)
 {
     part[3] = val;
+}
+
+void ChartData::connect_data_changed()
+{
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::graphTypeChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::titleChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::axisXChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::axisYChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::xNameChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::yNameChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::xMinChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::xMaxChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::yMinChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::yMaxChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::fxMinChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::fxMaxChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::fyMinChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::fyMaxChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::backColorChanged);
+    QObject::connect(this, &ChartData::dataChanged, this, &ChartData::axisFontChanged);
 }
 
 } // namespace jsonqml

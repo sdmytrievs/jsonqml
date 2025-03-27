@@ -49,6 +49,15 @@ public:
     void copy_with_names(const QModelIndexList& selection);
     void paste_selected(const QModelIndexList& selection);
 
+    virtual void read_files(const QString &path)
+    {
+        read_CSV(path);
+    }
+    virtual void save_files(const QString &path)
+    {
+        save_CSV(path);
+    }
+
 protected:
     int keys_table_mode = RowSortingEnabled;
     QSharedPointer<CSVModel> csv_model_data;
@@ -61,6 +70,9 @@ protected:
     QString create_header(const Selection& sel_box);
     QString create_string(const Selection& sel_box);
     void set_from_string(const QString& str, const Selection& sel);
+
+    void read_CSV(const QString &path);
+    void save_CSV(const QString &path);
 };
 
 }

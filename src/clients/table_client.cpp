@@ -117,6 +117,32 @@ void TableClientPrivate::paste_selected(const QModelIndexList &selection)
     set_from_string(clip_text, sel);
 }
 
+void TableClientPrivate::read_CSV(const QString &path)
+{
+    QFile file(path);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        uiSettings().setError("could not open file");
+        return;
+    }
+    QByteArray ba = file.readAll();
+    std::string csv_srtring =ba.toStdString();
+    csv_model_data->setCsvString(std::move(csv_srtring));
+    file.close();
+}
+
+void TableClientPrivate::save_CSV(const QString &path)
+{
+    auto csv_string = csv_model_data->getCsvString();
+    QFile file(path);
+    if(!file.open(QIODevice::WriteOnly)) {
+        uiSettings().setError("could not open file");
+        return;
+    }
+    QTextStream stream(&file);
+    stream << csv_string.c_str();
+    file.close();
+}
+
 //--------------------------------------------------------------------------
 
 TableClient::TableClient(TableClientPrivate* impl, QObject *parent):
@@ -157,15 +183,7 @@ void TableClient::readCSV(const QString &url)
     try {
         // save work path
         auto path = uiSettings().handleFileChosen(url);
-        QFile file(path);
-        if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            uiSettings().setError("could not open file");
-            return;
-        }
-        QByteArray ba = file.readAll();
-        std::string csv_srtring =ba.toStdString();
-        impl_func()->csv_model_data->setCsvString(std::move(csv_srtring));
-        file.close();
+        impl_func()->read_files(path);
         setCsvFile(path);
     }
     catch(std::exception& e) {
@@ -181,15 +199,7 @@ void TableClient::saveCSV(const QString &url)
     uiSettings().setError(QString());
     try {
         auto path = uiSettings().handleFileChosen(url);
-        auto csv_string = impl_func()->csv_model_data->getCsvString();
-        QFile file(path);
-        if(!file.open(QIODevice::WriteOnly)) {
-            uiSettings().setError("could not open file");
-            return;
-        }
-        QTextStream stream(&file);
-        stream << csv_string.c_str();
-        file.close();
+        impl_func()->save_files(path);
         setCsvFile(path);
     }
     catch(std::exception& e) {

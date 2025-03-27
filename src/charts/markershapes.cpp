@@ -8,7 +8,7 @@
 #include <QtCore/QtMath>
 
 #include "markershapes.h"
-#include "jsonqml/charts/graph_data.h"
+#include "jsonqml/charts/legend_data.h"
 
 const double Pi = 3.14159;
 
@@ -45,18 +45,18 @@ QString imageFilters()
 
 QImage markerShapeImage(const SeriesLineData& linedata)
 {
-    QPainterPath image_path = shapes().shape(static_cast<size_t>(linedata.getMarkerShape()));
+    QPainterPath image_path = shapes().shape(static_cast<size_t>(linedata.markerShape()));
     QImage image(32, 32, QImage::Format_ARGB32);
     image.fill(Qt::transparent);
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-    QPen pen = QPen(linedata.getColor(), 3);
+    QPen pen = QPen(linedata.color(), 3);
     pen.setJoinStyle(Qt::MiterJoin);
     painter.setPen(pen);
 
-    if(static_cast<size_t>(linedata.getMarkerShape()) < shapes().size()) {
-        painter.setBrush(linedata.getColor());
+    if(static_cast<size_t>(linedata.markerShape()) < shapes().size()) {
+        painter.setBrush(linedata.color());
     }
     painter.drawPath(image_path);
     return image;
@@ -105,11 +105,11 @@ QIcon markerShapeIcon(const SeriesLineData& linedata)
     QPainter painter(&pic);
 
     QRect rect(0,0,dsize, dsize);
-    painter.setPen( QPen( linedata.getColor(), 2 ) );
+    painter.setPen( QPen( linedata.color(), 2 ) );
     painter.drawImage( QRectF( QPointF(size/2, size/2), QSizeF(size,size)),
                        markerShapeImage( linedata ));
 
-    if(linedata.getPenSize() > 0) {
+    if(linedata.penSize() > 0) {
         QPoint center = rect.center();
         painter.drawLine( rect.x(), center.y(), center.x()-size/2, center.y());
         painter.drawLine( center.x()+size/2, center.y(), rect.width(), center.y());
@@ -124,9 +124,9 @@ QIcon markerShapeIcon(const SeriesLineData& linedata)
 
 void getLinePen(QPen& pen, const SeriesLineData& linedata)
 {
-    pen.setColor(linedata.getColor() );
-    pen.setWidth(linedata.getPenSize());
-    Qt::PenStyle style = static_cast<Qt::PenStyle>(linedata.getPenStyle());
+    pen.setColor(linedata.color() );
+    pen.setWidth(linedata.penSize());
+    Qt::PenStyle style = static_cast<Qt::PenStyle>(linedata.penStyle());
     pen.setStyle(style);
 }
 

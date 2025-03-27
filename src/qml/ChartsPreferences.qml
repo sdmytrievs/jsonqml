@@ -6,7 +6,99 @@ import Qt.jsonqml.qobjectPreferences 1.0
 
 Item {
     id: topItem
-    property bool isCompleted: false
+
+    function contrastColor() {
+        return palette.alternateBase
+        //return Qt.styleHints.colorScheme === Qt.Light ? palette.dark : palette.light
+    }
+
+    function apply_changes() {
+        client.chartData.graphType = chartType.currentIndex
+        client.chartData.title = chartTitle.text
+        client.chartData.axisX = abscissaGrid.value
+        client.chartData.xName = abscissaName.text
+        client.chartData.axisY = ordinateGrid.value
+        client.chartData.yName = ordinateName.text
+
+        client.chartData.xMin = minX.text
+        client.chartData.xMax = maxX.text
+        client.chartData.yMin = minY.text
+        client.chartData.yMax = maxY.text
+        client.chartData.fxMin = minXF.text
+        client.chartData.fxMax = maxXF.text
+        client.chartData.fyMin = minYF.text
+        client.chartData.fyMax = maxYF.text
+
+        client.chartData.axisFont = fontText.text
+        client.chartData.backColor = txt_back.color
+    }
+
+    component ListHeader : Rectangle {
+        id: listHeader
+        color: contrastColor()
+
+        RowLayout {
+            anchors {
+                fill: parent
+                leftMargin: 0
+                rightMargin: 0
+            }
+            Text {
+                id: iconHdr
+                text: qsTr("Legend")
+            }
+            Text {
+                id: abscissaHdr
+                text: qsTr("x#   ")
+            }
+            Text {
+                id: nameHdr
+                text: qsTr("Label Y")
+                Layout.fillWidth: true
+            }
+        }
+    }
+
+    component ListItem : Rectangle {
+        id: listItem
+        height: iconElement.height
+        color: contrastColor()
+
+        required property int index
+        //required property var modelData
+        required property var model
+
+        RowLayout {
+            anchors {
+                fill: parent
+                leftMargin: 0
+                rightMargin: 0
+            }
+            spacing: 0
+            Button {
+                id: iconElement
+                implicitWidth: implicitHeight*2
+                text: "..."
+                //icon: listItem.model.icon
+                onClicked: {
+                    // open dialog
+                }
+            }
+            ComboBox {
+                id: abscissaElement
+                implicitWidth: implicitHeight*2
+                model: client.abscissaList(index)
+                currentIndex: listItem.model.abscissa
+                onCurrentTextChanged: listItem.model.abscissa = currentIndex
+            }
+            TextField {
+                id: nameElement
+                Layout.fillWidth: true
+                text: listItem.model.name
+                onTextEdited: listItem.model.name = text
+            }
+        }
+    }
 
     ColumnLayout {
         id: topLayout
@@ -25,19 +117,13 @@ Item {
 
                 ComboBox {
                     id: chartType
-                    //implicitContentWidthPolicy: ComboBox.WidestText
-                    //implicitWidth : passLabel.implicitWidth
-                    //model: Preferences.dbConnectList
-                    Component.onCompleted: {
-                        // currentIndex = find(Preferences.dbConnect)
-                        // isCompleted=true
-                    }
+                    model: ["0 - Lines/Symbols", "1 - Cumulative"]
+                    currentIndex: client.chartData.graphType
                 }
                 TextField {
                     id: chartTitle
                     Layout.fillWidth: true
-                    //text: Preferences.dbUrl
-                    //onTextEdited: Preferences.dbUrl = text
+                    text: client.chartData.title
                 }
             }
         }
@@ -69,13 +155,14 @@ Item {
                         editable: true
                         from: 0
                         to: 20
+                        value: client.chartData.axisX
                     }
 
                     TextField {
                         id: abscissaName
                         Layout.columnSpan: 3
                         Layout.fillWidth: true
-                        placeholderText: qsTr("x")
+                        text: client.chartData.xName
                     }
 
                     Label {
@@ -89,13 +176,14 @@ Item {
                         editable: true
                         from: 0
                         to: 20
+                        value: client.chartData.axisY
                     }
 
                     TextField {
                         id: ordinateName
                         Layout.columnSpan: 3
                         Layout.fillWidth: true
-                        placeholderText: qsTr("y")
+                        text: client.chartData.yName
                     }
 
                     Label {
@@ -111,6 +199,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.xMin
                     }
 
                     TextField {
@@ -118,6 +207,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.xMax
                     }
 
                     Item {
@@ -133,6 +223,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.yMin
                     }
 
                     TextField {
@@ -140,6 +231,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.yMax
                     }
 
                     Label {
@@ -156,6 +248,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.fxMin
                     }
 
                     TextField {
@@ -163,6 +256,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.fxMax
                     }
                     Item {
                         Layout.columnSpan: 1
@@ -177,6 +271,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.fyMin
                     }
 
                     TextField {
@@ -184,6 +279,7 @@ Item {
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         validator:  DoubleValidator{}
+                        text: client.chartData.fyMax
                     }
 
                     Button {
@@ -199,6 +295,7 @@ Item {
                         Layout.columnSpan: 4
                         Layout.fillWidth: true
                         autoScroll: false
+                        text: client.chartData.axisFont
                     }
 
                     Button {
@@ -214,9 +311,9 @@ Item {
                         Layout.columnSpan: 4
                         Layout.fillWidth: true
                         background: Rectangle {
-                                id: txt_back
-                                color: "white"
-                            }
+                            id: txt_back
+                            color: client.chartData.backColor
+                        }
                     }
                 }
 
@@ -225,13 +322,27 @@ Item {
             GroupBox {
                 id: legendBox
 
-                TableView {
-                    id: legendTable
+                ScrollView {
+                    id: scrollView
                     anchors.fill: parent
 
+                    contentItem: ListView {
+                        id: legendTable
+                        anchors.fill: parent
+
+                        clip: true
+                        model: client.legendModel
+                        header: ListHeader {
+                            height: 30
+                            width: legendTable.width
+                        }
+                        headerPositioning: ListView.InlineHeader
+                        delegate: ListItem {
+                            width: legendTable.width
+                        }
+                    }
                 }
             }
-
         }
 
         Button {
@@ -241,9 +352,7 @@ Item {
             implicitHeight: colorButton.implicitHeight*2
             text: qsTr("Apply")
             onClicked: {
-                //Preferences.dbName = nameBox.currentText
-                //Preferences.dbUser = userBox.currentText
-                //Preferences.applyChanges()
+                apply_changes()
             }
         }
     }

@@ -2,194 +2,65 @@
 
 #include <memory>
 #include <array>
-#include <QObject>
-#include <QFont>
-#include <QColor>
-#include <QJsonObject>
-
+#include "jsonqml/charts/legend_data.h"
 #include "jsonqml/charts/chart_model.h"
 
 namespace jsonqml {
-
-class SeriesLineData;
-
-QImage markerShapeImage(const SeriesLineData& linedata);
-QIcon markerShapeIcon(const SeriesLineData& linedata);
-QImage textImage(const QFont& font, const QString& text);
-void getLinePen(QPen& pen, const SeriesLineData& linedata);
-QColor colorAt(const QColor &start, const QColor &end, qreal pos);
-
-/// Description of one plot curve -
-/// the representation of a series of points in the x-y plane
-class SeriesLineData final
-{
-public:
-    SeriesLineData(const QString& aname = "",
-                   int mrk_type = 0, int mrk_size = 8,
-                   int line_size = 2, int line_style = 1, int usespline =0,
-                   const QColor& acolor = QColor(25, 0, 150)):
-        name(aname), xcolumn(-1) // iterate by index
-    {
-        setChanges(mrk_type, mrk_size, line_size, line_style, usespline, acolor);
-    }
-
-    SeriesLineData(size_t ndx, size_t max_lines, const QString& aname = "",
-                   int mrk_type = 0, int mrk_size = 8,
-                   int line_size = 2,  int line_style = 1, int usespline =0):
-        name(aname), xcolumn(-1)
-    {
-        QColor acolor;
-        acolor.setHsv( static_cast<int>(360/max_lines*ndx), 200, 200);
-        //aColor = colorAt(green, blue, double(ndx)/maxLines );
-        setChanges(mrk_type, mrk_size, line_size, line_style, usespline, acolor);
-    }
-
-    int getMarkerShape() const
-    {
-        return marker_shape;
-    }
-
-    void setMarkerShape(int atype)
-    {
-        marker_shape = atype;
-    }
-
-    int getMarkerSize() const
-    {
-        return marker_size;
-    }
-
-    int getPenSize() const
-    {
-        return pen_size;
-    }
-
-    int getPenStyle() const
-    {
-        return pen_style;
-    }
-
-    int getSpline() const
-    {
-        return spline;
-    }
-
-    QColor getColor() const
-    {
-        return QColor(red, green, blue);
-    }
-
-    void setChanges(int mrk_type, int mrk_size, int pn_size,
-                    int pn_style, int usespline, const QColor& acolor)
-    {
-        marker_shape = mrk_type;
-        marker_size = mrk_size;
-        pen_size = pn_size;
-        pen_style = pn_style;
-        spline  = usespline;
-        red   = acolor.red();
-        green = acolor.green();
-        blue  = acolor.blue();
-    }
-
-    void setLineChanges(int pn_size, int pn_style, int usespline)
-    {
-        pen_size = pn_size;
-        pen_style = pn_style;
-        spline  = usespline;
-    }
-
-    void setName(const QString& aname)
-    {
-        name = aname;
-    }
-
-    const QString& getName() const
-    {
-        return name;
-    }
-
-    int getXColumn() const
-    {
-        return xcolumn;
-    }
-
-    void setXColumn(int andxX)
-    {
-        xcolumn = andxX;
-    }
-
-#ifndef NO_JSONIO
-    void toJsonNode(jsonio::JsonBase& object) const;
-    void fromJsonNode(const jsonio::JsonBase& object);
-#endif
-    void toJsonObject(QJsonObject& json) const;
-    void fromJsonObject(const QJsonObject& json);
-
-private:
-    /// Type of points (old pointType)
-    int marker_shape;
-    /// Size of points (old pointSize)
-    int marker_size;
-    /// Size of lines  (old lineSize)
-    int pen_size;
-    /// Style of lines (enum Qt::PenStyle)
-    int pen_style;
-    /// Use Spline chart
-    int spline;
-
-    // point color  - the Constructs a color with the RGB values
-    /// Constructs a color with the RGB value red
-    int red;
-    /// Constructs a color with the RGB value green
-    int green;
-    /// Constructs a color with the RGB value blue
-    int blue;
-
-    /// This property holds the name of the series
-    QString name;
-    /// This property holds the column of the model
-    /// that contains the x-coordinates of data points (old ndxX)
-    int xcolumn;
-};
-
 
 /// Description of 2D plotting widget
 class ChartData : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int graphType MEMBER graph_type NOTIFY dataChanged)
-    Q_PROPERTY(QString title MEMBER title NOTIFY dataChanged)
-    Q_PROPERTY(int axisX MEMBER axis_typeX NOTIFY dataChanged)
-    Q_PROPERTY(int axisY MEMBER axis_typeY NOTIFY dataChanged)
-    Q_PROPERTY(QString xName MEMBER xname NOTIFY dataChanged)
+    Q_PROPERTY(int graphType MEMBER graph_type NOTIFY graphTypeChanged)
+    Q_PROPERTY(QString title MEMBER title NOTIFY titleChanged)
+    Q_PROPERTY(int axisX MEMBER axis_typeX NOTIFY axisXChanged)
+    Q_PROPERTY(int axisY MEMBER axis_typeY NOTIFY axisYChanged)
+    Q_PROPERTY(QString xName MEMBER xname NOTIFY xNameChanged)
+    Q_PROPERTY(QString yName MEMBER yname NOTIFY yNameChanged)
 
-    Q_PROPERTY(double xMin READ xMin WRITE setxMin NOTIFY dataChanged)
-    Q_PROPERTY(double xMax READ xMax WRITE setxMax NOTIFY dataChanged)
-    Q_PROPERTY(double yMin READ yMin WRITE setyMin NOTIFY dataChanged)
-    Q_PROPERTY(double yMax READ yMax WRITE setyMax NOTIFY dataChanged)
+    Q_PROPERTY(double xMin READ xMin WRITE setxMin NOTIFY xMinChanged)
+    Q_PROPERTY(double xMax READ xMax WRITE setxMax NOTIFY xMaxChanged)
+    Q_PROPERTY(double yMin READ yMin WRITE setyMin NOTIFY yMinChanged)
+    Q_PROPERTY(double yMax READ yMax WRITE setyMax NOTIFY yMaxChanged)
 
-    Q_PROPERTY(double fxMin READ fxMin WRITE setfxMin NOTIFY dataChanged)
-    Q_PROPERTY(double fxMax READ fxMax WRITE setfxMax NOTIFY dataChanged)
-    Q_PROPERTY(double fyMin READ fyMin WRITE setfyMin NOTIFY dataChanged)
-    Q_PROPERTY(double fyMax READ fyMax WRITE setfyMax NOTIFY dataChanged)
+    Q_PROPERTY(double fxMin READ fxMin WRITE setfxMin NOTIFY fxMinChanged)
+    Q_PROPERTY(double fxMax READ fxMax WRITE setfxMax NOTIFY fxMaxChanged)
+    Q_PROPERTY(double fyMin READ fyMin WRITE setfyMin NOTIFY fyMinChanged)
+    Q_PROPERTY(double fyMax READ fyMax WRITE setfyMax NOTIFY fyMaxChanged)
 
-    Q_PROPERTY(QColor backColor READ getBackgroundColor WRITE setBackgroundColor NOTIFY dataChanged)
-    Q_PROPERTY(QFont axisFont MEMBER axis_font NOTIFY dataChanged)
+    Q_PROPERTY(QColor backColor READ backgroundColor WRITE setBackgroundColor NOTIFY backColorChanged)
+    Q_PROPERTY(QFont axisFont MEMBER axis_font NOTIFY axisFontChanged)
 
 public slots:
     void updateXSelections();
     void updateYSelections(bool update_names);
 
 signals:
+    void changedXSelections();
+    void changedYSelections();
     void dataChanged();
+    void graphTypeChanged();
+    void titleChanged();
+    void axisXChanged();
+    void axisYChanged();
+    void xNameChanged();
+    void yNameChanged();
+    void xMinChanged();
+    void xMaxChanged();
+    void yMinChanged();
+    void yMaxChanged();
+    void fxMinChanged();
+    void fxMaxChanged();
+    void fyMinChanged();
+    void fyMaxChanged();
+    void backColorChanged();
+    void axisFontChanged();
 
 public:
     template <class T>
-    ChartData(const std::vector<std::shared_ptr<T>>& aplots,  const QString& atitle,
-              const QString& aXname, const QString& aYname,
-              int agraph_type = LineChart ):
+    ChartData(const std::vector<std::shared_ptr<T>>& aplots, const QString& atitle,
+              const QString& aXname, const QString& aYname, int agraph_type = LineChart):
         graph_type(agraph_type),
         title(atitle),
         axis_typeX(5),
@@ -210,6 +81,7 @@ public:
         // Graph&Fragment Min Max Region
         double regg[4] = {0., 0., 0., 0.};
         setMinMaxRegion(regg);
+        connect_data_changed();
     }
 
     virtual ~ChartData();
@@ -219,7 +91,7 @@ public:
     void addNewPlot(const std::shared_ptr<T>& aplot)
     {
         int defined_lines = static_cast<int>(linesdata.size());
-        int nlines = getSeriesNumber();
+        int nlines = seriesNumber();
 
         aplot->setGraphType(static_cast<GRAPHTYPES>(graph_type));
         modelsdata.push_back(aplot);
@@ -236,39 +108,22 @@ public:
     }
 
     /// get plot from index
-    int getPlot(size_t line, size_t* modelline=nullptr) const
-    {
-        size_t sizecnt=0;
-        for(size_t ii=0 ; ii<modelsdata.size(); ii++) {
-            sizecnt += modelsdata[ii]->getSeriesNumber();
-            if(line < sizecnt)  {
-                if(modelline) {
-                    *modelline = line - sizecnt + modelsdata[ii]->getSeriesNumber();
-                }
-                return static_cast<int>(ii);
-            }
-        }
-        return -1;
-    }
+    int plot(size_t line, size_t* modelline=nullptr) const;
 
-    int getGraphType() const
+    int graphType() const
     {
         return graph_type;
     }
     void setGraphType(int newtype);
 
-    /// Get number of series
-    int getSeriesNumber() const
-    {
-        int nmb = 0;
-        for(const auto& model: modelsdata) {
-            nmb += static_cast<int>(model->getSeriesNumber());
-        }
-        return nmb;
-    }
+    int seriesNumber() const;
     size_t modelsNumber() const
     {
         return modelsdata.size();
+    }
+    const std::vector<SeriesLineData>& lines() const
+    {
+        return linesdata;
     }
     size_t linesNumber() const
     {
@@ -284,21 +139,22 @@ public:
     {
         return  linesdata[ndx];
     }
-    Q_INVOKABLE void setLineData(size_t ndx, const SeriesLineData& newdata)
-    {
-        linesdata[ndx] = newdata;
-    }
-    void setLineData(size_t ndx, const QString andx_x)
-    {
-        int modelndx = getPlot(ndx);
-        if(modelndx >= 0)   {
-            linesdata[ndx].setXColumn(modelsdata[static_cast<size_t>(modelndx)]->indexAbscissaName(andx_x));
-        }
-    }
-    void setLineData(size_t ndx, const QString& aname)
-    {
-        linesdata[ndx].setName(aname);
-    }
+    //Q_INVOKABLE void setLineData(size_t ndx, const SeriesLineData& newdata)
+    // {
+    //     linesdata[ndx] = newdata;
+    // }
+
+    // void setLineData(size_t ndx, const QString andx_x)
+    // {
+    //     int modelndx = plot(ndx);
+    //     if(modelndx >= 0)   {
+    //         linesdata[ndx].setXColumn(modelsdata[static_cast<size_t>(modelndx)]->indexAbscissaName(andx_x));
+    //     }
+    // }
+    // void setLineData(size_t ndx, const QString& aname)
+    // {
+    //     linesdata[ndx].setName(aname);
+    // }
 
     void setMinMaxRegion(double reg[4]);
     double xMin() const;
@@ -319,7 +175,7 @@ public:
     double fyMax() const;
     void setfyMax(double val);
 
-    QColor getBackgroundColor() const
+    QColor backgroundColor() const
     {
         return QColor(b_color[0], b_color[1], b_color[2]);
     }
@@ -371,6 +227,8 @@ protected:
     ChartData& operator=(const ChartData&); // not defined
 
     friend class PlotChartViewPrivate;
+
+    void connect_data_changed();
 };
 
 } // namespace jsonqml

@@ -167,16 +167,16 @@ void PlotChartViewPrivate::clear_axis()
 QXYSeries* PlotChartViewPrivate::new_series_line(const SeriesLineData& linedata)
 {
     QXYSeries* series = nullptr;
-    if(linedata.getPenSize() <= 0) {
+    if(linedata.penSize() <= 0) {
         return series;
     }
-    if(linedata.getSpline()) {
+    if(linedata.spline()) {
         series = new QSplineSeries;
     }
     else {
         series = new QLineSeries;
     }
-    series->setName(linedata.getName());
+    series->setName(linedata.name());
     QPen pen = series->pen();
     getLinePen(pen, linedata);
     series->setPen(pen);
@@ -187,7 +187,7 @@ QXYSeries* PlotChartViewPrivate::new_series_line(const SeriesLineData& linedata)
 QScatterSeries* PlotChartViewPrivate::new_scatter_series(const SeriesLineData& linedata)
 {
     QScatterSeries *series = nullptr;
-    if(linedata.getMarkerSize() <= 0/*2*/) {
+    if(linedata.markerSize() <= 0/*2*/) {
         return series;
     }
     series = new QScatterSeries;
@@ -197,10 +197,10 @@ QScatterSeries* PlotChartViewPrivate::new_scatter_series(const SeriesLineData& l
 
 void PlotChartViewPrivate::update_scatter_series(QScatterSeries* series, const SeriesLineData& linedata)
 {
-    series->setName(linedata.getName());
+    series->setName(linedata.name());
     series->setPen( QPen(Qt::transparent));
     series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-    auto msize = linedata.getMarkerSize()+2;
+    auto msize = linedata.markerSize()+2;
     series->setMarkerSize(msize);
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
     series->setBrush( markerShapeImage( linedata ).scaled(msize, msize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
@@ -225,7 +225,7 @@ void PlotChartViewPrivate::add_plot_line(ChartDataModel* chmodel,
 {
     QXYSeries *series = new_series_line(linedata);
     QVXYModelMapper *mapper = new QVXYModelMapper;
-    map_series_line(series, mapper, chmodel, ycolumn, chmodel->getXColumn(linedata.getXColumn()));
+    map_series_line(series, mapper, chmodel, ycolumn, chmodel->getXColumn(linedata.xColumn()));
     if(series) {
         chart->addSeries(series);
     }
@@ -238,7 +238,7 @@ void PlotChartViewPrivate::add_scatter_series(ChartDataModel* chmodel,
 {
     QScatterSeries *series = new_scatter_series(linedata);
     QVXYModelMapper *mapper = new QVXYModelMapper;
-    map_series_line(series, mapper, chmodel, ycolumn, chmodel->getXColumn(linedata.getXColumn()));
+    map_series_line(series, mapper, chmodel, ycolumn, chmodel->getXColumn(linedata.xColumn()));
     if(series) {
         chart->addSeries(series);
     }
@@ -269,8 +269,8 @@ void PlotChartViewPrivate::show_area_chart()
         for(jj=0; jj<srmodel->getSeriesNumber(); jj++, nline++) {
             auto linedata = gr_data->lineData(nline);
 
-            srmodel->addXColumn(linedata.getXColumn());
-            if(linedata.getXColumn() < -1) {
+            srmodel->addXColumn(linedata.xColumn());
+            if(linedata.xColumn() < -1) {
                 gr_areas.push_back(std::shared_ptr<QAreaSeries>(nullptr));
                 continue;
             }
@@ -282,7 +282,7 @@ void PlotChartViewPrivate::show_area_chart()
             if(upper_series)  {
                 QAreaSeries *area = new QAreaSeries(upper_series, lower_series);
                 // define colors
-                area->setName(linedata.getName());
+                area->setName(linedata.name());
                 QPen pen = area->pen();
                 getLinePen(pen, linedata);
                 area->setPen(pen);
@@ -299,7 +299,7 @@ void PlotChartViewPrivate::show_area_chart()
 
 void PlotChartViewPrivate::show_plot_internal()
 {
-    switch(gr_data->getGraphType()) {
+    switch(gr_data->graphType()) {
     case LineChart:
         show_plot_lines();
         break;
@@ -351,7 +351,7 @@ void PlotChartViewPrivate::updateGrid()
         return;
     }
     updateMinMax();
-    chart->setBackgroundBrush(gr_data->getBackgroundColor());
+    chart->setBackgroundBrush(gr_data->backgroundColor());
 
     axisX->setTickCount(gr_data->axis_typeX+1);
     //axisX->setMinorTickCount(4);
@@ -446,7 +446,7 @@ void PlotChartViewPrivate::make_grid()
 
 void PlotChartViewPrivate::updateSeries(size_t nline)
 {
-    switch(gr_data->getGraphType())  {
+    switch(gr_data->graphType())  {
     case LineChart:
         update_series_line(nline);
         break;
@@ -466,7 +466,7 @@ void PlotChartViewPrivate::highlightSeries(size_t line, bool enable)
         return;
     }
 
-    if(gr_data->getGraphType() == LineChart) {
+    if(gr_data->graphType() == LineChart) {
         // update series lines
         auto  linedata = gr_data->lineData(line);
         QXYSeries *series =  gr_series[line].get();
@@ -474,14 +474,14 @@ void PlotChartViewPrivate::highlightSeries(size_t line, bool enable)
             QPen pen = series->pen();
             getLinePen( pen, linedata  );
             if(enable) {
-                pen.setWidth(linedata.getPenSize()*2);
+                pen.setWidth(linedata.penSize()*2);
             }
             series->setPen(pen);
         }
 
         QScatterSeries *scatterseries = gr_points[line].get();
         if(scatterseries) {
-            auto shsize = linedata.getMarkerSize();
+            auto shsize = linedata.markerSize();
             if(enable) {
                 shsize *=2;
             }
@@ -493,7 +493,7 @@ void PlotChartViewPrivate::highlightSeries(size_t line, bool enable)
             scatterseries->setMarkerSize(shsize);
         }
     }
-    else if(gr_data->getGraphType() == AreaChart) {
+    else if(gr_data->graphType() == AreaChart) {
         QAreaSeries* areaseries = gr_areas[line].get();
         if(areaseries) {
             areaseries->setOpacity( (enable ? 1: 0.5) );
@@ -507,7 +507,7 @@ void PlotChartViewPrivate::update_series_line(size_t nline)
         return;
     }
 
-    auto nplot =  gr_data->getPlot(nline);
+    auto nplot =  gr_data->plot(nline);
     if(nplot < 0) {
         return;
     }
@@ -523,7 +523,7 @@ void PlotChartViewPrivate::update_series_line(size_t nline)
 
     gr_series[nline].reset(series);
     series_mapper[nline]->setSeries(series);
-    series_mapper[nline]->setXColumn(srmodel->getXColumn(linedata.getXColumn())+1);
+    series_mapper[nline]->setXColumn(srmodel->getXColumn(linedata.xColumn())+1);
     if(series) {
         chart->addSeries(series);
         series->attachAxis(axisX);
@@ -538,7 +538,7 @@ void PlotChartViewPrivate::update_series_line(size_t nline)
 
     gr_points[nline].reset(scatterseries);
     points_mapper[nline]->setSeries(scatterseries);
-    points_mapper[nline]->setXColumn( srmodel->getXColumn(linedata.getXColumn())+1);
+    points_mapper[nline]->setXColumn( srmodel->getXColumn(linedata.xColumn())+1);
     if(scatterseries) {
         chart->addSeries(scatterseries);
         scatterseries->attachAxis(axisX);
@@ -553,7 +553,7 @@ void PlotChartViewPrivate::update_area_line(size_t nline)
     }
 
     if(gr_areas[nline].get()) {
-        gr_areas[nline]->setName(gr_data->lineData(nline).getName());
+        gr_areas[nline]->setName(gr_data->lineData(nline).name());
         QPen pen = gr_areas[nline]->pen();
         getLinePen( pen, gr_data->lineData(nline)  );
         gr_areas[nline]->setPen(pen);

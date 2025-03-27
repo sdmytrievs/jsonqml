@@ -28,6 +28,8 @@ HEADERS += \
     include/jsonqml/charts/chart_model.h \
     include/jsonqml/charts/chart_view.h \
     include/jsonqml/charts/graph_data.h \
+    include/jsonqml/charts/legend_data.h \
+    include/jsonqml/charts/legend_model.h \
     include/jsonqml/clients/table_client.h \
     include/jsonqml/clients/chart_client.h \
     include/jsonqml/models/base_model.h \
@@ -56,6 +58,8 @@ SOURCES += \
     src/charts/chart_model.cpp \
     src/charts/chart_view.cpp \
     src/charts/graph_data.cpp \
+    src/charts/legend_data.cpp \
+    src/charts/legend_model.cpp \
     src/charts/markershapes.cpp \
     src/clients/table_client.cpp \
     src/clients/chart_client.cpp \

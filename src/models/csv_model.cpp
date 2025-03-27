@@ -47,11 +47,13 @@ std::string CSVModel::getCsvString()
 void CSVModel::setXColumns(const std::vector<int> &clmns)
 {
     x_clmns = clmns;
+    emit headerDataChanged(Qt::Horizontal, 0, columnCount()-1);
 }
 
 void CSVModel::setYColumns(const std::vector<int> &clmns)
 {
     y_clmns = clmns;
+    emit headerDataChanged(Qt::Horizontal, 0, columnCount()-1);
 }
 
 QVariant CSVModel::data(const QModelIndex &index, int role) const
