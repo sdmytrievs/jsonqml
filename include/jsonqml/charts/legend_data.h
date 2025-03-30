@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QFont>
 #include <QColor>
+#include <QQuickImageProvider>
 #include <QJsonObject>
 
 #ifndef NO_JSONIO
@@ -16,6 +17,7 @@ namespace jsonqml {
 class SeriesLineData;
 
 QImage markerShapeImage(const SeriesLineData& linedata);
+QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& size);
 QIcon markerShapeIcon(const SeriesLineData& linedata);
 QImage textImage(const QFont& font, const QString& text);
 void getLinePen(QPen& pen, const SeriesLineData& linedata);
@@ -136,6 +138,18 @@ private:
     /// that contains the x-coordinates of data points (old ndxX)
     int xcolumn;
 };
+
+class ChartImageProvider : public QQuickImageProvider
+{
+public:
+    ChartImageProvider()
+        : QQuickImageProvider(QQuickImageProvider::Pixmap)
+    {
+    }
+
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
+};
+
 
 } // namespace jsonqml
 

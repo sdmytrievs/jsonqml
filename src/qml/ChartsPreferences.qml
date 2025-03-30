@@ -65,7 +65,6 @@ Item {
         color: contrastColor()
 
         required property int index
-        //required property var modelData
         required property var model
 
         RowLayout {
@@ -78,8 +77,7 @@ Item {
             Button {
                 id: iconElement
                 implicitWidth: implicitHeight*2
-                text: "..."
-                //icon: listItem.model.icon
+                icon.source: "image://charts/" + listItem.model.icon
                 onClicked: {
                     // open dialog
                 }
@@ -321,6 +319,7 @@ Item {
 
             GroupBox {
                 id: legendBox
+                anchors.margins: 0
 
                 ScrollView {
                     id: scrollView
@@ -331,6 +330,7 @@ Item {
                         anchors.fill: parent
 
                         clip: true
+                        boundsBehavior: Flickable.StopAtBounds
                         model: client.legendModel
                         header: ListHeader {
                             height: 30

@@ -1,5 +1,6 @@
 
-#include <QIcon>
+//#include <QIcon>
+#include <QJsonDocument>
 #include "jsonqml/charts/legend_model.h"
 
 //namespace jsonqml {
@@ -58,8 +59,11 @@ QVariant LegendModel::data(const QModelIndex &index, int role) const
     switch (role) {
     case IdRole:
         return index.row();
-    case ShapeIconRole:
-        return markerShapeIcon(info);
+    case ShapeIconRole: {
+        QString info_str = QString("%1/%2/%3").arg(info.markerShape()).arg(info.penSize()).arg(info.color().name());
+        return info_str;
+        //return markerShapeIcon(info);
+    }
     case AbscissaIndexRole:
         return info.xColumn()+2; //abscissaIndexName(info.xColumn());
     case NameRole:

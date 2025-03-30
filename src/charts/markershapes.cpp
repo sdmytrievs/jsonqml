@@ -94,27 +94,30 @@ QImage textImage(const QFont& font, const QString& text)
 }
 
 
-QIcon markerShapeIcon(const SeriesLineData& linedata)
+QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& dsize)
 {
-    QIcon icon;
-    int dsize = 32;
-    int size = dsize/2;
-
-    QPixmap pic(dsize, dsize);
+    int size = dsize.height()/2;
+    QPixmap pic(dsize);
     pic.fill(QColor(0, 0, 0, 0));
     QPainter painter(&pic);
 
-    QRect rect(0,0,dsize, dsize);
-    painter.setPen( QPen( linedata.color(), 2 ) );
-    painter.drawImage( QRectF( QPointF(size/2, size/2), QSizeF(size,size)),
-                       markerShapeImage( linedata ));
+    QRect rect(0,0,dsize.width(), dsize.height());
+    painter.setPen(QPen(linedata.color(), 2));
+    painter.drawImage(QRectF(QPointF(size/2, size/2), QSizeF(size,size)),
+                      markerShapeImage(linedata));
 
     if(linedata.penSize() > 0) {
         QPoint center = rect.center();
         painter.drawLine( rect.x(), center.y(), center.x()-size/2, center.y());
         painter.drawLine( center.x()+size/2, center.y(), rect.width(), center.y());
     }
-    icon.addPixmap(pic);
+    return pic;
+}
+
+QIcon markerShapeIcon(const SeriesLineData& linedata)
+{
+    QIcon icon;
+    icon.addPixmap(markerShapePixmap(linedata, QSize(32,32)));
     return icon;
 }
 

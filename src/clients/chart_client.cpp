@@ -68,6 +68,8 @@ protected:
 
 void ChartClientPrivate::init_charts()
 {
+    //yColumns = {2,2,2,2,2,2,2,2,2,2,2,2,2,2};
+
     chart_models.push_back(std::shared_ptr<ChartDataModel>(new ChartDataModel(csv_model_data.get())));
     chart_data = std::make_shared<ChartData>(chart_models, "Graph for window", "x", "y");
 
