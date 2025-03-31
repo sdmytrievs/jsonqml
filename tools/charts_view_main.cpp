@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     qmlRegisterSingletonInstance("Qt.jsonqml.qobjectPreferences", 1, 0, "Preferences", &jsonqml::uiSettings());
+    //qRegisterMetaType<jsonqml::SeriesLineData>();
     engine.addImageProvider(QLatin1String("charts"), new jsonqml::ChartImageProvider);
 
     const QUrl url("qrc:/qt/qml/tools3/charts_view_main.qml");

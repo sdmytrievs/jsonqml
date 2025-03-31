@@ -16,5 +16,6 @@
         <file>qml/JsonEditor.qml</file>
         <file>qml/EditTableView.qml</file>
         <file>qml/ChartsPreferences.qml</file>
+        <file>qml/SymbolForm.qml</file>
     </qresource>
 </RCC>

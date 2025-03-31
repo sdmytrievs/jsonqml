@@ -96,6 +96,8 @@ ApplicationWindow {
                 id: chartForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+
+                //legendData: client.legendModel.lineData(0)
             }
 
             ChartsPreferences {

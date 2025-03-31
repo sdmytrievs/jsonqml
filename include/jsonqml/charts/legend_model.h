@@ -6,7 +6,7 @@
 #include <QQmlEngine>
 #include "jsonqml/charts/legend_data.h"
 
-//namespace jsonqml {
+namespace jsonqml {
 
 class LegendModel : public QAbstractListModel
 {
@@ -15,7 +15,6 @@ class LegendModel : public QAbstractListModel
     Q_PROPERTY(int size READ rowCount NOTIFY sizeChanged)
 
     //QML_ELEMENT
-
 public:
     enum LegendRoles {
         IdRole = Qt::UserRole + 1,
@@ -24,7 +23,6 @@ public:
         NameRole,
     };
     Q_ENUM(LegendRoles)
-    //Q_ENUM_NS(LegendRoles)
 
     explicit LegendModel(QObject *parent = nullptr);
 
@@ -54,6 +52,6 @@ private:
 
 };
 
-//}
+}
 
 #endif // LEGENDMODEL_H

@@ -6,6 +6,7 @@ import Qt.jsonqml.qobjectPreferences 1.0
 
 Item {
     id: topItem
+    property int lineIndex: 0
 
     function contrastColor() {
         return palette.alternateBase
@@ -79,7 +80,8 @@ Item {
                 implicitWidth: implicitHeight*2
                 icon.source: "image://charts/" + listItem.model.icon
                 onClicked: {
-                    // open dialog
+                    lineIndex = index
+                    symbolDialog.open()
                 }
             }
             ComboBox {
@@ -129,6 +131,7 @@ Item {
         SplitView {
             orientation: Qt.Horizontal
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.minimumWidth: axisLayout.Layout.minimumWidth + 4 * 10
             Layout.minimumHeight: axisLayout.Layout.minimumHeight + 4 * 10
 
@@ -368,6 +371,28 @@ Item {
         id: fontDialog
         title: "Please choose a font"
         onAccepted: fontText.text = selectedFont
+    }
+
+    Dialog {
+        id: symbolDialog
+        width: 500
+        height: 400
+        title: "Customize plot curve"
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        contentItem: SymbolForm {
+            id: content
+            width: parent.width
+            legendData: client.legendModel.lineData(lineIndex)
+        }
+        onOpened: {
+            //console.log("open:", lineIndex)
+            content.legendData = client.legendModel.lineData(lineIndex)
+        }
+        onAccepted:  {
+            content.apply_symbol()
+            client.legendModel.setLineData(lineIndex, content.legendData)
+        }
     }
 }
 

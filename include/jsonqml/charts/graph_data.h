@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <array>
+#include <QFont>
 #include "jsonqml/charts/legend_data.h"
 #include "jsonqml/charts/chart_model.h"
 

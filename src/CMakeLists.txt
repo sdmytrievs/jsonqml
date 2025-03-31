@@ -20,6 +20,7 @@ list(APPEND MODULE_QML_FILES
     qml/EdgeForm.qml
     qml/EditTableView.qml
     qml/ChartsPreferences.qml
+    qml/SymbolForm.qml
 )
 
 list(APPEND MODULE_IMAGES

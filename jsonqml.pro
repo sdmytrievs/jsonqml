@@ -111,7 +111,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     Form.qml \
     FormForm.ui.qml \
-    resources/tmp/ChartSettings.qml
+    resources/tmp/ChartSettings.qml \
+    src/qml/SymbolForm.qml
 
 
 

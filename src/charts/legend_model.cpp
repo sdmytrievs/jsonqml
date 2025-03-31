@@ -1,9 +1,7 @@
 
-//#include <QIcon>
-#include <QJsonDocument>
 #include "jsonqml/charts/legend_model.h"
 
-//namespace jsonqml {
+namespace jsonqml {
 
 QString LegendModel::abscissaIndexName(int ndx)
 {
@@ -136,4 +134,4 @@ jsonqml::SeriesLineData LegendModel::lineData(int line) const
     return  lines_data[line];
 }
 
-//}
+}

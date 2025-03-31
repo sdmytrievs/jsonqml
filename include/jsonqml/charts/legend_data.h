@@ -1,10 +1,8 @@
 #pragma once
 
 #include <QObject>
-#include <QFont>
 #include <QColor>
 #include <QQuickImageProvider>
-#include <QJsonObject>
 
 #ifndef NO_JSONIO
 namespace jsonio {
@@ -14,19 +12,20 @@ class JsonBase;
 
 namespace jsonqml {
 
-class SeriesLineData;
-
-QImage markerShapeImage(const SeriesLineData& linedata);
-QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& size);
-QIcon markerShapeIcon(const SeriesLineData& linedata);
-QImage textImage(const QFont& font, const QString& text);
-void getLinePen(QPen& pen, const SeriesLineData& linedata);
-QColor colorAt(const QColor &start, const QColor &end, qreal pos);
-
 /// Description of one plot curve -
 /// the representation of a series of points in the x-y plane
 class SeriesLineData final
 {
+    Q_GADGET
+
+    Q_PROPERTY(int markerShape MEMBER marker_shape)
+    Q_PROPERTY(int markerSize MEMBER marker_size)
+    Q_PROPERTY(int penSize MEMBER pen_size)
+    Q_PROPERTY(int penStyle MEMBER pen_style)
+    Q_PROPERTY(int useSpline MEMBER use_spline)
+    Q_PROPERTY(QString name MEMBER line_name)
+    Q_PROPERTY(QColor color READ color WRITE setColor)
+
 public:
     SeriesLineData(const QString& aname = "",
                    int mrk_type = 0, int mrk_size = 8,
@@ -90,6 +89,12 @@ public:
     {
         return QColor(red, green, blue);
     }
+    void setColor(const QColor& acolor)
+    {
+        red = acolor.red();
+        green = acolor.green();
+        blue = acolor.blue();
+    }
 
     int xColumn() const
     {
@@ -144,12 +149,17 @@ class ChartImageProvider : public QQuickImageProvider
 public:
     ChartImageProvider()
         : QQuickImageProvider(QQuickImageProvider::Pixmap)
-    {
-    }
+    {}
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 };
 
+QImage markerShapeImage(const SeriesLineData& linedata);
+QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& size);
+QIcon markerShapeIcon(const SeriesLineData& linedata);
+QImage textImage(const QFont& font, const QString& text);
+void getLinePen(QPen& pen, const SeriesLineData& linedata);
+QColor colorAt(const QColor &start, const QColor &end, qreal pos);
 
 } // namespace jsonqml
 

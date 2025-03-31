@@ -1,6 +1,4 @@
-
-#include <QVector>
-#include <QJsonArray>
+#include <QJsonObject>
 #include "jsonqml/charts/legend_data.h"
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
@@ -19,7 +17,6 @@ QColor colorAt(const QColor &start, const QColor &end, qreal pos)
     return c;
 }
 
-#ifndef NO_JSONIO
 void SeriesLineData::setChanges(int mrk_type, int mrk_size, int pn_size,
                                 int pn_style, int usespline, const QColor &acolor)
 {
@@ -40,6 +37,7 @@ void SeriesLineData::setLineChanges(int pn_size, int pn_style, int usespline)
     use_spline  = usespline;
 }
 
+#ifndef NO_JSONIO
 void SeriesLineData::toJsonNode(jsonio::JsonBase& object) const
 {
     object.clear();
@@ -103,6 +101,7 @@ void SeriesLineData::fromJsonObject(const QJsonObject& json)
 
 QPixmap ChartImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize)
 {
+    //qDebug() << " id " << id;
     QStringList data = id.split("/", Qt::KeepEmptyParts);
     SeriesLineData line_data("", data[0].toInt(), 8, data[1].toInt(), 1, 0, data[2]);
     if(size) {

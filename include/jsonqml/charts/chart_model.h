@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QJsonObject>
-#include <QtCore/QAbstractTableModel>
+#include <QAbstractTableModel>
 
 #ifndef NO_JSONIO
 namespace jsonio {
