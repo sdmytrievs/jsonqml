@@ -58,7 +58,8 @@ QVariant LegendModel::data(const QModelIndex &index, int role) const
     case IdRole:
         return index.row();
     case ShapeIconRole: {
-        QString info_str = QString("%1/%2/%3").arg(info.markerShape()).arg(info.penSize()).arg(info.color().name());
+        QString info_str = QString("%1/%2/%3").arg(info.markerShape())
+        .arg(info.penSize()).arg(info.color().name());
         return info_str;
         //return markerShapeIcon(info);
     }
@@ -88,13 +89,12 @@ bool LegendModel::setData(const QModelIndex &index, const QVariant &value, int r
     default: return false;
     }
 
-    emit dataChanged(index, index, { role } );
+    emit dataChanged(index, index, { role });
     return true ;
 }
 
 Qt::ItemFlags LegendModel::flags(const QModelIndex& index) const
 {
-    //return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
     if(!index.isValid()) {
         return Qt::NoItemFlags;
     }
@@ -116,6 +116,11 @@ void LegendModel::updateLines(const std::vector<jsonqml::SeriesLineData>& in_lin
     beginResetModel();
     lines_data = in_lines;
     endResetModel();
+}
+
+const std::vector<SeriesLineData> &LegendModel::lines() const
+{
+    return lines_data;
 }
 
 void LegendModel::setLineData(int line, const jsonqml::SeriesLineData &data)

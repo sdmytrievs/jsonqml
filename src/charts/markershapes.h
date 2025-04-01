@@ -1,8 +1,16 @@
 #pragma once
 
+#include <QIcon>
 #include <QPainterPath>
 
 namespace jsonqml {
+
+class SeriesLineData;
+QImage markerShapeImage(const SeriesLineData& linedata);
+QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& size);
+QIcon markerShapeIcon(const SeriesLineData& linedata);
+QImage textImage(const QFont& font, const QString& text);
+void getLinePen(QPen& pen, const SeriesLineData& linedata);
 
 /// Class to define the shape of the marker used to render the points in the series
 class MarkerShapes final
@@ -62,11 +70,7 @@ protected:
     QPolygonF triangle_polygon(TriangleType type, const QSize& size);
 };
 
-MarkerShapes& shapes()
-{
-    static MarkerShapes  msh;
-    return msh;
-}
+MarkerShapes& shapes();
 
 } // namespace jsonqml
 

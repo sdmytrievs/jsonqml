@@ -1,7 +1,7 @@
 
-#include "jsonqml/charts/chart_model.h"
 #include "jsonqml/clients/chart_client.h"
 #include "table_client_p.h"
+#include "jsonio/jsondump.h"
 #include "jsonio/txt2file.h"
 
 namespace jsonqml {
@@ -57,9 +57,8 @@ protected:
     std::vector<std::shared_ptr<ChartDataModel>> chart_models;
     /// Description of 2D plotting widget
     std::shared_ptr<ChartData> chart_data;
-
+    /// Descriptions of model editing series data
     QSharedPointer<LegendModel> series_model;
-    //friend class ChartClient;
 
     void init_charts();
     void read_charts_settings(const QString &path);
@@ -69,7 +68,6 @@ protected:
 void ChartClientPrivate::init_charts()
 {
     //yColumns = {2,2,2,2,2,2,2,2,2,2,2,2,2,2};
-
     chart_models.push_back(std::shared_ptr<ChartDataModel>(new ChartDataModel(csv_model_data.get())));
     chart_data = std::make_shared<ChartData>(chart_models, "Graph for window", "x", "y");
 
@@ -78,7 +76,18 @@ void ChartClientPrivate::init_charts()
 
 void ChartClientPrivate::read_charts_settings(const QString &path)
 {
+    jsonio::JsonFile file(path.toStdString());
+    if(!file.exist()) {
+        return;
+    }
+    auto json_string = file.load_json();
+    auto js_free = jsonio::json::loads(json_string);
+    chart_data->fromJsonNode(js_free);
 
+    xColumns = chart_models[0]->xColumns();
+    yColumns = chart_models[0]->yColumns();
+    csv_model_data->setXColumns(xColumns);
+    csv_model_data->setYColumns(yColumns);
 }
 
 void ChartClientPrivate::save_charts_settings(const QString &path)
@@ -157,6 +166,11 @@ LegendModel *ChartClient::legendModel()
 QStringList ChartClient::abscissaList(int index)
 {
     return impl_func()->abscissa_list(index);
+}
+
+void ChartClient::applyLegend()
+{
+    chartData()->setLines(legendModel()->lines());
 }
 
 void ChartClient::toggleX(int column)

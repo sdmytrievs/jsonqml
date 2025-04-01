@@ -36,6 +36,9 @@ public:
     /// Get list of Abscissa indexes to QComboBox
     Q_INVOKABLE QStringList abscissaList(int index);
 
+    /// Apply changes into legend model
+    Q_INVOKABLE void applyLegend();
+
 protected:
 
     ChartClientPrivate* impl_func()

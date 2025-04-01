@@ -1,18 +1,20 @@
 
-#include <QIcon>
-#include <QImage>
 #include <QPen>
 #include <QPainter>
-#include <QFont>
 #include <QImageWriter>
 #include <QtCore/QtMath>
-
 #include "markershapes.h"
 #include "jsonqml/charts/legend_data.h"
 
 const double Pi = 3.14159;
 
 namespace jsonqml {
+
+MarkerShapes &shapes()
+{
+    static MarkerShapes  msh;
+    return msh;
+}
 
 QString imageFilters();
 QString imageFilters()
@@ -275,7 +277,6 @@ QPolygonF MarkerShapes::triangle_polygon(TriangleType type, const QSize& size)
     }
     return triangle;
 }
-
 
 } // namespace jsonqml
 

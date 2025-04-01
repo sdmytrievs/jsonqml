@@ -1,6 +1,6 @@
 
 #include <QJsonArray>
-#include "jsonqml/charts/graph_data.h"
+#include "jsonqml/charts/chart_model.h"
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
 #endif
@@ -124,6 +124,53 @@ Qt::ItemFlags ChartDataModel::flags(const QModelIndex &index) const
     return QAbstractItemModel::flags(index);
 }
 
+void ChartDataModel::setGraphType(GRAPHTYPES type)
+{
+    beginResetModel();
+    graph_type = type;
+    endResetModel();
+}
+
+void ChartDataModel::setXColumns(const std::vector<int> &axcolumns)
+{
+    beginResetModel();
+    xcolumns.clear();
+    for(auto cl: axcolumns) {
+        append_x(cl);
+    }
+    endResetModel();
+    emit changedXSelections();
+}
+
+void ChartDataModel::setYColumns(const std::vector<int> &aycolumns, bool update_names)
+{
+    beginResetModel();
+    ycolumns.clear();
+    for(auto cl: aycolumns) {
+        append_y(cl);
+    }
+    endResetModel();
+    emit changedYSelections(update_names);
+}
+
+bool ChartDataModel::append_x(int xclm)
+{
+    if(xclm >= 0 && xclm < m_model->columnCount()) {
+        xcolumns.push_back(xclm);
+        return true;
+    }
+    return false;
+}
+
+bool ChartDataModel::append_y(int yclm)
+{
+    if(yclm >= 0 && yclm < m_model->columnCount()) {
+        ycolumns.push_back(yclm);
+        return true;
+    }
+    return false;
+}
+
 // Connect m_model signald
 
 void ChartDataModel::modelUpdated(QModelIndex mtopLeft, QModelIndex mbottomRight)
@@ -186,7 +233,6 @@ void ChartDataModel::toJsonObject(QJsonObject& json) const
     }
     json["gyclms"] = yArray;
 }
-
 
 void ChartDataModel::fromJsonObject(const QJsonObject& json)
 {

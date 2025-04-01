@@ -1,6 +1,6 @@
 
 #include <QJsonArray>
-#include <QVector>
+//#include <QVector>
 #include "jsonqml/charts/graph_data.h"
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
@@ -165,7 +165,6 @@ void ChartData::fromJsonNode(const jsonio::JsonBase& object)
 
     emit dataChanged();
 }
-
 #endif
 
 void ChartData::toJsonObject(QJsonObject& json) const
@@ -275,6 +274,12 @@ int ChartData::seriesNumber() const
         nmb += static_cast<int>(model->getSeriesNumber());
     }
     return nmb;
+}
+
+void ChartData::setLines(const std::vector<SeriesLineData> &new_lines)
+{
+    size_t length = std::min(new_lines.size(), linesdata.size());
+    std::copy_n(new_lines.begin(), length, linesdata.begin());
 }
 
 void ChartData::setMinMaxRegion(double reg[4])

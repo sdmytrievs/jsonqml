@@ -43,7 +43,6 @@ public:
     {
         QColor acolor;
         acolor.setHsv( static_cast<int>(360/max_lines*ndx), 200, 200);
-        //aColor = colorAt(green, blue, double(ndx)/maxLines );
         setChanges(mrk_type, mrk_size, line_size, line_style, usespline, acolor);
     }
 
@@ -151,15 +150,9 @@ public:
         : QQuickImageProvider(QQuickImageProvider::Pixmap)
     {}
 
-    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
+    QPixmap requestPixmap(const QString &id, QSize *size,
+                          const QSize &requestedSize) override;
 };
-
-QImage markerShapeImage(const SeriesLineData& linedata);
-QPixmap markerShapePixmap(const SeriesLineData& linedata, const QSize& size);
-QIcon markerShapeIcon(const SeriesLineData& linedata);
-QImage textImage(const QFont& font, const QString& text);
-void getLinePen(QPen& pen, const SeriesLineData& linedata);
-QColor colorAt(const QColor &start, const QColor &end, qreal pos);
 
 } // namespace jsonqml
 

@@ -16,7 +16,7 @@
 //#include <QPrinter>
 #include <QtSvg/QSvgGenerator>
 #include <QPixmap>
-
+#include "markershapes.h"
 #include "jsonqml/charts/graph_data.h"
 #include "jsonqml/charts/chart_view.h"
 #ifndef NO_JSONIO

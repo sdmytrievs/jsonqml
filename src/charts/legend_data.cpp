@@ -1,12 +1,15 @@
 #include <QJsonObject>
+#include <QPixmap>
+#include "markershapes.h"
 #include "jsonqml/charts/legend_data.h"
+
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
 #endif
 
 namespace jsonqml {
 
-QColor colorAt(const QColor &start, const QColor &end, qreal pos)
+static QColor colorAt(const QColor &start, const QColor &end, qreal pos)
 {
     Q_ASSERT(pos >= 0.0 && pos <= 1.0);
     qreal r = start.redF() + ((end.redF() - start.redF()) * pos);

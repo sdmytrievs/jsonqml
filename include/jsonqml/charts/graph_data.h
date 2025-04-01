@@ -76,8 +76,8 @@ public:
         // Insert Plots and curves description
         modelsdata.clear();
         for(auto plot: aplots) {
-            addNewPlot(plot);
-         }
+            addPlot(plot);
+        }
 
         // Graph&Fragment Min Max Region
         double regg[4] = {0., 0., 0., 0.};
@@ -89,7 +89,7 @@ public:
 
     /// add new plot lines selection
     template <class T>
-    void addNewPlot(const std::shared_ptr<T>& aplot)
+    void addPlot(const std::shared_ptr<T>& aplot)
     {
         int defined_lines = static_cast<int>(linesdata.size());
         int nlines = seriesNumber();
@@ -99,13 +99,13 @@ public:
         int nlin = aplot->getSeriesNumber();
         for(int jj=0; jj<nlin; jj++, nlines++) {
             if(nlines >= defined_lines) {
-                linesdata.push_back(SeriesLineData( jj, nlin, aplot->getName(jj)));
+                linesdata.push_back(SeriesLineData(jj, nlin, aplot->getName(jj)));
             }
         }
         connect( modelsdata.back().get(), &ChartDataModel::changedXSelections,
-                 this,  &ChartData::updateXSelections );
+                this,  &ChartData::updateXSelections );
         connect( modelsdata.back().get(), &ChartDataModel::changedYSelections,
-                 this,  &ChartData::updateYSelections );
+                this,  &ChartData::updateYSelections );
     }
 
     /// get plot from index
@@ -122,40 +122,24 @@ public:
     {
         return modelsdata.size();
     }
-    const std::vector<SeriesLineData>& lines() const
-    {
-        return linesdata;
-    }
-    size_t linesNumber() const
-    {
-        return linesdata.size();
-    }
-
     ChartDataModel* modelData(size_t ndx)
     {
         return  modelsdata[ndx].get();
     }
 
+    size_t linesNumber() const
+    {
+        return linesdata.size();
+    }
+    Q_INVOKABLE const std::vector<SeriesLineData>& lines() const
+    {
+        return linesdata;
+    }
+    Q_INVOKABLE void setLines(const std::vector<SeriesLineData>& new_lines);
     Q_INVOKABLE const SeriesLineData& lineData(size_t ndx) const
     {
         return  linesdata[ndx];
     }
-    //Q_INVOKABLE void setLineData(size_t ndx, const SeriesLineData& newdata)
-    // {
-    //     linesdata[ndx] = newdata;
-    // }
-
-    // void setLineData(size_t ndx, const QString andx_x)
-    // {
-    //     int modelndx = plot(ndx);
-    //     if(modelndx >= 0)   {
-    //         linesdata[ndx].setXColumn(modelsdata[static_cast<size_t>(modelndx)]->indexAbscissaName(andx_x));
-    //     }
-    // }
-    // void setLineData(size_t ndx, const QString& aname)
-    // {
-    //     linesdata[ndx].setName(aname);
-    // }
 
     void setMinMaxRegion(double reg[4]);
     double xMin() const;

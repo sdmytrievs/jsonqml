@@ -3,7 +3,6 @@
 #define LEGENDMODEL_H
 
 #include <QAbstractListModel>
-#include <QQmlEngine>
 #include "jsonqml/charts/legend_data.h"
 
 namespace jsonqml {
@@ -14,7 +13,6 @@ class LegendModel : public QAbstractListModel
 
     Q_PROPERTY(int size READ rowCount NOTIFY sizeChanged)
 
-    //QML_ELEMENT
 public:
     enum LegendRoles {
         IdRole = Qt::UserRole + 1,
@@ -33,6 +31,7 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     void updateLines(const std::vector<jsonqml::SeriesLineData>& in_lines);
+    Q_INVOKABLE const std::vector<jsonqml::SeriesLineData>& lines() const;
     Q_INVOKABLE void setLineData(int line, const jsonqml::SeriesLineData& lines);
     Q_INVOKABLE jsonqml::SeriesLineData lineData(int line) const;
 

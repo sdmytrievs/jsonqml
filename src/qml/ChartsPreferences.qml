@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import Qt.jsonqml.qobjectPreferences 1.0
+//import Qt.jsonqml.qobjectPreferences 1.0
 
 Item {
     id: topItem
@@ -32,6 +32,7 @@ Item {
 
         client.chartData.axisFont = fontText.text
         client.chartData.backColor = txt_back.color
+        client.applyLegend()
     }
 
     component ListHeader : Rectangle {
@@ -107,13 +108,11 @@ Item {
         GroupBox {
             id: nameBox
             Layout.fillWidth: true
-            Layout.minimumWidth: chartLayout.Layout.minimumWidth + 4 * 10
-            Layout.minimumHeight: chartLayout.Layout.minimumHeight + 4 * 10
+            Layout.margins: 4
 
             ColumnLayout {
                 id: chartLayout
                 anchors.fill: parent
-                anchors.margins: 10
 
                 ComboBox {
                     id: chartType
@@ -132,8 +131,7 @@ Item {
             orientation: Qt.Horizontal
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: axisLayout.Layout.minimumWidth + 4 * 10
-            Layout.minimumHeight: axisLayout.Layout.minimumHeight + 4 * 10
+            Layout.margins: 4
 
             GroupBox {
                 id: otherBox
@@ -141,7 +139,6 @@ Item {
                 GridLayout {
                     id: axisLayout
                     anchors.fill: parent
-                    anchors.margins: 10
                     rows: 8
                     columns: 6
 

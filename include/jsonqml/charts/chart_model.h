@@ -52,35 +52,11 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
     /// Update GRAPHTYPES ( LineChart,  AreaChart,  BarChart, Isolines ... )
-    void setGraphType(GRAPHTYPES type)
-    {
-        beginResetModel();
-        graph_type = type;
-        endResetModel();
-    }
-
+    void setGraphType(GRAPHTYPES type);
     /// Set abscissa columns
-    void setXColumns(const std::vector<int>& axcolumns)
-    {
-        beginResetModel();
-        xcolumns.clear();
-        for(auto cl: axcolumns) {
-            appendXColumn(cl);
-        }
-        endResetModel();
-        emit changedXSelections();
-    }
+    void setXColumns(const std::vector<int>& axcolumns);
     /// Set ordinate columns
-    void setYColumns(const std::vector<int>& aycolumns, bool update_names)
-    {
-        beginResetModel();
-        ycolumns.clear();
-        for(auto cl: aycolumns) {
-            appendYColumn(cl);
-        }
-        endResetModel();
-        emit changedYSelections(update_names);
-    }
+    void setYColumns(const std::vector<int>& aycolumns, bool update_names);
 
     /// Get number of series
     size_t getSeriesNumber() const
@@ -95,8 +71,9 @@ public:
     /// Get line name
     QString getName(size_t line) const
     {
-        //        return std::to_string(line);
-        return m_model->headerData(getYColumn(line), Qt::Horizontal, Qt::DisplayRole).toString();
+        auto name = m_model->headerData(getYColumn(line), Qt::Horizontal, Qt::DisplayRole).toString();
+        name.replace("(y)", "", Qt::CaseInsensitive);
+        return name;
     }
 
     /// Get number of Abscissa lines
@@ -116,42 +93,14 @@ public:
         return -1;
     }
 
-    /// Get Abscissa name from index
-    QString abscissaIndexName(int ndx) const
+   const std::vector<int> xColumns() const
     {
-        if( ndx == -2 )
-            return QString("Off");
-        if( ndx == -1 )
-            return QString("#");
-        return QString("%1").arg(ndx);
+        return xcolumns;
     }
-    /// Get Abscissa index from name
-    int indexAbscissaName(const QString name) const
+    const std::vector<int> yColumns() const
     {
-        if( name == QString("Off") )
-            return -2;
-        if( name == QString("#") )
-            return -1;
-        return name.toInt();
+        return ycolumns;
     }
-    /// Get list of Abscissa indexes to QComboBox
-    QStringList getAbscissaIndexes() const
-    {
-        QStringList lst;
-        lst << abscissaIndexName(-2);
-        lst << abscissaIndexName(-1);
-        for(int ii=0; ii<getAbscissaNumber(); ii++) {
-            lst <<  abscissaIndexName(ii);
-        }
-        return lst;
-    }
-
-    // List of the column of the model that contains the x-coordinates of data points
-    //const std::vector<int>& XColumns() const
-    //{ return xcolumns; }
-    // List of the column of the model that contains the y-coordinates of data points
-    //const std::vector<int>& YColumns() const
-    //{ return ycolumns; }
 
 #ifndef NO_JSONIO
     void toJsonNode(jsonio::JsonBase& object) const;
@@ -196,22 +145,8 @@ protected:
         return QModelIndex();
     }
 
-    bool appendXColumn(int xclm)
-    {
-        if(xclm >= 0 && xclm < m_model->columnCount()) {
-            xcolumns.push_back(xclm);
-            return true;
-        }
-        return false;
-    }
-    bool appendYColumn(int yclm)
-    {
-        if(yclm >= 0 && yclm < m_model->columnCount()) {
-            ycolumns.push_back(yclm);
-            return true;
-        }
-        return false;
-    }
+    bool append_x(int xclm);
+    bool append_y(int yclm);
 
     ///  Clear list that contains the x-coordinates of every chart line (y-coordinate).
     void clearXColumn()
