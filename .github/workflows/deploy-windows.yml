@@ -70,6 +70,8 @@ jobs:
 
       - name: Check deploy
         run: |
+          cd C:/Miniconda/envs/jsonqml/Library/bin
+          ls
           cd ${{ steps.strings.outputs.deploy-output-dir }}
           ls
           #ldd ./bin/arangodb-view

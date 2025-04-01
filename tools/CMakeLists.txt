@@ -17,7 +17,7 @@ set_target_properties(arangodb-view PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+    #WIN32_EXECUTABLE TRUE
 )
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
@@ -51,6 +51,26 @@ if(DeployApp)
   install(SCRIPT ${deploy_script})
   install(TARGETS arangodb-view EXPORT jsonqmlTargets DESTINATION "bin")
   install(TARGETS json_editor EXPORT jsonqmlTargets DESTINATION "bin")
+
+if(USE_SPDLOG_PRECOMPILED)
+    set(dll_path "C:/Miniconda/envs/jsonqml/Library/bin")
+    message(STATUS "dll path: ${dll_path}")
+    message(STATUS "conda path: $ENV{CONDA_PREFIX}")
+    install(FILES "${dll_path}/libcurl.dll" DESTINATION bin)
+    install(FILES "${dll_path}/libpng16.dll" DESTINATION bin)
+    install(FILES "${dll_path}/fmt.dll" DESTINATION bin)
+    install(FILES "${dll_path}/libcrypto-3-x64.dll" DESTINATION bin)
+    install(FILES "${dll_path}/libcrypto-3-x64.pdb" DESTINATION bin)
+    install(FILES "${dll_path}/zlib.dll" DESTINATION bin)
+    install(FILES "${dll_path}/zstd.dll" DESTINATION bin)
+
+    install(FILES "${dll_path}/vcruntime140.dll" DESTINATION bin)
+    install(FILES "${dll_path}/msvcp140.dll" DESTINATION bin)
+    install(FILES "${dll_path}/opengl32sw.dll" DESTINATION bin)
+    install(FILES "${dll_path}/icudt75.dll" DESTINATION bin)
+    install(FILES "${dll_path}/icuin75.dll" DESTINATION bin)
+    install(FILES "${dll_path}/icuuc75.dll" DESTINATION bin)
+endif()
 endif()
 
 

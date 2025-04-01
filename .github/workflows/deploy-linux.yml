@@ -2,7 +2,7 @@ name: deploy-linux
 on:
   push:
     branches:
-      - main
+      - main1
   release:
     types:
       - published
