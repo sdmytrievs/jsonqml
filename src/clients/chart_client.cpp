@@ -1,10 +1,22 @@
+#include <QtCharts/QAreaSeries>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QVXYModelMapper>
+#include <QtCharts/QValueAxis>
 
 #include "jsonqml/clients/chart_client.h"
 #include "table_client_p.h"
 #include "jsonio/jsondump.h"
 #include "jsonio/txt2file.h"
 
+
 namespace jsonqml {
+
+QImage markerShapeImage(const SeriesLineData& linedata);
+void getLinePen(QPen& pen, const SeriesLineData& linedata);
+
+
 
 class ChartClientPrivate  : public TableClientPrivate
 {
@@ -25,6 +37,11 @@ public:
     LegendModel *legend_model()
     {
         return series_model.get();
+    }
+
+    QXYSeriesDecorator *series_decorator()
+    {
+        return series_view.get();
     }
 
     void read_files(const QString &path) override
@@ -57,6 +74,8 @@ protected:
     std::vector<std::shared_ptr<ChartDataModel>> chart_models;
     /// Description of 2D plotting widget
     std::shared_ptr<ChartData> chart_data;
+    /// Controller of 2D plotting lines
+    std::shared_ptr<QXYSeriesDecorator> series_view;
     /// Descriptions of model editing series data
     QSharedPointer<LegendModel> series_model;
 
@@ -72,6 +91,7 @@ void ChartClientPrivate::init_charts()
     chart_data = std::make_shared<ChartData>(chart_models, "Graph for window", "x", "y");
 
     series_model.reset(new LegendModel());
+    series_view.reset(new QXYSeriesDecorator(chart_data.get()));
 }
 
 void ChartClientPrivate::read_charts_settings(const QString &path)
@@ -134,7 +154,6 @@ void ChartClientPrivate::toggle_Y(int column)
     chart_models[0]->setYColumns(yColumns, true);
 }
 
-
 //--------------------------------------------------------------------------
 
 ChartClient::ChartClient(ChartClientPrivate *impl, QObject *parent):
@@ -163,6 +182,11 @@ LegendModel *ChartClient::legendModel()
     return impl_func()->legend_model();
 }
 
+QXYSeriesDecorator *ChartClient::seriesDecorator()
+{
+    return impl_func()->series_decorator();
+}
+
 QStringList ChartClient::abscissaList(int index)
 {
     return impl_func()->abscissa_list(index);
@@ -171,6 +195,7 @@ QStringList ChartClient::abscissaList(int index)
 void ChartClient::applyLegend()
 {
     chartData()->setLines(legendModel()->lines());
+    emit chartDataChanged();
 }
 
 void ChartClient::toggleX(int column)

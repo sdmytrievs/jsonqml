@@ -1,15 +1,33 @@
 
 #include <QJsonArray>
-//#include <QVector>
 #include "jsonqml/charts/graph_data.h"
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
+#include "jsonio/service.h"
 #endif
 
 namespace jsonqml {
 
 jsonqml::ChartData::~ChartData()
 {}
+
+void ChartData::setGraphType(int newtype)
+{
+    graph_type = newtype;
+    auto model_type = static_cast<GRAPHTYPES>(graph_type);
+    for( auto& model: modelsdata) {
+        model->setGraphType(model_type);
+    }
+}
+
+size_t ChartData::seriesNumber() const
+{
+    size_t nmb = 0;
+    for(const auto& model: modelsdata) {
+        nmb += model->getSeriesNumber();
+    }
+    return nmb;
+}
 
 int ChartData::plot(size_t line, size_t *modelline) const
 {
@@ -24,6 +42,12 @@ int ChartData::plot(size_t line, size_t *modelline) const
         }
     }
     return -1;
+}
+
+void ChartData::setLines(const std::vector<SeriesLineData> &new_lines)
+{
+    size_t length = std::min(new_lines.size(), linesdata.size());
+    std::copy_n(new_lines.begin(), length, linesdata.begin());
 }
 
 void ChartData::updateXSelections()
@@ -258,30 +282,6 @@ void ChartData::fromJsonObject(const QJsonObject& json)
     emit dataChanged();
 }
 
-void ChartData::setGraphType(int newtype)
-{
-    graph_type = newtype;
-    auto model_type = static_cast<GRAPHTYPES>(graph_type);
-    for( auto& model: modelsdata) {
-        model->setGraphType(model_type);
-    }
-}
-
-int ChartData::seriesNumber() const
-{
-    int nmb = 0;
-    for(const auto& model: modelsdata) {
-        nmb += static_cast<int>(model->getSeriesNumber());
-    }
-    return nmb;
-}
-
-void ChartData::setLines(const std::vector<SeriesLineData> &new_lines)
-{
-    size_t length = std::min(new_lines.size(), linesdata.size());
-    std::copy_n(new_lines.begin(), length, linesdata.begin());
-}
-
 void ChartData::setMinMaxRegion(double reg[4])
 {
     region[0] = reg[0];
@@ -364,6 +364,17 @@ double ChartData::fyMax() const
 void ChartData::setfyMax(double val)
 {
     part[3] = val;
+}
+
+bool ChartData::useDefaultAxes(bool fragment)
+{
+    if(fragment) {
+        return jsonio::essentiallyEqual(part[0], part[1]) ||
+               jsonio::essentiallyEqual(part[2], part[3]);
+    }
+    return jsonio::essentiallyEqual(region[0], region[1]) ||
+           jsonio::essentiallyEqual(region[2], region[3]);
+    //    chart->createDefaultAxes();
 }
 
 void ChartData::connect_data_changed()

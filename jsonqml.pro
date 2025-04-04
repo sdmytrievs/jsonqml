@@ -30,6 +30,7 @@ HEADERS += \
     include/jsonqml/charts/graph_data.h \
     include/jsonqml/charts/legend_data.h \
     include/jsonqml/charts/legend_model.h \
+    include/jsonqml/charts/xyseries_decorator.h \
     include/jsonqml/clients/table_client.h \
     include/jsonqml/clients/chart_client.h \
     include/jsonqml/models/base_model.h \
@@ -61,6 +62,7 @@ SOURCES += \
     src/charts/legend_data.cpp \
     src/charts/legend_model.cpp \
     src/charts/markershapes.cpp \
+    src/charts/xyseries_decorator.cpp \
     src/clients/table_client.cpp \
     src/clients/chart_client.cpp \
     src/models/base_model.cpp \

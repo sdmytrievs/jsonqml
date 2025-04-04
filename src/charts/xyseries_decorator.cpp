@@ -1,0 +1,292 @@
+#include <QtCharts/QChart>
+#include "jsonqml/charts/xyseries_decorator.h"
+#include "markershapes.h"
+
+#ifndef NO_JSONIO
+#include "jsonio/service.h"
+#include "jsonio/exceptions.h"
+#endif
+
+
+namespace jsonqml {
+
+// void PlotChartViewPrivate::show_plot_internal()
+// {
+//     switch(gr_data->graphType()) {
+//     case LineChart:
+//         show_plot_lines();
+//         break;
+//     case AreaChart:
+//         show_area_chart();
+//         break;
+//     case BarChart:
+//     case Isolines:
+//     case lines_3D:
+//         break;
+//     }
+// }
+
+QXYSeriesDecorator::~QXYSeriesDecorator()
+{ }
+
+void QXYSeriesDecorator::updateMinMax()
+{
+    if(!axisX || !axisY) {
+        return;
+    }
+
+    if(is_fragment) {
+        if(!jsonio::essentiallyEqual(chart_data->fxMin(), chart_data->fxMax()) &&
+            !jsonio::essentiallyEqual(chart_data->fyMin(), chart_data->fyMax()))  {
+            axisY->setRange(chart_data->fyMin(), chart_data->fyMax());
+            axisX->setRange(chart_data->fxMin(), chart_data->fxMax());
+        }
+    }
+    else  {
+        if(!jsonio::essentiallyEqual(chart_data->xMin(), chart_data->xMax()) &&
+            !jsonio::essentiallyEqual(chart_data->yMin(), chart_data->yMax()))  {
+            axisY->setRange(chart_data->yMin(), chart_data->yMax());
+            axisX->setRange(chart_data->xMin(), chart_data->xMax());
+        }
+        else  {
+            series_chart->createDefaultAxes();
+            auto axises = series_chart->axes(Qt::Horizontal);
+            if(axises.size() > 0) {
+                axisX = dynamic_cast<QValueAxis*>(axises[0]);
+            }
+            axises = series_chart->axes(Qt::Vertical);
+            if(axises.size() > 0) {
+                axisY = dynamic_cast<QValueAxis*>(axises[0]);
+            }
+            //attach_axis();
+        }
+    }
+}
+
+void QXYSeriesDecorator::highlightSeries(size_t line, bool enable)
+{
+    if(chart_data->graphType() == LineChart) {
+        if(line>=point_series.size()) {
+            return;
+        }
+        // update series lines
+        auto  linedata = chart_data->lineData(line);
+        QXYSeries *series = line_series[line];
+        if(series) {
+            QPen pen = series->pen();
+            getLinePen(pen, linedata);
+            if(enable) {
+                pen.setWidth(linedata.penSize()*2);
+            }
+            series->setPen(pen);
+        }
+
+        QScatterSeries *scatterseries = point_series[line];
+        if(scatterseries) {
+            auto shsize = linedata.markerSize();
+            if(enable) {
+                shsize *=2;
+            }
+            scatterseries->setLightMarker(markerShapeImage(linedata));
+            scatterseries->setMarkerSize(shsize);
+        }
+    }
+    else if(chart_data->graphType() == AreaChart) {
+        if(line>=area_series.size()) {
+            return;
+        }
+        if(area_series[line]) {
+            area_series[line]->setOpacity( (enable ? 1: 0.5) );
+        }
+    }
+}
+
+void QXYSeriesDecorator::updateSeries(size_t nline, QScatterSeries *series)
+{
+    // extract data from QML
+    data_from_chart_view(nline, series);
+
+    // get chart settings
+    size_t modelline;
+    int nplot =  chart_data->plot(nline, &modelline);
+    if(nplot < 0) {
+        return;
+    }
+    auto* datamodel = chart_data->modelData(static_cast<size_t>(nplot));
+    const auto& linedata = chart_data->lineData(nline);
+
+    if(nline >= point_series.size() || nline >= point_mapper.size()) {
+        resize_series();
+    }
+    // set up points
+    update_scatter_series(series, linedata);
+    point_series[nline] = series;
+    point_mapper[nline].reset(map_series_line(series, datamodel, modelline, linedata.xColumn()));
+    // set up lines
+    line_series[nline]= new_series_line(linedata);
+    line_mapper[nline].reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
+}
+
+void QXYSeriesDecorator::updateAreaSeries(size_t nline, QAreaSeries *series)
+{
+    // extract data from QML
+    data_from_chart_view(nline, series);
+
+    // get chart settings
+    size_t modelline;
+    int nplot =  chart_data->plot(nline, &modelline);
+    if(nplot < 0) {
+        return;
+    }
+    auto* datamodel = chart_data->modelData(static_cast<size_t>(nplot));
+    auto linedata = chart_data->lineData(nline);
+
+    if(nline >= area_series.size()) {
+        resize_area_series();
+    }
+    update_area_series(series, linedata);
+    area_series[nline] = series;
+
+    // set lower line
+    QLineSeries *lower_series = nullptr;
+    if(nline>0) {
+        int lower_series_index = nline-1;
+        while(lower_series_index>=0 && line_series[lower_series_index] == nullptr) {
+            lower_series_index--;
+        }
+        if(lower_series_index>0) {
+            lower_series =  dynamic_cast<QLineSeries *>(line_series[lower_series_index]);
+        }
+    }
+    if(lower_series) {
+        series->setLowerSeries(lower_series);
+    }
+
+    // set upper line
+    datamodel->addXColumn(linedata.xColumn());
+    if(linedata.xColumn() < -1) {
+        return;   // empty
+    }
+    linedata.setLineChanges(1,1,0);
+    line_series[nline] = new_series_line(linedata);
+    line_mapper[nline].reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
+    series->setUpperSeries(dynamic_cast<QLineSeries *>(line_series[nline]));
+}
+
+void QXYSeriesDecorator::data_from_chart_view(size_t nline, QAbstractSeries *series)
+{
+    if(series_chart && series_chart!=series->chart()) {
+        qDebug() << "Different chart line " << nline;
+    }
+    series_chart = series->chart();
+    auto axises = series_chart->axes(Qt::Horizontal);
+    if(axises.size() > 0) {
+        axisX = dynamic_cast<QValueAxis*>(axises[0]);
+    }
+    axises = series_chart->axes(Qt::Vertical);
+    if(axises.size() > 0) {
+        axisY = dynamic_cast<QValueAxis*>(axises[0]);
+    }
+}
+
+void QXYSeriesDecorator::resize_series()
+{
+    point_series.resize(chart_data->seriesNumber());
+    point_mapper.resize(chart_data->seriesNumber());
+    line_series.resize(chart_data->seriesNumber());
+    line_mapper.resize(chart_data->seriesNumber());
+}
+
+void QXYSeriesDecorator::resize_area_series()
+{
+    area_series.resize(chart_data->seriesNumber());
+    line_series.resize(chart_data->seriesNumber());
+    line_mapper.resize(chart_data->seriesNumber());
+}
+
+void QXYSeriesDecorator::update_scatter_series(QScatterSeries* series, const SeriesLineData& linedata)
+{
+    series->setName(linedata.name());
+    series->setPen( QPen(Qt::transparent));
+    series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+    auto msize = linedata.markerSize()+2;
+    series->setMarkerSize(msize);
+    series->setLightMarker(markerShapeImage(linedata));
+}
+
+QVXYModelMapper* QXYSeriesDecorator::map_series_line(QXYSeries *series, ChartDataModel* datamodel,
+                                                     int modelline, int xcolumn)
+{
+    if(!series) {
+        return nullptr;
+    }
+    QVXYModelMapper *mapper = new QVXYModelMapper;
+    mapper->setXColumn(datamodel->getXColumn(xcolumn)+1);
+    mapper->setYColumn(datamodel->getYColumn(modelline)+1);
+    mapper->setSeries(series);
+    mapper->setModel(datamodel);
+    return mapper;
+}
+
+QXYSeries* QXYSeriesDecorator::new_series_line(const SeriesLineData& linedata)
+{
+    QXYSeries* series = nullptr;
+    if(linedata.penSize() <= 0) {
+        return series;
+    }
+    if(linedata.spline()) {
+        series = new QSplineSeries;
+    }
+    else {
+        series = new QLineSeries;
+    }
+    series_chart->addSeries(series);
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+
+    series->setName(linedata.name());
+    QPen pen = series->pen();
+    getLinePen(pen, linedata);
+    series->setPen(pen);
+
+    return series;
+}
+
+void QXYSeriesDecorator::update_area_series(QAreaSeries* series, const SeriesLineData& linedata)
+{
+    series->setName(linedata.name());
+    QPen pen = series->pen();
+    getLinePen(pen, linedata);
+    series->setPen(pen);
+    series->setColor(pen.color());
+}
+
+void QXYSeriesDecorator::attach_axis()
+{
+    size_t ii;
+    if(!axisX || !axisY) {
+        return;
+    }
+
+    for(ii=0; ii<point_series.size(); ii++) {
+        if(point_series[ii]) {
+            point_series[ii]->attachAxis(axisX);
+            point_series[ii]->attachAxis(axisY);
+        }
+    }
+    for(ii=0; ii<line_series.size(); ii++) {
+        if(line_series[ii]) {
+            line_series[ii]->attachAxis(axisX);
+            line_series[ii]->attachAxis(axisY);
+        }
+    }
+    for(ii=0; ii<area_series.size(); ii++) {
+        if(area_series[ii]) {
+            area_series[ii]->attachAxis(axisX);
+            area_series[ii]->attachAxis(axisY);
+        }
+    }
+}
+
+
+} // namespace jsonqml

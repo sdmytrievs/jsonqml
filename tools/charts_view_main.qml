@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtCharts 2.15
 
 import jsonqml
 import Qt.jsonqml.qobjectPreferences 1.0
@@ -92,10 +93,11 @@ ApplicationWindow {
                 chartEnabled: true
             }
 
-            Item {
+            ChartsSeriesView {
                 id: chartForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+
 
                 //legendData: client.legendModel.lineData(0)
             }

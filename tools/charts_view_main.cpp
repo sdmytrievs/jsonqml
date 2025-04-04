@@ -1,9 +1,12 @@
-#include <QtGui/QGuiApplication>
+#include <QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 #include <QtGui/QIcon>
 #include "jsonqml/clients/chart_client.h"
 #include "jsonqml/clients/settings_client.h"
+
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
 
 int main(int argc, char *argv[])
 {
@@ -12,7 +15,7 @@ int main(int argc, char *argv[])
     jsonqml::Preferences::use_schemas = false;
     jsonio::JsonioSettings::settingsFileName = "jsonqml-config.json";
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
     app.setWindowIcon(QIcon("qrc:///resources/images/jsonui-logo-icon.png"));
     jsonqml::ChartClient client;
 
@@ -20,6 +23,19 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonInstance("Qt.jsonqml.qobjectPreferences", 1, 0, "Preferences", &jsonqml::uiSettings());
     //qRegisterMetaType<jsonqml::SeriesLineData>();
     engine.addImageProvider(QLatin1String("charts"), new jsonqml::ChartImageProvider);
+
+    QChart *chart = new QChart();
+    QLineSeries *series = new QLineSeries();
+    series->append(0, 6);
+    series->append(2, 4);
+    series->append(3, 8);
+    series->append(7, 4);
+    series->append(10, 5);
+    chart->addSeries(series);
+    chart->createDefaultAxes();
+
+    engine.rootContext()->setContextProperty("myChart", chart);
+
 
     const QUrl url("qrc:/qt/qml/tools3/charts_view_main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

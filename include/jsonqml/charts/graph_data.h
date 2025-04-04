@@ -41,6 +41,7 @@ signals:
     void changedXSelections();
     void changedYSelections();
     void dataChanged();
+
     void graphTypeChanged();
     void titleChanged();
     void axisXChanged();
@@ -117,12 +118,12 @@ public:
     }
     void setGraphType(int newtype);
 
-    int seriesNumber() const;
+    size_t seriesNumber() const;
     size_t modelsNumber() const
     {
         return modelsdata.size();
     }
-    ChartDataModel* modelData(size_t ndx)
+    ChartDataModel* modelData(size_t ndx) const
     {
         return  modelsdata[ndx].get();
     }
@@ -141,6 +142,7 @@ public:
         return  linesdata[ndx];
     }
 
+    bool useDefaultAxes(bool fragment);
     void setMinMaxRegion(double reg[4]);
     double xMin() const;
     void setxMin(double val);
@@ -170,6 +172,7 @@ public:
         b_color[1] = acolor.green();
         b_color[2] = acolor.blue();
     }
+
 
 #ifndef NO_JSONIO
     void toJsonNode(jsonio::JsonBase& object) const;

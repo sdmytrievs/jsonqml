@@ -4,6 +4,7 @@
 #include "jsonqml/clients/table_client.h"
 #include "jsonqml/charts/graph_data.h"
 #include "jsonqml/charts/legend_model.h"
+#include "jsonqml/charts/xyseries_decorator.h"
 
 namespace jsonqml {
 
@@ -15,6 +16,7 @@ class ChartClient : public TableClient
 
     Q_PROPERTY(ChartData* chartData READ chartData NOTIFY chartDataChanged)
     Q_PROPERTY(LegendModel* legendModel READ legendModel NOTIFY legendModelChanged)
+    Q_PROPERTY(QXYSeriesDecorator* seriesDecorator READ seriesDecorator NOTIFY chartDataChanged)
 
     Q_DISABLE_COPY(ChartClient)
 
@@ -32,6 +34,7 @@ public:
 
     ChartData* chartData();
     LegendModel *legendModel();
+    QXYSeriesDecorator *seriesDecorator();
 
     /// Get list of Abscissa indexes to QComboBox
     Q_INVOKABLE QStringList abscissaList(int index);

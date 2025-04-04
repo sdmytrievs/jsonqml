@@ -31,7 +31,7 @@ class PlotChartViewPrivate
 
 public:
     explicit PlotChartViewPrivate(ChartData *graphdata, QChartView *parent, QChart* achart):
-        view(parent), chart(achart), gr_data(graphdata)
+        /*view(parent),*/ chart(achart), gr_data(graphdata)
     {}
 
     ~PlotChartViewPrivate()
@@ -98,7 +98,7 @@ public:
     }
 
 protected:
-    QChartView *view;
+    //QChartView *view;
     QChart* chart;
     ChartData *gr_data;
     QValueAxis *axisX =nullptr;

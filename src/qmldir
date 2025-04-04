@@ -10,3 +10,4 @@ EdgeForm 1.0 qml/EdgeForm.qml
 PreferencesForm 1.0 qml/PreferencesForm.qml
 ChartsPreferences 1.0 qml/ChartsPreferences.qml
 SymbolForm 1.0 qml/SymbolForm.qml
+ChartsSeriesView 1.0 qml/ChartsSeriesView.qml

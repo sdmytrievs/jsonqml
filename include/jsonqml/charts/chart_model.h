@@ -109,6 +109,17 @@ public:
     void toJsonObject(QJsonObject& json) const;
     void fromJsonObject(const QJsonObject& json);
 
+    ///  Clear list that contains the x-coordinates of every chart line (y-coordinate).
+    void clearXColumn()
+    {
+        y_xcolumns.clear();
+    }
+    ///  Add line to list that contains the x-coordinates of every chart line (y-coordinate).
+    void addXColumn(int line)
+    {
+        y_xcolumns.push_back(line);
+    }
+
 protected:
     /// Extern table model
     QAbstractTableModel *m_model;
@@ -148,16 +159,7 @@ protected:
     bool append_x(int xclm);
     bool append_y(int yclm);
 
-    ///  Clear list that contains the x-coordinates of every chart line (y-coordinate).
-    void clearXColumn()
-    {
-        y_xcolumns.clear();
-    }
-    ///  Add line to list that contains the x-coordinates of every chart line (y-coordinate).
-    void addXColumn(int line)
-    {
-        y_xcolumns.push_back(line);
-    }
+
 
     friend class PlotChartViewPrivate;
 };

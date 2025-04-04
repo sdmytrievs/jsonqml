@@ -17,5 +17,6 @@
         <file>qml/EditTableView.qml</file>
         <file>qml/ChartsPreferences.qml</file>
         <file>qml/SymbolForm.qml</file>
+        <file>qml/ChartsSeriesView.qml</file>
     </qresource>
 </RCC>
