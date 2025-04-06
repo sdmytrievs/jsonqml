@@ -13,7 +13,7 @@ class ChartData : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int graphType MEMBER graph_type NOTIFY graphTypeChanged)
+    Q_PROPERTY(int graphType READ graphType WRITE setGraphType NOTIFY graphTypeChanged)
     Q_PROPERTY(QString title MEMBER title NOTIFY titleChanged)
     Q_PROPERTY(int axisX MEMBER axis_typeX NOTIFY axisXChanged)
     Q_PROPERTY(int axisY MEMBER axis_typeY NOTIFY axisYChanged)

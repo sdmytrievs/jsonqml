@@ -14,7 +14,6 @@ namespace jsonqml {
 
 class QXYSeriesDecorator: public QObject
 {
-
     Q_OBJECT
 
     Q_PROPERTY(bool fragment MEMBER is_fragment NOTIFY fragmentChanged)
@@ -44,6 +43,7 @@ public:
 
 protected:
     bool is_fragment = false;
+    double generated_region[4];
     const ChartData *chart_data;
 
     QChart* series_chart;
@@ -67,7 +67,7 @@ private:
     void resize_area_series();
     void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);
     void data_from_chart_view(size_t nline, QAbstractSeries *series);
-    void attach_axis();
+    void generate_min_max_region();
 };
 
 } // namespace jsonqml

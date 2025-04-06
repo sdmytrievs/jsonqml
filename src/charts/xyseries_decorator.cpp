@@ -10,22 +10,6 @@
 
 namespace jsonqml {
 
-// void PlotChartViewPrivate::show_plot_internal()
-// {
-//     switch(gr_data->graphType()) {
-//     case LineChart:
-//         show_plot_lines();
-//         break;
-//     case AreaChart:
-//         show_area_chart();
-//         break;
-//     case BarChart:
-//     case Isolines:
-//     case lines_3D:
-//         break;
-//     }
-// }
-
 QXYSeriesDecorator::~QXYSeriesDecorator()
 { }
 
@@ -49,16 +33,9 @@ void QXYSeriesDecorator::updateMinMax()
             axisX->setRange(chart_data->xMin(), chart_data->xMax());
         }
         else  {
-            series_chart->createDefaultAxes();
-            auto axises = series_chart->axes(Qt::Horizontal);
-            if(axises.size() > 0) {
-                axisX = dynamic_cast<QValueAxis*>(axises[0]);
-            }
-            axises = series_chart->axes(Qt::Vertical);
-            if(axises.size() > 0) {
-                axisY = dynamic_cast<QValueAxis*>(axises[0]);
-            }
-            //attach_axis();
+            generate_min_max_region();
+            axisX->setRange(generated_region[0], generated_region[1]);
+            axisY->setRange(generated_region[2], generated_region[3]);
         }
     }
 }
@@ -154,7 +131,7 @@ void QXYSeriesDecorator::updateAreaSeries(size_t nline, QAreaSeries *series)
         while(lower_series_index>=0 && line_series[lower_series_index] == nullptr) {
             lower_series_index--;
         }
-        if(lower_series_index>0) {
+        if(lower_series_index>=0) {
             lower_series =  dynamic_cast<QLineSeries *>(line_series[lower_series_index]);
         }
     }
@@ -186,6 +163,35 @@ void QXYSeriesDecorator::data_from_chart_view(size_t nline, QAbstractSeries *ser
     axises = series_chart->axes(Qt::Vertical);
     if(axises.size() > 0) {
         axisY = dynamic_cast<QValueAxis*>(axises[0]);
+    }
+}
+
+void QXYSeriesDecorator::generate_min_max_region()
+{
+    generated_region[0] = generated_region[2] = std::numeric_limits<double>::max();
+    generated_region[1] = generated_region[3] = std::numeric_limits<double>::min();
+
+    if(chart_data->graphType() == 1) {
+        for(const auto& series: line_series) {
+            if(series) {
+                for(const auto& point: series->points()) {
+                    if(point.x() < generated_region[0])  generated_region[0] = point.x();
+                    if(point.x() > generated_region[1])  generated_region[1] = point.x();
+                    if(point.y() < generated_region[2])  generated_region[2] = point.y();
+                    if(point.y() > generated_region[3])  generated_region[3] = point.y();
+                }
+            }
+        }
+    }
+    else {
+        for(const auto& series: point_series) {
+            for(const auto& point: series->points()) {
+                if(point.x() < generated_region[0])  generated_region[0] = point.x();
+                if(point.x() > generated_region[1])  generated_region[1] = point.x();
+                if(point.y() < generated_region[2])  generated_region[2] = point.y();
+                if(point.y() > generated_region[3])  generated_region[3] = point.y();
+            }
+        }
     }
 }
 
@@ -260,33 +266,5 @@ void QXYSeriesDecorator::update_area_series(QAreaSeries* series, const SeriesLin
     series->setPen(pen);
     series->setColor(pen.color());
 }
-
-void QXYSeriesDecorator::attach_axis()
-{
-    size_t ii;
-    if(!axisX || !axisY) {
-        return;
-    }
-
-    for(ii=0; ii<point_series.size(); ii++) {
-        if(point_series[ii]) {
-            point_series[ii]->attachAxis(axisX);
-            point_series[ii]->attachAxis(axisY);
-        }
-    }
-    for(ii=0; ii<line_series.size(); ii++) {
-        if(line_series[ii]) {
-            line_series[ii]->attachAxis(axisX);
-            line_series[ii]->attachAxis(axisY);
-        }
-    }
-    for(ii=0; ii<area_series.size(); ii++) {
-        if(area_series[ii]) {
-            area_series[ii]->attachAxis(axisX);
-            area_series[ii]->attachAxis(axisY);
-        }
-    }
-}
-
 
 } // namespace jsonqml
