@@ -159,10 +159,9 @@ void ChartClientPrivate::toggle_Y(int column)
 ChartClient::ChartClient(ChartClientPrivate *impl, QObject *parent):
     TableClient(impl, parent)
 {
-    connect(chartData(), &ChartData::changedXSelections,
+    connect(chartData(), &ChartData::changedModelSelections,
             this, [this]() {legendModel()->updateLines(chartData()->lines()); } );
-    connect(chartData(), &ChartData::changedYSelections,
-            this,  [this]() {legendModel()->updateLines(chartData()->lines()); } );
+    connect(chartData(), &ChartData::dataChanged, this, &ChartClient::chartDataChanged);
 }
 
 ChartClient::ChartClient(QObject *parent):

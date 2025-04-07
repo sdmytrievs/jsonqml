@@ -4,9 +4,7 @@
 
 #ifndef NO_JSONIO
 #include "jsonio/service.h"
-#include "jsonio/exceptions.h"
 #endif
-
 
 namespace jsonqml {
 
@@ -24,6 +22,11 @@ void QXYSeriesDecorator::updateMinMax()
             !jsonio::essentiallyEqual(chart_data->fyMin(), chart_data->fyMax()))  {
             axisY->setRange(chart_data->fyMin(), chart_data->fyMax());
             axisX->setRange(chart_data->fxMin(), chart_data->fxMax());
+        }
+        else  {
+            generate_min_max_region();
+            axisX->setRange(generated_region[0]/2, generated_region[1]/2);
+            axisY->setRange(generated_region[2]/2, generated_region[3]/2);
         }
     }
     else  {
@@ -92,7 +95,7 @@ void QXYSeriesDecorator::updateSeries(size_t nline, QScatterSeries *series)
     auto* datamodel = chart_data->modelData(static_cast<size_t>(nplot));
     const auto& linedata = chart_data->lineData(nline);
 
-    if(nline >= point_series.size() || nline >= point_mapper.size()) {
+    if(nline >= point_series.size()) {
         resize_series();
     }
     // set up points
@@ -126,28 +129,28 @@ void QXYSeriesDecorator::updateAreaSeries(size_t nline, QAreaSeries *series)
 
     // set lower line
     QLineSeries *lower_series = nullptr;
-    if(nline>0) {
-        int lower_series_index = nline-1;
-        while(lower_series_index>=0 && line_series[lower_series_index] == nullptr) {
-            lower_series_index--;
-        }
-        if(lower_series_index>=0) {
-            lower_series =  dynamic_cast<QLineSeries *>(line_series[lower_series_index]);
-        }
+    if(nline==0) {
+        // must be loop from 0 line
+        line_series.clear();
+        line_mapper.clear();
     }
-    if(lower_series) {
+    else {
+        lower_series = dynamic_cast<QLineSeries *>(line_series.back());
         series->setLowerSeries(lower_series);
     }
 
     // set upper line
-    datamodel->addXColumn(linedata.xColumn());
     if(linedata.xColumn() < -1) {
-        return;   // empty
+        // empty area
+        series->setUpperSeries(lower_series);
     }
-    linedata.setLineChanges(1,1,0);
-    line_series[nline] = new_series_line(linedata);
-    line_mapper[nline].reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
-    series->setUpperSeries(dynamic_cast<QLineSeries *>(line_series[nline]));
+    else {
+        linedata.setLineChanges(1,1,0);
+        line_series.push_back(new_series_line(linedata));
+        line_mapper.push_back(nullptr);
+        line_mapper.back().reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
+        series->setUpperSeries(dynamic_cast<QLineSeries *>(line_series.back()));
+    }
 }
 
 void QXYSeriesDecorator::data_from_chart_view(size_t nline, QAbstractSeries *series)
@@ -172,20 +175,24 @@ void QXYSeriesDecorator::generate_min_max_region()
     generated_region[1] = generated_region[3] = std::numeric_limits<double>::min();
 
     if(chart_data->graphType() == 1) {
-        for(const auto& series: line_series) {
-            if(series) {
-                for(const auto& point: series->points()) {
-                    if(point.x() < generated_region[0])  generated_region[0] = point.x();
-                    if(point.x() > generated_region[1])  generated_region[1] = point.x();
-                    if(point.y() < generated_region[2])  generated_region[2] = point.y();
-                    if(point.y() > generated_region[3])  generated_region[3] = point.y();
-                }
+        if(line_series.size()>0) {
+            foreach(const auto& point, line_series[0]->points()) {
+                if(point.x() < generated_region[0])  generated_region[0] = point.x();
+                if(point.x() > generated_region[1])  generated_region[1] = point.x();
+                if(point.y() < generated_region[2])  generated_region[2] = point.y();
+                if(point.y() > generated_region[3])  generated_region[3] = point.y();
+            }
+            foreach(const auto& point, line_series.back()->points()) {
+                if(point.x() < generated_region[0])  generated_region[0] = point.x();
+                if(point.x() > generated_region[1])  generated_region[1] = point.x();
+                if(point.y() < generated_region[2])  generated_region[2] = point.y();
+                if(point.y() > generated_region[3])  generated_region[3] = point.y();
             }
         }
     }
     else {
         for(const auto& series: point_series) {
-            for(const auto& point: series->points()) {
+            foreach(const auto& point, series->points()) {
                 if(point.x() < generated_region[0])  generated_region[0] = point.x();
                 if(point.x() > generated_region[1])  generated_region[1] = point.x();
                 if(point.y() < generated_region[2])  generated_region[2] = point.y();
@@ -201,13 +208,14 @@ void QXYSeriesDecorator::resize_series()
     point_mapper.resize(chart_data->seriesNumber());
     line_series.resize(chart_data->seriesNumber());
     line_mapper.resize(chart_data->seriesNumber());
+    area_series.clear();
 }
 
 void QXYSeriesDecorator::resize_area_series()
 {
     area_series.resize(chart_data->seriesNumber());
-    line_series.resize(chart_data->seriesNumber());
-    line_mapper.resize(chart_data->seriesNumber());
+    point_series.clear();
+    point_mapper.clear();
 }
 
 void QXYSeriesDecorator::update_scatter_series(QScatterSeries* series, const SeriesLineData& linedata)
@@ -254,7 +262,6 @@ QXYSeries* QXYSeriesDecorator::new_series_line(const SeriesLineData& linedata)
     QPen pen = series->pen();
     getLinePen(pen, linedata);
     series->setPen(pen);
-
     return series;
 }
 

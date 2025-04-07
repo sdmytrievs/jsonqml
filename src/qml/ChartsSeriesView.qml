@@ -8,7 +8,7 @@ ChartView {
     legend.visible: false
 
     title: client.chartData.title
-    titleFont : client.chartData.axisFont
+    titleFont : client.chartData.titleFont
     backgroundColor: client.chartData.backColor
 
     ValueAxis {
@@ -17,8 +17,6 @@ ChartView {
         tickCount: client.chartData.axisX+1
         titleFont: client.chartData.axisFont
         labelsFont: client.chartData.axisFont
-        min: 0
-        max: 10
     }
 
     ValueAxis {
@@ -27,8 +25,6 @@ ChartView {
         tickCount: client.chartData.axisY+1
         titleFont: client.chartData.axisFont
         labelsFont: client.chartData.axisFont
-        min: -0.5
-        max: 1.5
     }
 
     Connections{

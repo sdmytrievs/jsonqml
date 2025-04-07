@@ -46,7 +46,7 @@ protected:
     double generated_region[4];
     const ChartData *chart_data;
 
-    QChart* series_chart;
+    QChart* series_chart =nullptr;
     QValueAxis *axisX =nullptr;
     QValueAxis *axisY =nullptr;
 
@@ -58,14 +58,12 @@ protected:
 
     std::vector<QAreaSeries *> area_series;
 
-private:
-
-    QVXYModelMapper *map_series_line(QXYSeries *series, ChartDataModel *datamodel, int modelline, int xcolumn);
     void update_scatter_series(QScatterSeries *series, const SeriesLineData &linedata);
+    void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);
     QXYSeries *new_series_line(const SeriesLineData &linedata);
+    QVXYModelMapper *map_series_line(QXYSeries *series, ChartDataModel *datamodel, int modelline, int xcolumn);
     void resize_series();
     void resize_area_series();
-    void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);
     void data_from_chart_view(size_t nline, QAbstractSeries *series);
     void generate_min_max_region();
 };

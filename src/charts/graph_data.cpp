@@ -44,10 +44,21 @@ int ChartData::plot(size_t line, size_t *modelline) const
     return -1;
 }
 
+void ChartData::model_update_y_xcolumns()
+{
+    for(size_t nlines = 0, ii=0; ii<modelsdata.size(); ii++)  {
+        modelsdata[ii]->clearXColumn();
+        for(size_t jj=0; jj<modelsdata[ii]->getSeriesNumber(); jj++, nlines++)  {
+            modelsdata[ii]->addXColumn(linesdata[nlines].xColumn());
+        }
+    }
+}
+
 void ChartData::setLines(const std::vector<SeriesLineData> &new_lines)
 {
     size_t length = std::min(new_lines.size(), linesdata.size());
     std::copy_n(new_lines.begin(), length, linesdata.begin());
+    model_update_y_xcolumns();
 }
 
 void ChartData::updateXSelections()
@@ -67,7 +78,8 @@ void ChartData::updateXSelections()
             }
         }
     }
-    emit changedXSelections();
+    model_update_y_xcolumns();
+    emit changedModelSelections();
 }
 
 void ChartData::updateYSelections(bool update_names)
@@ -87,7 +99,8 @@ void ChartData::updateYSelections(bool update_names)
         }
     }
     linesdata.resize(nlines);
-    emit changedYSelections();
+    model_update_y_xcolumns();
+    emit changedModelSelections();
 }
 
 #ifndef NO_JSONIO
@@ -364,6 +377,13 @@ double ChartData::fyMax() const
 void ChartData::setfyMax(double val)
 {
     part[3] = val;
+}
+
+QFont ChartData::titleFont() const
+{
+    auto title_font = axis_font;
+    title_font.setPointSize(title_font.pointSize()+4);
+    return title_font;
 }
 
 bool ChartData::useDefaultAxes(bool fragment)

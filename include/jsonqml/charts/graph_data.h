@@ -32,14 +32,14 @@ class ChartData : public QObject
 
     Q_PROPERTY(QColor backColor READ backgroundColor WRITE setBackgroundColor NOTIFY backColorChanged)
     Q_PROPERTY(QFont axisFont MEMBER axis_font NOTIFY axisFontChanged)
+    Q_PROPERTY(QFont titleFont READ titleFont NOTIFY axisFontChanged)
 
 public slots:
     void updateXSelections();
     void updateYSelections(bool update_names);
 
 signals:
-    void changedXSelections();
-    void changedYSelections();
+    void changedModelSelections();
     void dataChanged();
 
     void graphTypeChanged();
@@ -103,10 +103,10 @@ public:
                 linesdata.push_back(SeriesLineData(jj, nlin, aplot->getName(jj)));
             }
         }
-        connect( modelsdata.back().get(), &ChartDataModel::changedXSelections,
-                this,  &ChartData::updateXSelections );
-        connect( modelsdata.back().get(), &ChartDataModel::changedYSelections,
-                this,  &ChartData::updateYSelections );
+        connect(modelsdata.back().get(), &ChartDataModel::changedXSelections,
+                this,  &ChartData::updateXSelections);
+        connect(modelsdata.back().get(), &ChartDataModel::changedYSelections,
+                this,  &ChartData::updateYSelections);
     }
 
     /// get plot from index
@@ -173,6 +173,8 @@ public:
         b_color[2] = acolor.blue();
     }
 
+    QFont titleFont() const;
+
 
 #ifndef NO_JSONIO
     void toJsonNode(jsonio::JsonBase& object) const;
@@ -217,6 +219,7 @@ protected:
     friend class PlotChartViewPrivate;
 
     void connect_data_changed();
+    void model_update_y_xcolumns();
 };
 
 } // namespace jsonqml
