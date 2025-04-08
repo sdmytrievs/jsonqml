@@ -174,7 +174,7 @@ public:
     }
 
     QFont titleFont() const;
-
+    QFont axisFont() const;
 
 #ifndef NO_JSONIO
     void toJsonNode(jsonio::JsonBase& object) const;

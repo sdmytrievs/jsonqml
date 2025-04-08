@@ -386,6 +386,10 @@ QFont ChartData::titleFont() const
     return title_font;
 }
 
+QFont ChartData::axisFont() const
+{
+    return  axis_font;
+}
 bool ChartData::useDefaultAxes(bool fragment)
 {
     if(fragment) {

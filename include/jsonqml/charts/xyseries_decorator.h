@@ -40,6 +40,7 @@ public:
     Q_INVOKABLE void updateAreaSeries(size_t nline, QAreaSeries *series);
     Q_INVOKABLE void highlightSeries(size_t line, bool enable);
     //void highlightSeries(const QString& name, bool enable);
+    Q_INVOKABLE void dropLabel(const QPointF &pointF, const QString &label);
 
 protected:
     bool is_fragment = false;
@@ -58,6 +59,8 @@ protected:
 
     std::vector<QAreaSeries *> area_series;
 
+    std::map<QString,std::shared_ptr<QScatterSeries> > map_labels;
+
     void update_scatter_series(QScatterSeries *series, const SeriesLineData &linedata);
     void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);
     QXYSeries *new_series_line(const SeriesLineData &linedata);
@@ -66,6 +69,7 @@ protected:
     void resize_area_series();
     void data_from_chart_view(size_t nline, QAbstractSeries *series);
     void generate_min_max_region();
+    QScatterSeries *new_scatter_label(const QPointF &pointF, const QString &label);
 };
 
 } // namespace jsonqml

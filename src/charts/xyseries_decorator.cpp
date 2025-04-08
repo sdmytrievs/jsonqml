@@ -1,4 +1,5 @@
 #include <QtCharts/QChart>
+#include <QFontMetrics>
 #include "jsonqml/charts/xyseries_decorator.h"
 #include "markershapes.h"
 
@@ -153,6 +154,21 @@ void QXYSeriesDecorator::updateAreaSeries(size_t nline, QAreaSeries *series)
     }
 }
 
+void QXYSeriesDecorator::dropLabel(const QPointF& pointF, const QString& label)
+{
+    if(!series_chart) {
+        return;
+    }
+    if(map_labels.find(label) != map_labels.end()) {
+        series_chart->removeSeries(map_labels[label].get());
+    }
+    QScatterSeries *series  = new_scatter_label(pointF, label);
+    series_chart->addSeries(series);
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
+    map_labels[label] = std::shared_ptr<QScatterSeries>(series);
+}
+
 void QXYSeriesDecorator::data_from_chart_view(size_t nline, QAbstractSeries *series)
 {
     if(series_chart && series_chart!=series->chart()) {
@@ -273,5 +289,23 @@ void QXYSeriesDecorator::update_area_series(QAreaSeries* series, const SeriesLin
     series->setPen(pen);
     series->setColor(pen.color());
 }
+
+QScatterSeries* QXYSeriesDecorator::new_scatter_label(const QPointF& pointF, const QString& label)
+{
+    QScatterSeries *series  =  new QScatterSeries;
+    QFontMetrics fm(chart_data->axisFont());
+    int size = std::max(fm.horizontalAdvance(label)+2, fm.height());
+
+    series->setName(label);
+    series->setPen(QPen(Qt::transparent));
+    series->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+    series->setMarkerSize(size);
+    series->setBrush(textImage(chart_data->axisFont(), label));
+
+    auto pointV = series_chart->mapToValue(pointF);
+    series->append(pointV);
+    return series;
+}
+
 
 } // namespace jsonqml
