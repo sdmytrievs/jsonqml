@@ -1,5 +1,5 @@
-#include <QJsonObject>
 #include <QPixmap>
+#include <QJsonObject>
 #include "markershapes.h"
 #include "jsonqml/charts/legend_data.h"
 
@@ -72,7 +72,6 @@ void SeriesLineData::fromJsonNode(const jsonio::JsonBase& object)
     line_name = QString::fromStdString(aname);
 }
 #endif
-
 
 void SeriesLineData::toJsonObject(QJsonObject& json) const
 {

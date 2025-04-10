@@ -106,7 +106,6 @@ public:
 
     void setChanges(int mrk_type, int mrk_size, int pn_size,
                     int pn_style, int usespline, const QColor& acolor);
-
     void setLineChanges(int pn_size, int pn_style, int usespline);
 
 #ifndef NO_JSONIO

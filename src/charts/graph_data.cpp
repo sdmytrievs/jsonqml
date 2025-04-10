@@ -3,7 +3,6 @@
 #include "jsonqml/charts/graph_data.h"
 #ifndef NO_JSONIO
 #include "jsonio/jsonbase.h"
-#include "jsonio/service.h"
 #endif
 
 namespace jsonqml {
@@ -379,6 +378,18 @@ void ChartData::setfyMax(double val)
     part[3] = val;
 }
 
+QColor ChartData::backgroundColor() const
+{
+    return QColor(b_color[0], b_color[1], b_color[2]);
+}
+
+void ChartData::setBackgroundColor(const QColor &acolor)
+{
+    b_color[0] = acolor.red();
+    b_color[1] = acolor.green();
+    b_color[2] = acolor.blue();
+}
+
 QFont ChartData::titleFont() const
 {
     auto title_font = axis_font;
@@ -389,16 +400,6 @@ QFont ChartData::titleFont() const
 QFont ChartData::axisFont() const
 {
     return  axis_font;
-}
-bool ChartData::useDefaultAxes(bool fragment)
-{
-    if(fragment) {
-        return jsonio::essentiallyEqual(part[0], part[1]) ||
-               jsonio::essentiallyEqual(part[2], part[3]);
-    }
-    return jsonio::essentiallyEqual(region[0], region[1]) ||
-           jsonio::essentiallyEqual(region[2], region[3]);
-    //    chart->createDefaultAxes();
 }
 
 void ChartData::connect_data_changed()

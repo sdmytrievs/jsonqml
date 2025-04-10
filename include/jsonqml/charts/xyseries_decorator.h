@@ -7,7 +7,6 @@
 #include <QtCharts/QScatterSeries>
 #include <QtCharts/QVXYModelMapper>
 #include <QtCharts/QValueAxis>
-
 #include "jsonqml/charts/graph_data.h"
 
 namespace jsonqml {
@@ -23,11 +22,11 @@ signals:
     void fragmentChanged();
     void sizeChanged();
 
-public:
-    explicit QXYSeriesDecorator(const ChartData *graphdata, QObject *parent = nullptr) :
-        QObject(parent), chart_data(graphdata)
-    {}
+public slots:
+    void updateMinMax();
 
+public:
+    explicit QXYSeriesDecorator(const ChartData *graphdata, QObject *parent = nullptr);
     ~QXYSeriesDecorator();
 
     int size() const
@@ -35,21 +34,24 @@ public:
         return chart_data->seriesNumber();
     }
 
-    Q_INVOKABLE void updateMinMax();
     Q_INVOKABLE void updateSeries(size_t nline, QScatterSeries *series);
     Q_INVOKABLE void updateAreaSeries(size_t nline, QAreaSeries *series);
+
     Q_INVOKABLE void highlightSeries(size_t line, bool enable);
-    //void highlightSeries(const QString& name, bool enable);
+
     Q_INVOKABLE void dropLabel(const QPointF &pointF, const QString &label);
+
+    Q_INVOKABLE void renderPdf(const QString &file_name);
+    Q_INVOKABLE void renderSvg(QSize size, const QString &file_name);
 
 protected:
     bool is_fragment = false;
     double generated_region[4];
     const ChartData *chart_data;
 
-    QChart* series_chart =nullptr;
-    QValueAxis *axisX =nullptr;
-    QValueAxis *axisY =nullptr;
+    QChart* series_chart = nullptr;
+    QValueAxis *axisX = nullptr;
+    QValueAxis *axisY = nullptr;
 
     std::vector<QScatterSeries *>  point_series;
     std::vector<std::shared_ptr<QVXYModelMapper>> point_mapper;
@@ -59,7 +61,7 @@ protected:
 
     std::vector<QAreaSeries *> area_series;
 
-    std::map<QString,std::shared_ptr<QScatterSeries> > map_labels;
+    std::map<QString,QScatterSeries*> map_labels;
 
     void update_scatter_series(QScatterSeries *series, const SeriesLineData &linedata);
     void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);

@@ -10,12 +10,11 @@
 #include "jsonio/jsondump.h"
 #include "jsonio/txt2file.h"
 
-
 namespace jsonqml {
 
 QImage markerShapeImage(const SeriesLineData& linedata);
 void getLinePen(QPen& pen, const SeriesLineData& linedata);
-
+QStringList allImageFilters();
 
 
 class ChartClientPrivate  : public TableClientPrivate
@@ -37,6 +36,10 @@ public:
     LegendModel *legend_model()
     {
         return series_model.get();
+    }
+    LegendModel *edit_legend_model()
+    {
+        return edit_series_model.get();
     }
 
     QXYSeriesDecorator *series_decorator()
@@ -78,6 +81,8 @@ protected:
     std::shared_ptr<QXYSeriesDecorator> series_view;
     /// Descriptions of model editing series data
     QSharedPointer<LegendModel> series_model;
+    /// Descriptions of model editing series data
+    QSharedPointer<LegendModel> edit_series_model;
 
     void init_charts();
     void read_charts_settings(const QString &path);
@@ -86,11 +91,11 @@ protected:
 
 void ChartClientPrivate::init_charts()
 {
-    //yColumns = {2,2,2,2,2,2,2,2,2,2,2,2,2,2};
     chart_models.push_back(std::shared_ptr<ChartDataModel>(new ChartDataModel(csv_model_data.get())));
     chart_data = std::make_shared<ChartData>(chart_models, "Graph for window", "x", "y");
 
     series_model.reset(new LegendModel());
+    edit_series_model.reset(new LegendModel());
     series_view.reset(new QXYSeriesDecorator(chart_data.get()));
 }
 
@@ -160,7 +165,9 @@ ChartClient::ChartClient(ChartClientPrivate *impl, QObject *parent):
     TableClient(impl, parent)
 {
     connect(chartData(), &ChartData::changedModelSelections,
-            this, [this]() {legendModel()->updateLines(chartData()->lines()); } );
+            this, [this]() { legendModel()->updateLines(chartData()->lines());
+                             editLegendModel()->updateLines(chartData()->lines());
+                            } );
     connect(chartData(), &ChartData::dataChanged, this, &ChartClient::chartDataChanged);
 }
 
@@ -181,6 +188,11 @@ LegendModel *ChartClient::legendModel()
     return impl_func()->legend_model();
 }
 
+LegendModel *ChartClient::editLegendModel()
+{
+    return impl_func()->edit_legend_model();
+}
+
 QXYSeriesDecorator *ChartClient::seriesDecorator()
 {
     return impl_func()->series_decorator();
@@ -193,8 +205,14 @@ QStringList ChartClient::abscissaList(int index)
 
 void ChartClient::applyLegend()
 {
-    chartData()->setLines(legendModel()->lines());
+    chartData()->setLines(editLegendModel()->lines());
+    legendModel()->updateLines(chartData()->lines());
     emit chartDataChanged();
+}
+
+QStringList ChartClient::imageFilters()
+{
+    return allImageFilters();
 }
 
 void ChartClient::toggleX(int column)

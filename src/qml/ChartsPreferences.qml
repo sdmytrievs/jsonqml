@@ -331,7 +331,7 @@ Item {
 
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
-                        model: client.legendModel
+                        model: client.editLegendModel
                         header: ListHeader {
                             height: 30
                             width: legendTable.width
@@ -353,6 +353,7 @@ Item {
             text: qsTr("Apply")
             onClicked: {
                 apply_changes()
+                tabBar.setCurrentIndex(1)
             }
         }
     }
@@ -380,15 +381,15 @@ Item {
         contentItem: SymbolForm {
             id: content
             width: parent.width
-            legendData: client.legendModel.lineData(lineIndex)
+            legendData: client.editLegendModel.lineData(lineIndex)
         }
         onOpened: {
             //console.log("open:", lineIndex)
-            content.legendData = client.legendModel.lineData(lineIndex)
+            content.legendData = client.editLegendModel.lineData(lineIndex)
         }
         onAccepted:  {
             content.apply_symbol()
-            client.legendModel.setLineData(lineIndex, content.legendData)
+            client.editLegendModel.setLineData(lineIndex, content.legendData)
         }
     }
 }

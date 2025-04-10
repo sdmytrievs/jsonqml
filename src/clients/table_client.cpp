@@ -1,4 +1,5 @@
 #include <QFile>
+#include <QFileInfo>
 #include "jsonqml/clients/settings_client.h"
 #include "table_client_p.h"
 
@@ -168,9 +169,10 @@ bool TableClient::sortingEnabled()
     return impl_func()->sorting_enabled();
 }
 
-void TableClient::setCsvFile(const QString& file)
+void TableClient::setCsvFile(const QString& path)
 {
-    csv_file = file;
+    QFileInfo file(path);
+    csv_file = file.fileName();
     emit csvFileChanged();
 }
 

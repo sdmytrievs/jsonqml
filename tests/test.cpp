@@ -8,6 +8,7 @@
 #include "jsonqml/models/json_model.h"
 #include "jsonqml/models/schema_model.h"
 #include "jsonqml/models/csv_model.h"
+#include "jsonqml/charts/legend_model.h"
 
 using namespace Qt::StringLiterals;
 
@@ -32,6 +33,7 @@ private slots:
     void testJsonModelComplex();
     void testJsonShemaModelComplex();
     void testCSVModel();
+    void testLegendModel();
 };
 
 void TestModels::my_init()
@@ -119,6 +121,16 @@ void TestModels::testCSVModel()
     QAbstractItemModelTester tester(&model);
 }
 
+void TestModels::testLegendModel()
+{
+    std::vector<jsonqml::SeriesLineData> lines;
+    lines.push_back(jsonqml::SeriesLineData("line1"));
+    lines.push_back(jsonqml::SeriesLineData("line2"));
+
+    jsonqml::LegendModel model;
+    model.updateLines(lines);
+    QAbstractItemModelTester tester(&model);
+}
 
 QTEST_APPLESS_MAIN(TestModels)
 

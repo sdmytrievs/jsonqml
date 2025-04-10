@@ -18,5 +18,6 @@
         <file>qml/ChartsPreferences.qml</file>
         <file>qml/SymbolForm.qml</file>
         <file>qml/ChartsSeriesView.qml</file>
+        <file>qml/images/PlotDataOnGraphIcon24.png</file>
     </qresource>
 </RCC>

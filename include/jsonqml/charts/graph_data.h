@@ -69,7 +69,7 @@ public:
         axis_typeY(5),
         xname(aXname),
         yname(aYname),
-        axis_font("Sans Serif", 14)
+        axis_font("Sans Serif", 12)
     {
         // Define background color
         setBackgroundColor(QColor(Qt::white));
@@ -112,6 +112,10 @@ public:
     /// get plot from index
     int plot(size_t line, size_t* modelline=nullptr) const;
 
+    const QString& graphTitle() const
+    {
+        return title;
+    }
     int graphType() const
     {
         return graph_type;
@@ -142,7 +146,6 @@ public:
         return  linesdata[ndx];
     }
 
-    bool useDefaultAxes(bool fragment);
     void setMinMaxRegion(double reg[4]);
     double xMin() const;
     void setxMin(double val);
@@ -152,7 +155,6 @@ public:
     void setyMin(double val);
     double yMax() const;
     void setyMax(double val);
-
     double fxMin() const;
     void setfxMin(double val);
     double fxMax() const;
@@ -162,16 +164,8 @@ public:
     double fyMax() const;
     void setfyMax(double val);
 
-    QColor backgroundColor() const
-    {
-        return QColor(b_color[0], b_color[1], b_color[2]);
-    }
-    void setBackgroundColor(const QColor& acolor)
-    {
-        b_color[0] = acolor.red();
-        b_color[1] = acolor.green();
-        b_color[2] = acolor.blue();
-    }
+    QColor backgroundColor() const;
+    void setBackgroundColor(const QColor& acolor);
 
     QFont titleFont() const;
     QFont axisFont() const;

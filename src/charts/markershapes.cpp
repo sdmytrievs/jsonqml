@@ -16,16 +16,15 @@ MarkerShapes &shapes()
     return msh;
 }
 
-QString imageFilters();
-QString imageFilters()
+QStringList allImageFilters();
+QStringList allImageFilters()
 {
-    static  QString filter_line;
+    static  QStringList filter_line;
 
     if(filter_line.isEmpty())  {
         const QList<QByteArray> image_formats = QImageWriter::supportedImageFormats();
 
         QStringList filter;
-        filter.clear();
         filter += "PDF Documents (*.pdf)";
         filter += "SVG Documents (*.svg)";
 
@@ -39,11 +38,10 @@ QString imageFilters()
                 filter += image_filter;
             }
         }
-        filter_line = filter.join( ";;" );
+        filter_line = filter;
     }
     return  filter_line;
 }
-
 
 QImage markerShapeImage(const SeriesLineData& linedata)
 {
@@ -126,7 +124,6 @@ QIcon markerShapeIcon(const SeriesLineData& linedata)
 // If you know size then you can simply use:
 // QPixmap pixmap = icon.pixmap(requiredImageSize);
 // QPixmap pixmap = icon.pixmap(icon.actualSize(QSize(32, 32)));
-
 void getLinePen(QPen& pen, const SeriesLineData& linedata)
 {
     pen.setColor(linedata.color() );
@@ -134,7 +131,6 @@ void getLinePen(QPen& pen, const SeriesLineData& linedata)
     Qt::PenStyle style = static_cast<Qt::PenStyle>(linedata.penStyle());
     pen.setStyle(style);
 }
-
 
 MarkerShapes::MarkerShapes()
 {
@@ -222,7 +218,6 @@ MarkerShapes::MarkerShapes()
     textPath.addText(0, 40, timesFont, "*" );
     markers.push_back( textPath );
 }
-
 
 QPolygonF MarkerShapes::triangle_polygon(TriangleType type, const QSize& size)
 {

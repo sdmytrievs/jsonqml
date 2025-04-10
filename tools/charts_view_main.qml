@@ -42,12 +42,21 @@ ApplicationWindow {
                 icon.source: "qrc:/qt/qml/jsonqml/qml/images/SaveCurrentRecordIcon24.png"
                 onClicked: fileSaveDialog.open()
             }
+            ToolButton {
+                icon.source: "qrc:/qt/qml/jsonqml/qml/images/PlotDataOnGraphIcon24.png"
+                onClicked: imageSaveDialog.open()
+            }
             Label {
                 text: client.csvfile
                 elide: Label.ElideLeft
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
+            }
+            CheckBox {
+               text: "fragment"
+               checked: client.seriesDecorator.fragment
+               onCheckStateChanged: client.seriesDecorator.fragment = checked
             }
         }
     }
@@ -65,16 +74,13 @@ ApplicationWindow {
             TabButton {
                 text: "Data"
             }
-
             TabButton {
                 text: "Charts"
             }
-
             TabButton {
                 text: "Preferences"
                 onClicked: {  }
             }
-
         }
 
         StackLayout {
@@ -97,9 +103,6 @@ ApplicationWindow {
                 id: chartForm
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-
-
-                //legendData: client.legendModel.lineData(0)
             }
 
             ChartsPreferences {
@@ -107,9 +110,7 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
             }
-
         }
-
     }
 
     footer: Label {
@@ -138,4 +139,13 @@ ApplicationWindow {
         onAccepted: client.saveCSV(selectedFile)
     }
 
+    FileDialog {
+        visible: false
+        id: imageSaveDialog
+        title: qsTr("Save a chart image")
+        fileMode: FileDialog.SaveFile
+        nameFilters: client.imageFilters()
+        currentFolder: Preferences.workDir
+        onAccepted: chartForm.saveChart(selectedFile)
+    }
 }

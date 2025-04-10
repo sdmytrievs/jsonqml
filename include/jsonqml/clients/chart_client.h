@@ -16,6 +16,7 @@ class ChartClient : public TableClient
 
     Q_PROPERTY(ChartData* chartData READ chartData NOTIFY chartDataChanged)
     Q_PROPERTY(LegendModel* legendModel READ legendModel NOTIFY legendModelChanged)
+    Q_PROPERTY(LegendModel* editLegendModel READ editLegendModel NOTIFY editLegendModelChanged)
     Q_PROPERTY(QXYSeriesDecorator* seriesDecorator READ seriesDecorator NOTIFY chartDataChanged)
 
     Q_DISABLE_COPY(ChartClient)
@@ -23,6 +24,7 @@ class ChartClient : public TableClient
 signals:
     void chartDataChanged();
     void legendModelChanged();
+    void editLegendModelChanged();
 
 public slots:
     void toggleX(int column);
@@ -34,6 +36,7 @@ public:
 
     ChartData* chartData();
     LegendModel *legendModel();
+    LegendModel *editLegendModel();
     QXYSeriesDecorator *seriesDecorator();
 
     /// Get list of Abscissa indexes to QComboBox
@@ -41,6 +44,8 @@ public:
 
     /// Apply changes into legend model
     Q_INVOKABLE void applyLegend();
+
+    Q_INVOKABLE static QStringList imageFilters();
 
 protected:
 

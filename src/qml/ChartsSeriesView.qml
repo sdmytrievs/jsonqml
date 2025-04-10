@@ -9,7 +9,10 @@ Item {
     property int old_index: -1
 
     function setChartDataSeries() {
+
         chartView.removeAllSeries()
+        client.seriesDecorator.fragment = false;
+
         if( client.chartData.graphType === 1) {
             for (var i = 0; i <= client.seriesDecorator.size; i++) {
                 var area = chartView.createSeries(ChartView.SeriesTypeArea, i, axisX, axisY);
@@ -33,6 +36,23 @@ Item {
         }
         else {
             old_index = -1
+        }
+    }
+
+    function saveChart(filename){
+        var endsWithPdf = /pdf$/;
+        var endsWithSvg = /svg$/;
+
+        if(endsWithPdf.test(filename)) {
+            client.seriesDecorator.renderPdf(filename)
+        }
+        else if(endsWithSvg.test(filename)) {
+            client.seriesDecorator.renderSvg(Qt.size(400, 400), filename)
+        }
+        else {
+            chartView.grabToImage(function(result) {
+                result.saveToFile(filename);
+            }/*, Qt.size(400, 400)*/);
         }
     }
 

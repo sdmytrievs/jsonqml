@@ -50,7 +50,7 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find Qt dependencies
-find_package(Qt6 6.2 COMPONENTS Gui Quick Charts Concurrent Svg Test REQUIRED)
+find_package(Qt6 6.2 COMPONENTS Gui Quick Charts Concurrent Svg PrintSupport Test REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
 # Find other dependencies

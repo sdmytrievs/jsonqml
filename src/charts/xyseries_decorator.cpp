@@ -1,13 +1,29 @@
-#include <QtCharts/QChart>
+#include <QPainter>
+#include <QPrinter>
 #include <QFontMetrics>
+#include <QtCharts/QChart>
+#include <QtSvg/QSvgGenerator>
 #include "jsonqml/charts/xyseries_decorator.h"
 #include "markershapes.h"
-
 #ifndef NO_JSONIO
 #include "jsonio/service.h"
+#else
+namespace jsonio {
+template<typename T>
+bool essentiallyEqual( const T& a, const T& b, const T& epsilon = std::numeric_limits<T>::epsilon() )
+{
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+}
 #endif
 
 namespace jsonqml {
+
+QXYSeriesDecorator::QXYSeriesDecorator(const ChartData *graphdata, QObject *parent) :
+    QObject(parent), chart_data(graphdata)
+{
+    connect(this, &QXYSeriesDecorator::fragmentChanged, this, &QXYSeriesDecorator::updateMinMax);
+}
 
 QXYSeriesDecorator::~QXYSeriesDecorator()
 { }
@@ -104,7 +120,7 @@ void QXYSeriesDecorator::updateSeries(size_t nline, QScatterSeries *series)
     point_series[nline] = series;
     point_mapper[nline].reset(map_series_line(series, datamodel, modelline, linedata.xColumn()));
     // set up lines
-    line_series[nline]= new_series_line(linedata);
+    line_series[nline] = new_series_line(linedata);
     line_mapper[nline].reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
 }
 
@@ -160,13 +176,13 @@ void QXYSeriesDecorator::dropLabel(const QPointF& pointF, const QString& label)
         return;
     }
     if(map_labels.find(label) != map_labels.end()) {
-        series_chart->removeSeries(map_labels[label].get());
+        series_chart->removeSeries(map_labels[label]);
     }
     QScatterSeries *series  = new_scatter_label(pointF, label);
     series_chart->addSeries(series);
     series->attachAxis(axisX);
     series->attachAxis(axisY);
-    map_labels[label] = std::shared_ptr<QScatterSeries>(series);
+    map_labels[label] = series;
 }
 
 void QXYSeriesDecorator::data_from_chart_view(size_t nline, QAbstractSeries *series)
@@ -225,6 +241,7 @@ void QXYSeriesDecorator::resize_series()
     line_series.resize(chart_data->seriesNumber());
     line_mapper.resize(chart_data->seriesNumber());
     area_series.clear();
+    map_labels.clear();
 }
 
 void QXYSeriesDecorator::resize_area_series()
@@ -232,6 +249,7 @@ void QXYSeriesDecorator::resize_area_series()
     area_series.resize(chart_data->seriesNumber());
     point_series.clear();
     point_mapper.clear();
+    map_labels.clear();
 }
 
 void QXYSeriesDecorator::update_scatter_series(QScatterSeries* series, const SeriesLineData& linedata)
@@ -307,5 +325,38 @@ QScatterSeries* QXYSeriesDecorator::new_scatter_label(const QPointF& pointF, con
     return series;
 }
 
+void QXYSeriesDecorator::renderPdf(const QString &file_name)
+{
+    if(!series_chart) {
+        return;
+    }
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setDocName(chart_data->graphTitle());
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(file_name);
+    printer.setColorMode(QPrinter::Color);
+    printer.setFullPage(true);
+    printer.setPageSize(QPageSize(QPageSize::A4));
+    QPainter painter;
+    painter.begin(&printer);
+    series_chart->paint(&painter, nullptr);
+    painter.end();
+}
+
+void QXYSeriesDecorator::renderSvg(QSize size, const QString &file_name)
+{
+    if(!series_chart) {
+        return;
+    }
+    QSvgGenerator generator;
+    generator.setTitle(chart_data->graphTitle());
+    generator.setFileName(file_name);
+    generator.setSize(size);
+    generator.setViewBox(series_chart->geometry());
+    QPainter painter;
+    painter.begin(&generator);
+    series_chart->paint(&painter, nullptr);
+    painter.end();
+}
 
 } // namespace jsonqml

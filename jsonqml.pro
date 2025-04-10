@@ -26,13 +26,10 @@ HEADERS += \
     include/jsonqml/arango_database.h \
     include/jsonqml/arango_document.h \
     include/jsonqml/charts/chart_model.h \
-    include/jsonqml/charts/chart_view.h \
     include/jsonqml/charts/graph_data.h \
     include/jsonqml/charts/legend_data.h \
     include/jsonqml/charts/legend_model.h \
     include/jsonqml/charts/xyseries_decorator.h \
-    include/jsonqml/clients/table_client.h \
-    include/jsonqml/clients/chart_client.h \
     include/jsonqml/models/base_model.h \
     include/jsonqml/models/json_model.h \
     include/jsonqml/models/schema_model.h \
@@ -44,6 +41,8 @@ HEADERS += \
     include/jsonqml/clients/json_client.h \
     include/jsonqml/clients/vertex_client.h \
     include/jsonqml/clients/edge_client.h \
+    include/jsonqml/clients/table_client.h \
+    include/jsonqml/clients/chart_client.h \
     src/arango_database_p.h \
     src/arango_document_p.h \
     src/charts/markershapes.h \
@@ -57,14 +56,11 @@ SOURCES += \
     src/arango_database.cpp \
     src/arango_document.cpp \
     src/charts/chart_model.cpp \
-    src/charts/chart_view.cpp \
     src/charts/graph_data.cpp \
     src/charts/legend_data.cpp \
     src/charts/legend_model.cpp \
     src/charts/markershapes.cpp \
     src/charts/xyseries_decorator.cpp \
-    src/clients/table_client.cpp \
-    src/clients/chart_client.cpp \
     src/models/base_model.cpp \
     src/models/json_model.cpp \
     src/models/schema_model.cpp \
@@ -76,6 +72,8 @@ SOURCES += \
     src/clients/settings_client.cpp \
     src/clients/vertex_client.cpp \
     src/clients/json_client.cpp \
+    src/clients/table_client.cpp \
+    src/clients/chart_client.cpp \
     #tools/db_view_main.cpp \
     tools/charts_view_main.cpp \
     #tools/json_editor_main.cpp

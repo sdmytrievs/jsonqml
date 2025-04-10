@@ -21,7 +21,6 @@ ChartDataModel::ChartDataModel(QAbstractTableModel *table_model, QObject *parent
     connect(m_model, &QAbstractTableModel::destroyed, this, &ChartDataModel::destroyed);
 }
 
-
 int ChartDataModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)

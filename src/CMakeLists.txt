@@ -20,6 +20,7 @@ list(APPEND MODULE_QML_FILES
     qml/EdgeForm.qml
     qml/EditTableView.qml
     qml/ChartsPreferences.qml
+    qml/ChartsSeriesView.qml
     qml/SymbolForm.qml
 )
 
@@ -29,6 +30,7 @@ list(APPEND MODULE_IMAGES
     qml/images/jsonui-logo-icon.png
     qml/images/SaveCurrentRecordIcon24.png
     qml/images/ShowFilesIcon24.png
+    qml/images/PlotDataOnGraphIcon24.png
 )
 
 # Check if a shared library is to be built
@@ -49,7 +51,7 @@ if(BUILD_SHARED_LIBS)
 
     add_library(jsonqml::jsonqml ALIAS jsonqml)
     target_link_libraries(jsonqml PUBLIC jsonio::jsonio)
-    target_link_libraries(jsonqml PUBLIC Qt6::Gui Qt6::Quick Qt6::Charts Qt6::Svg)
+    target_link_libraries(jsonqml PUBLIC Qt6::Gui Qt6::Quick Qt6::Charts Qt6::Svg Qt6::PrintSupport)
 
     install( TARGETS jsonqml
          EXPORT jsonqmlTargets DESTINATION "lib" COMPONENT libraries)
