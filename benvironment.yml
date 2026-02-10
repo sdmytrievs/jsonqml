@@ -1,0 +1,7 @@
+name: jsonqml
+channels:
+  - conda-forge
+dependencies:
+  - curl
+  - qt=6.7.2
+  - spdlog

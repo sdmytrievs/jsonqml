@@ -17,17 +17,14 @@ set_target_properties(arangodb-view PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+    #WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
-
-qt_generate_deploy_qml_app_script(
-    TARGET arangodb-view
-    OUTPUT_SCRIPT deploy_script
-)
-#need install not to usr/local
-#install(SCRIPT ${deploy_script})
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml-static)
+else()
+  target_link_libraries(arangodb-view PRIVATE jsonqml::jsonqml)
+endif()
 
 qt_add_executable(json_editor  json_editor_main.cpp)
 qt_add_qml_module(json_editor
@@ -36,7 +33,43 @@ qt_add_qml_module(json_editor
     RESOURCE_PREFIX /qt/qml
     QML_FILES json_editor_main.qml
 )
-target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  target_link_libraries(json_editor PRIVATE jsonqml::jsonqml-static)
+else()
+  target_link_libraries(json_editor PRIVATE jsonqml::jsonqml)
+endif()
+
+if(DeployApp)
+  #need install not to usr/local
+  qt_generate_deploy_qml_app_script(
+      TARGET arangodb-view
+      OUTPUT_SCRIPT deploy_script
+  )
+
+  install(SCRIPT ${deploy_script})
+  install(TARGETS arangodb-view EXPORT jsonqmlTargets DESTINATION "bin")
+  install(TARGETS json_editor EXPORT jsonqmlTargets DESTINATION "bin")
+
+#if(USE_SPDLOG_PRECOMPILED)
+#    set(dll_path "C:/Miniconda/envs/jsonqml/Library/bin")
+#    message(STATUS "dll path: ${dll_path}")
+#    message(STATUS "conda path: $ENV{CONDA_PREFIX}")
+#    install(FILES "${dll_path}/libcurl.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/libpng16.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/fmt.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/libcrypto-3-x64.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/libcrypto-3-x64.pdb" DESTINATION bin)
+#    install(FILES "${dll_path}/zlib.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/zstd.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/libssh2.dll" DESTINATION bin)
+
+#    install(FILES "${dll_path}/vcruntime140.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/msvcp140.dll" DESTINATION bin)
+#    install(FILES "${dll_path}/opengl32sw.dll" DESTINATION bin)
+#endif()
+endif()
+
 
 qt_add_executable(charts_view  charts_view_main.cpp)
 qt_add_qml_module(charts_view

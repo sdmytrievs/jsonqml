@@ -115,4 +115,6 @@ DISTFILES += \
     src/qml/SymbolForm.qml
 
 
-
+#https://github.com/marketplace/actions/zip-release
+#https://github.com/marketplace?type=actions
+#https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow

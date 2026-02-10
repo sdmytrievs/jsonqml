@@ -1,0 +1,97 @@
+name: deploy-linux
+on:
+  push:
+    branches:
+      - main1
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-latest
+        include:
+          - os: ubuntu-latest
+            conda_platform: linux-64
+            artifact_name: jsonqml-linux
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Timestamp
+        id: timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d" UTC)
+          message("::set-output name=now::${current_date}")
+
+      - name: Set deploy dir
+        id: strings
+        shell: bash
+        run: >
+          echo "deploy-output-dir=${{ github.workspace }}/deploy-linux" >> "$GITHUB_OUTPUT"
+
+      - name: Set deploy name
+        id: strings2
+        shell: bash
+        run: >
+          echo "deploy-output-name=jsonqml-linux-${{ github.sha }}-${{ steps.timestamp.outputs.now }}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: false
+          channels: conda-forge, defaults
+          channel-priority: true
+
+      - name: Configuring Conda Environment
+        run: |
+          conda config --set always_yes yes --set changeps1 no
+          conda config --add channels conda-forge
+          conda install conda-devenv
+          conda devenv
+
+      - name: Building, Testing & Installing jsonqml
+        shell: bash -l {0}
+        run: |
+          conda activate jsonqml
+          ./conda-install-dependencies.sh
+          mkdir .build && cd .build
+          cmake -GNinja .. -DDeployApp=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ steps.strings.outputs.deploy-output-dir }}
+          ninja
+          ninja install
+
+      - name: Check deploy
+        run: |
+          cd ${{ steps.strings.outputs.deploy-output-dir }}
+          ls
+          ldd ./bin/arangodb-view
+
+      - name: Zipping files and folders
+        shell: bash -l {0}
+        run: |
+          cd ${{ github.workspace }}
+          zip -qq -r ${{ steps.strings2.outputs.deploy-output-name }} deploy-linux
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-app
+          path: ${{ steps.strings2.outputs.deploy-output-name }}
+
+      # https://timife.hashnode.dev/streamline-your-workflow-automating-app-deployment-to-google-drive-with-github-actions
+      - name: Upload artifact to Google Drive  # https://github.com/marketplace/actions/google-drive-upload
+        uses: willo32/google-drive-upload-action@v1
+        with:
+           target:  "${{ steps.strings2.outputs.deploy-output-name }}"
+           credentials: ${{ secrets.GCD_CRED1 }}
+           parent_folder_id: ${{ secrets.DRIVE_FOLDER_ID }}

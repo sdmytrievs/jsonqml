@@ -26,6 +26,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_STATIC_LIBS "Build static libraries" ON)
 option(BuildTools "Build BuildTools" ON)
 option(BuildTests "Build test suite" ON)
+option(DeployApp "Deploy applications" OFF)
 
 # Used into conda only
 if(DEFINED ENV{CONDA_PREFIX})
@@ -44,14 +45,16 @@ endif()
 # Currently is not setup to produce a dynamic library using MSVC, only static
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     set(BUILD_SHARED_LIBS OFF)
+else()
+    set(BUILD_STATIC_LIBS OFF)
 endif()
 
 # Set libraries to be compiled with position independent code mode (i.e., fPIC option in GNU compilers)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find Qt dependencies
-find_package(Qt6 6.2 COMPONENTS Gui Quick Charts Concurrent Svg PrintSupport Test REQUIRED)
-qt_standard_project_setup(REQUIRES 6.8)
+find_package(Qt6 REQUIRED COMPONENTS Gui Quick Charts Concurrent Svg PrintSupport Test)
+qt_standard_project_setup()
 
 # Find other dependencies
 include(jsonqmlFindDeps)
