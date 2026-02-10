@@ -100,7 +100,7 @@ void PreferencesPrivate::apply_changes_to_static()
     JsonSchemaModel::useEnumNames = jsonui_group.value("ShowEnumNames", JsonSchemaModel::useEnumNames);
     JsonSchemaModel::editID = jsonui_group.value("CanEdit_id", JsonSchemaModel::editID);
     //JsonView::expandedFields = jsonui_group.value("KeepExpanded", JsonView::expandedFields);
-    //HelpMainWindow::editHelp = jsonui_group.value( "CanEditDocPages", HelpMainWindow::editHelp );
+    //HelpMainWindow::editHelp = jsonui_group.value("CanEditDocPages", HelpMainWindow::editHelp);
     ui_logger->debug("Applied changes to internal static values");
 }
 

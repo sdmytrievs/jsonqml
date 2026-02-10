@@ -71,6 +71,7 @@ public:
 
     /// The current worker Database exists and checked connection for the current credentials group
     bool dbConnected() const;
+
     ArangoDBDocument* createDocument(DocumentType type, const QString& document_schema_name="");
 
     void getRootLists(const std::string& db_group,

@@ -25,6 +25,5 @@ qt_add_resources(models_tester "treemodel"
         ${model_resource_files}
 )
 
-add_test(NAME models_tester
-         COMMAND models_tester)
+add_test(models_tester1 models_tester)
 

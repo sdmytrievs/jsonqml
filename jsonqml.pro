@@ -75,8 +75,8 @@ SOURCES += \
     src/clients/table_client.cpp \
     src/clients/chart_client.cpp \
     #tools/db_view_main.cpp \
-    tools/charts_view_main.cpp \
-    #tools/json_editor_main.cpp
+    #tools/charts_view_main.cpp \
+    tools/json_editor_main.cpp
 
 #resources.files = main.qml
 resources.prefix = /$${TARGET}

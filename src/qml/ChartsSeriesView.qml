@@ -105,46 +105,60 @@ Item {
             }
         }
 
-        GridView {
-            id: legendView
+        GroupBox {
+            id: legendBox
             Layout.fillWidth: true
             Layout.margins: 0
-            height: 20
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            boundsMovement: Flickable.StopAtBounds
+            height: 10
 
-            model: client.legendModel
-            delegate:  Row {
-                id: listItem
-                Button {
-                    id: iconElement
-                    implicitWidth: implicitHeight*2
-                    icon.source: "image://charts/" + model.icon
-                    onClicked: highlightSeries(index);
-                }
-                Label {
-                    id: nameElement
-                    text: "  " + model.name
-                }
+            ScrollView {
+                id: scrollView
+                anchors.fill: parent
 
-                Drag.dragType: Drag.Automatic
-                Drag.supportedActions: Qt.CopyAction
-                Drag.mimeData: {
-                    "text/plain": model.name
-                }
+                contentItem: GridView {
+                    id: legendView
+                    anchors.fill: parent
+                    clip: true
+                    interactive: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    boundsMovement: Flickable.StopAtBounds
 
-                DragHandler {
-                    id: dragHandler
-                    onActiveChanged:
-                        if (active) {
-                            nameElement.grabToImage(function(result) {
-                                parent.Drag.imageSource = result.url
-                                parent.Drag.active = true
-                            })
-                        } else {
-                            parent.Drag.active = false
+
+                    model: client.legendModel
+                    delegate:  Row {
+                        id: listItem
+                        clip: true
+
+                        Button {
+                            id: iconElement
+                            implicitWidth: implicitHeight*2
+                            icon.source: "image://charts/" + model.icon
+                            onClicked: highlightSeries(index);
                         }
+                        Label {
+                            id: nameElement
+                            text: "  " + model.name
+                        }
+
+                        Drag.dragType: Drag.Automatic
+                        Drag.supportedActions: Qt.CopyAction
+                        Drag.mimeData: {
+                            "text/plain": model.name
+                        }
+
+                        DragHandler {
+                            id: dragHandler
+                            onActiveChanged:
+                                if (active) {
+                                    nameElement.grabToImage(function(result) {
+                                        parent.Drag.imageSource = result.url
+                                        parent.Drag.active = true
+                                    })
+                                } else {
+                                    parent.Drag.active = false
+                                }
+                        }
+                    }
                 }
             }
         }
