@@ -1,0 +1,50 @@
+{
+     "about" :   {
+          "version" :   0,
+          "description" :   ""
+     },
+     "formats" :   {
+          "int" :   {
+               "width" :   5,
+               "precision" :   0
+          },
+          "float" :   {
+               "width" :   10,
+               "precision" :   4
+          },
+          "double" :   {
+               "width" :   15,
+               "precision" :   6
+          }
+     },
+     "data" :   [
+          {
+               "group" :   "float",
+               "value" :   1.4
+          },
+          {
+               "group" :   "int",
+               "value" :   100
+          },
+          {
+               "group" :   "double",
+               "value" :   1e-10
+          },
+          {
+               "group" :   "double",
+               "value" :   10000000000
+          }
+     ],
+     "values" :   [
+          [
+               1,
+               2,
+               3
+          ],
+          [
+               11,
+               12,
+               13
+          ]
+     ]
+}

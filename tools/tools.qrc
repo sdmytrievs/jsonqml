@@ -5,4 +5,7 @@
     <qresource prefix="/qt/qml/tools2">
         <file>json_editor_main.qml</file>
     </qresource>
+    <qresource prefix="/qt/qml/tools3">
+        <file>charts_view_main.qml</file>
+    </qresource>
 </RCC>

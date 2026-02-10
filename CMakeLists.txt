@@ -25,6 +25,7 @@ include(CondaAware)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_STATIC_LIBS "Build static libraries" ON)
 option(BuildTools "Build BuildTools" ON)
+option(BuildTests "Build test suite" ON)
 option(DeployApp "Deploy applications" OFF)
 
 # Used into conda only
@@ -52,8 +53,8 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find Qt dependencies
-find_package(Qt6 6.2 COMPONENTS Gui Quick REQUIRED)
-qt_standard_project_setup(REQUIRES 6.7)
+find_package(Qt6 REQUIRED COMPONENTS Gui Quick Charts Concurrent Svg PrintSupport Test)
+qt_standard_project_setup()
 
 # Find other dependencies
 include(jsonqmlFindDeps)
@@ -80,6 +81,11 @@ add_subdirectory(src)
 # Build the examples
 if(BuildTools)
     add_subdirectory(tools)
+endif()
+
+# Run the tests
+if(BuildTests)
+    add_subdirectory(tests)
 endif()
 
 # Install the cmake config files that permit users to use find_package(jsonqml)

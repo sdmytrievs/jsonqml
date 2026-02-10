@@ -27,7 +27,6 @@ else()
 endif()
 
 qt_add_executable(json_editor  json_editor_main.cpp)
-
 qt_add_qml_module(json_editor
     URI tools2
     VERSION 1.0
@@ -71,4 +70,13 @@ if(DeployApp)
 #endif()
 endif()
 
+
+qt_add_executable(charts_view  charts_view_main.cpp)
+qt_add_qml_module(charts_view
+    URI tools3
+    VERSION 1.0
+    RESOURCE_PREFIX /qt/qml
+    QML_FILES charts_view_main.qml
+)
+target_link_libraries(charts_view PRIVATE jsonqml::jsonqml)
 

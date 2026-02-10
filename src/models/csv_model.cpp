@@ -4,8 +4,6 @@
 #include "jsonio/service.h"
 #include "jsonio/jsondetail.h"
 
-
-
 namespace jsonqml {
 
 CSVModel::CSVModel(QObject *parent)
@@ -49,11 +47,13 @@ std::string CSVModel::getCsvString()
 void CSVModel::setXColumns(const std::vector<int> &clmns)
 {
     x_clmns = clmns;
+    emit headerDataChanged(Qt::Horizontal, 0, columnCount()-1);
 }
 
 void CSVModel::setYColumns(const std::vector<int> &clmns)
 {
     y_clmns = clmns;
+    emit headerDataChanged(Qt::Horizontal, 0, columnCount()-1);
 }
 
 QVariant CSVModel::data(const QModelIndex &index, int role) const
@@ -61,7 +61,7 @@ QVariant CSVModel::data(const QModelIndex &index, int role) const
     if(!index.isValid()) {
         return QVariant();
     }
-    if(role== Qt::DisplayRole|| role==Qt::EditRole) {
+    if(role==Qt::DisplayRole || role==Qt::EditRole) {
         if(index.row()<table.size() && index.column()<table[index.row()].size()) {
             if(is_number_clmn[index.column()]) {
                 double val=0;
@@ -78,7 +78,7 @@ QVariant CSVModel::data(const QModelIndex &index, int role) const
 
 QVariant CSVModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    switch( role ) {
+    switch(role) {
     case Qt::DisplayRole:
         if( orientation == Qt::Horizontal ) {
             QString head;
@@ -93,12 +93,13 @@ QVariant CSVModel::headerData(int section, Qt::Orientation orientation, int role
     default:
         break;
     }
-    return CSVModel::headerData(section, orientation, role);
+    return SelectModel::headerData(section, orientation, role);
 }
 
 bool CSVModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if(index.isValid() && (role == Qt::EditRole)) {
+    Q_UNUSED( role );
+    if(index.isValid()) {
         if(index.row()<table.size() && index.column()<table[index.row()].size()) {
             table[index.row()][index.column()]=value.toString().toStdString();
         }
@@ -110,8 +111,11 @@ bool CSVModel::setData(const QModelIndex &index, const QVariant &value, int role
 
 Qt::ItemFlags CSVModel::flags(const QModelIndex& index) const
 {
-    Qt::ItemFlags flags = QAbstractTableModel::flags(index);
-    return (flags | Qt::ItemIsEditable);
+    if(!index.isValid()) {
+       return Qt::NoItemFlags;
+    }
+    //return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
+    return (QAbstractItemModel::flags(index) | Qt::ItemIsEditable);
 }
 
 void CSVModel::matrix_from_csv_string(std::string&& value_csv)

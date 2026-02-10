@@ -66,14 +66,12 @@ QHash<int, QByteArray> SelectModel::roleNames() const
 
 int SelectModel::rowCount(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
-    return table.size();
+    return index.isValid() ? 0 : table.size();
 }
 
 int SelectModel::columnCount(const QModelIndex &index) const
 {
-    Q_UNUSED(index);
-    return header.size();
+    return index.isValid() ? 0 : header.size();
 }
 
 /*!
@@ -132,7 +130,7 @@ QVariant SelectModel::headerData(int section, Qt::Orientation orientation, int r
 void SelectModel::set_default_header()
 {
     if(table.size()>0 && header.empty()) {
-        for(size_t jj=0; jj<table.size(); ++jj) {
+        for(size_t jj=0; jj<table[0].size(); ++jj) {
             header.push_back(std::to_string(jj));
         }
     }
