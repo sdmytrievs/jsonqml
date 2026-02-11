@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon("qrc:/qt/qml/jsonqml/qml/images/jsonui-logo-icon.png"));
 
-    jsonqml::VertexClient vertexClient;
-    jsonqml::EdgeClient edgeClient;
+    jsonqml::VertexClient vertexClient("", "");
+    jsonqml::EdgeClient edgeClient("");
 
     QQmlApplicationEngine engine;
 

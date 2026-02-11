@@ -8,6 +8,8 @@
 #include "jsonqml/models/json_model.h"
 #include "jsonqml/models/schema_model.h"
 #include "jsonqml/models/csv_model.h"
+#include "jsonqml/models/fields_model.h"
+#include "jsonqml/models/query_model.h"
 #include "jsonqml/charts/legend_model.h"
 
 using namespace Qt::StringLiterals;
@@ -34,6 +36,9 @@ private slots:
     void testJsonShemaModelComplex();
     void testCSVModel();
     void testLegendModel();
+    void testSelectFieldsModel();
+    void testQueryModel();
+
 };
 
 void TestModels::my_init()
@@ -129,6 +134,23 @@ void TestModels::testLegendModel()
 
     jsonqml::LegendModel model;
     model.updateLines(lines);
+    QAbstractItemModelTester tester(&model);
+}
+
+void TestModels::testSelectFieldsModel()
+{
+
+    jsonqml::SelectFieldsModel model("ComplexSchemaTest");
+    QAbstractItemModelTester tester(&model);
+}
+
+void TestModels::testQueryModel()
+{
+    jsonqml::QueryModel model;
+    auto ndx = model.add_object("AND", false, QModelIndex{});
+    ndx = model.add_object("OR", false, ndx);
+    auto ndx1 = model.add_object(">=", true, ndx);
+    auto ndx2 = model.add_object("IN", true, ndx);
     QAbstractItemModelTester tester(&model);
 }
 

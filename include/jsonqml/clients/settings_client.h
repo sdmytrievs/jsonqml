@@ -9,6 +9,11 @@
 
 namespace jsonqml {
 
+extern std::shared_ptr<spdlog::logger> ui_logger;
+
+QStringList transform2qt(const std::vector<std::string>& std_list);
+std::vector<std::string> transform2std(const QStringList& qt_list);
+
 struct DatabaseSettings
 {
     /// Current database credentials group
@@ -70,6 +75,7 @@ class Preferences : public QObject
 signals:
     void errorChanged();
     void settingsChanged();
+    void modelChanged();
     void dbConnectListChanged();
     void dbConnectChanged();
     void dbNamesListChanged();
@@ -147,9 +153,15 @@ public:
     void setAccess(bool val);
     void setCreate(bool val);
 
+    void RefreshLists(const std::string &db_group);
+    QString addWorkDir(const QString &path) const;
+
+    Q_INVOKABLE void setBoolValue(const QString &name, bool value);
+
 protected:
     friend Preferences& uiSettings();
     friend class PreferencesPrivate;
+    friend class PreferencesUI;
 
     /// The information about the last error that occurred
     QString err_message;

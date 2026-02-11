@@ -1,6 +1,11 @@
 
 #include "arango_document_p.h"
 #include "jsonqml/clients/settings_client.h"
+#include "jsonio/traversal.h"
+#ifndef IMPEX_OFF
+#include "jsonimpex/yaml_xml2file.h"
+#include "jsonimpex/impex_generator.h"
+#endif
 
 namespace jsonqml {
 
@@ -30,7 +35,6 @@ ArangoDBDocumentPrivate::ArangoDBDocumentPrivate(DocumentType type, const QStrin
             break;
         }
     }
-    is_dbdocument();
 }
 
 bool ArangoDBDocumentPrivate::is_dbdocument()
@@ -160,7 +164,7 @@ void ArangoDBDocumentPrivate::execute_query(const jsonio::DBQueryBase &query,
     }
 }
 
-std::string ArangoDBDocumentPrivate::read(const std::string& doc_id)
+std::string ArangoDBDocumentPrivate::read_doc(const std::string& doc_id)
 {
     if(is_dbdocument()) {
         dbdocument->readDocument(doc_id);
@@ -169,7 +173,7 @@ std::string ArangoDBDocumentPrivate::read(const std::string& doc_id)
     return "";
 }
 
-std::string ArangoDBDocumentPrivate::read_query(const std::string &doc_id)
+std::string ArangoDBDocumentPrivate::read_query_doc(const std::string &doc_id)
 {
     std::string ret_json;
     if(is_dbdocument()) {
@@ -182,7 +186,7 @@ std::string ArangoDBDocumentPrivate::read_query(const std::string &doc_id)
     return ret_json;
 }
 
-bool ArangoDBDocumentPrivate::save(const std::string &json_data, std::string& doc_id)
+bool ArangoDBDocumentPrivate::save_doc(const std::string &json_data, std::string& doc_id)
 {
     if(is_dbdocument()) {
         doc_id = dbdocument->recFromJson(json_data, false);
@@ -197,15 +201,80 @@ bool ArangoDBDocumentPrivate::save(const std::string &json_data, std::string& do
     return false;
 }
 
-void ArangoDBDocumentPrivate::remove(const std::string& doc_id)
+void ArangoDBDocumentPrivate::remove_doc(const std::string& doc_id)
 {
     if(is_dbdocument()) {
         dbdocument->deleteDocument(doc_id);
     }
 }
 
-//------------------------------------------------------------------------------------
+void ArangoDBDocumentPrivate::delete_list(const std::vector<std::string>& keys)
+{
+    if(is_dbdocument() && !keys.empty()) {
+        for(const auto& key: keys) {
+            dbdocument->deleteDocument(key);
+        }
+    }
+}
 
+void ArangoDBDocumentPrivate::restore_records_from_file(const QString& file)
+{
+    if(is_dbdocument()) {
+        std::string record_json;
+#ifndef IMPEX_OFF
+        jsonio::JsonYamlXMLArrayFile json_file(file.toStdString());
+#else
+        jsonio::JsonArrayFile json_file(file.toStdString());
+#endif
+        json_file.Open(jsonio::TxtFile::ReadOnly);
+        while(json_file.loadNext(record_json)) {
+            dbdocument->updateFromJson(record_json, false);
+        }
+        json_file.Close();
+    }
+}
+
+void ArangoDBDocumentPrivate::backup_records_to_file(const QString& file, const std::vector<std::string>& keys)
+{
+    if(is_dbdocument() && !keys.empty()) {
+#ifndef IMPEX_OFF
+        jsonio::JsonYamlXMLArrayFile json_file(file.toStdString());
+#else
+        jsonio::JsonArrayFile json_file(file.toStdString());
+#endif
+        json_file.Open(jsonio::TxtFile::WriteOnly);
+        for(const auto& key: keys) {
+            dbdocument->readDocument(key);
+            json_file.saveNext(dbdocument->loaded_data());
+        }
+        json_file.Close();
+    }
+}
+
+void ArangoDBDocumentPrivate::restore_graph(const QString& file)
+{
+    if(is_dbdocument()) {
+        jsonio::GraphTraversal travel(database->database());
+        travel.restoreGraphFromFile(file.toStdString());
+    }
+}
+
+void ArangoDBDocumentPrivate::backup_graph(const QString& file, const std::vector<std::string>& keys)
+{
+    if(is_dbdocument() && !keys.empty()) {
+        auto json_file = std::make_shared<jsonio::JsonArrayFile>(file.toStdString());
+        jsonio::GraphTraversal travel(database->database());
+
+        json_file->Open(jsonio::TxtFile::WriteOnly);
+        jsonio::GraphElement_f afunc =  [json_file](bool , const std::string& data) {
+            json_file->saveNext(data);
+        };
+        travel.Traversal(true, keys, afunc);
+        json_file->Close();
+    }
+}
+
+//------------------------------------------------------------------------------------
 
 ArangoDBDocument::ArangoDBDocument(const ArangoDatabase* parent_database,
                                    ArangoDBDocumentPrivate* private_doc):
@@ -217,9 +286,12 @@ ArangoDBDocument::ArangoDBDocument(const ArangoDatabase* parent_database,
     // reset client to new database allocation
     QObject::connect(arango_database, &ArangoDatabase::dbdriveChanged, this, &ArangoDBDocument::reloadQuery);
     QObject::connect(arango_database, &ArangoDatabase::errorConnection, this, &ArangoDBDocument::resetClient);
+    QObject::connect(arango_database, &ArangoDatabase::cmReloadTable, this, &ArangoDBDocument::reloadTable);
+
 
     QObject::connect(this, &ArangoDBDocument::updatedDocument, arango_database, &ArangoDatabase::afterUpdatedDocument);
     QObject::connect(this, &ArangoDBDocument::deletedDocument, arango_database, &ArangoDatabase::afterDeletedDocument);
+    QObject::connect(this, &ArangoDBDocument::loadedGraph, arango_database, &ArangoDatabase::afterLoadedGraph);
 
     QObject::connect(this, &ArangoDBDocument::isException, &uiSettings(), &Preferences::setError);
 }
@@ -251,7 +323,7 @@ void ArangoDBDocument::resetClient()
 
 void ArangoDBDocument::resetSchema(std::string aschema_name)
 {
-    ui_logger->debug("resetSchema {}", aschema_name);
+    ui_logger->info("resetSchema {} !!!!!", aschema_name);
     emit started();
     QMutexLocker locker(&result_mutex);
     try {
@@ -261,13 +333,13 @@ void ArangoDBDocument::resetSchema(std::string aschema_name)
     }
     catch(std::exception& e) {
         emit isException(e.what());
+        emit finished();
     }
-    emit finished();
 }
 
 void ArangoDBDocument::reloadQuery()
 {
-    ui_logger->debug("reloadQuery {}", impl_func()->last_good_query.queryString());
+    ui_logger->info("reloadQuery {}", impl_func()->last_good_query.queryString());
     emit started();
     QMutexLocker locker(&result_mutex);
     try {
@@ -276,8 +348,18 @@ void ArangoDBDocument::reloadQuery()
     }
     catch(std::exception& e) {
         emit isException(e.what());
+        emit finished();
     }
-    emit finished();
+
+}
+
+void ArangoDBDocument::reloadTable(std::string schema_name, std::string doc_id)
+{
+    if(schema_name.empty() || impl_func()->document_schema_name == schema_name) {
+        // now reset all model
+        impl_func()->build_table();
+        emit finishedQuery();
+    }
 }
 
 void ArangoDBDocument::changeQuery(jsonio::DBQueryBase query, std::vector<std::string> query_fields)
@@ -290,8 +372,8 @@ void ArangoDBDocument::changeQuery(jsonio::DBQueryBase query, std::vector<std::s
     }
     catch(std::exception& e) {
         emit isException(e.what());
+        emit finished();
     }
-    emit finished();
 }
 
 void ArangoDBDocument::executeQuery(jsonio::DBQueryBase query, std::vector<std::string> query_fields)
@@ -304,14 +386,14 @@ void ArangoDBDocument::executeQuery(jsonio::DBQueryBase query, std::vector<std::
     }
     catch(std::exception& e) {
         emit isException(e.what());
+        emit finished();
     }
-    emit finished();
 }
 
 void ArangoDBDocument::readDocument(std::string doc_id)
 {
     try {
-        auto json_data = impl_func()->read(doc_id);
+        auto json_data = impl_func()->read_doc(doc_id);
         emit readedDocument(impl_func()->schema_from_id(doc_id), json_data);
         ui_logger->debug("read document {}", doc_id);
     }
@@ -324,7 +406,7 @@ void ArangoDBDocument::readDocumentQuery(std::string doc_id)
 {
     try {
         ui_logger->debug("read document query {}", doc_id);
-        auto json_data = impl_func()->read_query(doc_id);
+        auto json_data = impl_func()->read_query_doc(doc_id);
         emit readedDocument(impl_func()->schema_from_id(doc_id), json_data);
     }
     catch(std::exception& e) {
@@ -336,16 +418,15 @@ void ArangoDBDocument::updateDocument(std::string json_document)
 {
     try {
         std::string doc_id;
-        if(impl_func()->save(json_document, doc_id)) {
+        if(impl_func()->save_doc(json_document, doc_id)) {
             // new doc
             emit updatedOid(doc_id);
+            // !!! now reset all model, posible check only one row
+            reloadTable(impl_func()->schema_from_id(doc_id), doc_id);
         }
         else {
             emit updatedDocument(impl_func()->schema_from_id(doc_id), doc_id);
         }
-        // !!! now reset all model, posible check only one row
-        impl_func()->build_table();
-        emit finishedQuery();
         ui_logger->debug("update document {}", doc_id);
     }
     catch(std::exception& e) {
@@ -356,13 +437,77 @@ void ArangoDBDocument::updateDocument(std::string json_document)
 void ArangoDBDocument::deleteDocument(std::string doc_id)
 {
     try {
-        impl_func()->remove(doc_id);
-        emit deletedDocument(impl_func()->schema_from_id(doc_id), doc_id);
+        impl_func()->remove_doc(doc_id);
+        emit deletedDocument(impl_func()->is_vertex_document(), impl_func()->schema_from_id(doc_id), doc_id);
         ui_logger->debug("delete document {}", doc_id);
     }
     catch(std::exception& e) {
         emit isException(e.what());
     }
+}
+
+void ArangoDBDocument::deleteList(std::vector<std::string> keys)
+{
+    emit started();
+    try {
+        impl_func()->delete_list(keys);
+        emit deletedDocument(impl_func()->is_vertex_document(), "", ""); // reload all open models
+        // could be different collections in list if multi collection query
+    }
+    catch(std::exception& e) {
+        emit isException(e.what());
+    }
+    emit finished();
+}
+
+void ArangoDBDocument::restoreRecordsfromFile(QString file)
+{
+    emit started();
+    try {
+        impl_func()->restore_records_from_file(file);
+    }
+    catch(std::exception& e) {
+        emit isException(e.what());
+    }
+    emit updatedDocument(impl_func()->document_schema_name, "");  // apply loading before exception
+    emit finished();
+}
+
+void ArangoDBDocument::backupRecordstoFile(QString file, std::vector<std::string> keys)
+{
+    emit started();
+    try {
+        impl_func()->backup_records_to_file(file, keys);
+    }
+    catch(std::exception& e) {
+        emit isException(e.what());
+    }
+    emit finished();
+}
+
+void ArangoDBDocument::backupGraphtoFile(QString file, std::vector<std::string> keys)
+{
+    emit started();
+    try {
+        impl_func()->backup_graph(file, keys);
+    }
+    catch(std::exception& e) {
+        emit isException(e.what());
+    }
+    emit finished();
+}
+
+void ArangoDBDocument::restoreGraphfromFile(QString file)
+{
+    emit started();
+    try {
+        impl_func()->restore_graph(file);
+    }
+    catch(std::exception& e) {
+        emit isException(e.what());
+    }
+    emit loadedGraph();  // apply loading before exception
+    emit finished();
 }
 
 jsonio::DBQueryBase ArangoDBDocument::allEdgesQuery(const QString &id_vertex, const QString &edge_collections)

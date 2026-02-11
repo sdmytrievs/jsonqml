@@ -5,6 +5,7 @@
 
 #include "jsonqml/clients/settings_client.h"
 #include "jsonqml/models/schema_model.h"
+//#include "jsonqml/forms/json_view.h"
 #include "jsonqml/arango_database.h"
 #include "jsonio/io_settings.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -42,6 +43,7 @@ public:
     void read_other_settings();
     bool change_schemas_path(const std::string& path);
     void set_user_dir(const std::string& path);
+    void set_bool_settings(const std::string &setting_name, bool value);
 
 protected:
 
@@ -120,6 +122,12 @@ void PreferencesPrivate::save_other_settings()
     apply_changes_to_static();
 }
 
+void PreferencesPrivate::set_bool_settings(const std::string& setting_name, bool value)
+{
+    jsonui_group.setValue(setting_name, value);
+    apply_changes_to_static();
+}
+
 void PreferencesPrivate::save_db_settings(const std::string& db_group)
 {
     base_func()->db_data.save_settings(db_group, jsonio_settings);
@@ -145,27 +153,7 @@ void PreferencesPrivate::read_db_settings(const std::string& db_group)
 {
     auto q = base_func();
     q->db_data.read_settings(db_group, jsonio_settings);
-
-    // ask root client arango_db to refresh lists for new settings group,
-    try {  // try generate list of all databases
-        q->db_all_databases.clear();
-        q->db_all_users.clear();
-        if(q->db_data.db_create) {
-            arango_db().getRootLists(db_group, q->db_all_databases, q->db_all_users);
-        }
-    }
-    catch(std::exception& e) {
-        ui_logger->warn("Error connection as root to host: {}", e.what());
-    }
-
-    if(q->db_all_databases.indexOf(q->db_data.db_name)<0) {
-        q->db_all_databases.append(q->db_data.db_name);
-    }
-    if(q->db_all_users.indexOf(q->db_data.db_user)<0) {
-        q->db_all_users.append(q->db_data.db_user);
-    }
-    emit q->dbNamesListChanged();
-    emit q->dbUsersListChanged();
+    q->RefreshLists(db_group);
     ui_logger->debug("Changed db credentials to: {}", db_group);
 }
 
@@ -235,7 +223,6 @@ void Preferences::applyChanges()
     auto d = impl_func();
     setError(QString());
     try {
-        emit settingsChanged();
         if(Preferences::use_schemas) {
             d->save_other_settings();
             if(d->change_schemas_path(schemas_directory.toStdString())) {
@@ -248,10 +235,36 @@ void Preferences::applyChanges()
             // tell database to reload settings
             emit dbdriverChanged();
         }
+        emit settingsChanged();
+        emit modelChanged();
     }
     catch(std::exception& e) {
         setError(e.what());
     }
+}
+
+void Preferences::RefreshLists(const std::string& db_group)
+{
+    // ask root client arango_db to refresh lists for new settings group,
+    try {  // try generate list of all databases
+        db_all_databases.clear();
+        db_all_users.clear();
+        if(db_data.db_create) {
+            arango_db().getRootLists(db_group, db_all_databases, db_all_users);
+        }
+    }
+    catch(std::exception& e) {
+        ui_logger->warn("Error connection as root to host: {}", e.what());
+    }
+
+    if(db_all_databases.indexOf(db_data.db_name)<0) {
+        db_all_databases.append(db_data.db_name);
+    }
+    if(db_all_users.indexOf(db_data.db_user)<0) {
+        db_all_users.append(db_data.db_user);
+    }
+    emit dbNamesListChanged();
+    emit dbUsersListChanged();
 }
 
 bool Preferences::dbConnected()
@@ -373,12 +386,33 @@ QUrl Preferences::workDir() const
     return QUrl::fromLocalFile(work_directory);
 }
 
+QString Preferences::addWorkDir(const QString &file_path) const
+{
+    QString full_path;
+    if( file_path.contains('/') || file_path.contains('\\') ) {
+        full_path = file_path;
+    }
+    else {
+        full_path  =  work_directory+"/"+file_path;
+    }
+    return full_path;
+}
+
 void Preferences::setWorkPath(const QString &path)
 {
     QFileInfo flinfo(path);
     work_directory = flinfo.dir().path();
     impl_func()->set_user_dir(work_directory.toStdString());
     emit workDirChanged();
+}
+
+void Preferences::setBoolValue(const QString &name, bool value)
+{
+    impl_func()->set_bool_settings(name.toStdString(), value);
+    emit settingsChanged();
+    if(name=="ShowComments" || name =="ShowEnumNames") {
+        emit modelChanged();
+    }
 }
 
 QString Preferences::paste()
@@ -391,4 +425,22 @@ void Preferences::copy(const QString& clip_text)
     QGuiApplication::clipboard()->setText(clip_text/*, QClipboard::Clipboard*/);
 }
 
+
+QStringList transform2qt(const std::vector<std::string>& std_list)
+{
+    QStringList new_list;
+    std::transform(std_list.begin(), std_list.end(),
+                   std::back_inserter(new_list),
+                   [](const std::string &v){ return QString::fromStdString(v); });
+    return new_list;
+}
+
+std::vector<std::string> transform2std(const QStringList& qt_list)
+{
+    std::vector<std::string> new_list;
+    std::transform(qt_list.begin(), qt_list.end(),
+                   std::back_inserter(new_list),
+                   [](const QString &v){ return v.toStdString(); });
+    return new_list;
+}
 }

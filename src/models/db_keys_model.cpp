@@ -6,8 +6,17 @@ namespace jsonqml {
 
 DBKeysModel::DBKeysModel(DocumentType type, const QString& schema,
                          ArangoDatabase* db_client,
-                         QObject *parent)
-    :DBQueryModel(type, schema, db_client, parent)
+                         QObject *parent):
+    DBKeysModel(type, schema, jsonio::DBQueryBase::emptyQuery(),
+                {}, db_client, parent)
+{}
+
+DBKeysModel::DBKeysModel(DocumentType type, const QString &schema,
+                         const jsonio::DBQueryBase &query,
+                         const model_line_t &query_fields,
+                         ArangoDatabase *db_client,
+                         QObject *parent):
+    DBQueryModel(type, schema, db_client, parent)
 {
     // tell the editor to change Oid
     QObject::connect(dbdocument, &ArangoDBDocument::updatedOid, this, &DBKeysModel::updatedOid);
@@ -23,20 +32,18 @@ DBKeysModel::DBKeysModel(DocumentType type, const QString& schema,
     QObject::connect(this, &DBKeysModel::cmUpdate, dbdocument, &ArangoDBDocument::updateDocument);
     QObject::connect(this, &DBKeysModel::cmDelete, dbdocument, &ArangoDBDocument::deleteDocument);
 
-    // load default query
-    setQuery(jsonio::DBQueryBase::emptyQuery(), {});
+    QObject::connect(this, &DBKeysModel::cmDeleteList, dbdocument, &ArangoDBDocument::deleteList);
+    QObject::connect(this, &DBKeysModel::cmRestoreRecordsfromFile, dbdocument, &ArangoDBDocument::restoreRecordsfromFile);
+    QObject::connect(this, &DBKeysModel::cmBackupRecordstoFile, dbdocument, &ArangoDBDocument::backupRecordstoFile);
+    QObject::connect(this, &DBKeysModel::cmBackupGraphtoFile, dbdocument, &ArangoDBDocument::backupGraphtoFile);
+    QObject::connect(this, &DBKeysModel::cmRestoreGraphfromFile, dbdocument, &ArangoDBDocument::restoreGraphfromFile);
+
+    setQuery(query, query_fields);
 }
 
 
 DBKeysModel::~DBKeysModel()
 {
-}
-
-void DBKeysModel::updateKeyList()
-{
-    DBQueryModel::updateKeyList();
-    // read first record after change all list
-    read(0);
 }
 
 void DBKeysModel::updateQuery()
@@ -75,19 +82,20 @@ void DBKeysModel::updateQuery(const QString &query)
 
 void DBKeysModel::updateFields(const QStringList &query_fields)
 {
-    std::vector<std::string> new_list;
-    std::transform(query_fields.begin(), query_fields.end(),
-                   std::back_inserter(new_list),
-                   [](const QString &v){ return v.toStdString(); });
+    std::vector<std::string> new_list = transform2std(query_fields);
     updateFields(std::move(new_list));
+}
+
+void DBKeysModel::read(std::string doc_id)
+{
+    if(!doc_id.empty()) {
+        emit cmRead(doc_id);
+    }
 }
 
 void DBKeysModel::read(size_t row)
 {
-    auto doc_id = get_id(row);
-    if(!doc_id.empty()) {
-        emit cmRead(doc_id);
-    }
+    read(get_id(row));
 }
 
 void DBKeysModel::read_query(std::string doc_id)
@@ -103,6 +111,14 @@ void DBKeysModel::save(const std::string &json_data)
     emit cmUpdate(json_data);
 }
 
+void DBKeysModel::remove(std::string doc_id)
+{
+    if(!doc_id.empty()) {
+        emit cmDelete(doc_id);
+    // !!! need update model table for all open
+    }
+}
+
 void DBKeysModel::remove(size_t row)
 {
     auto doc_id = get_id(row);
@@ -113,6 +129,31 @@ void DBKeysModel::remove(size_t row)
         table.erase(table.begin()+row);
         endRemoveRows();
     }
+}
+
+void DBKeysModel::backup_records(QString file, std::vector<std::string> &&keys)
+{
+   emit cmBackupRecordstoFile(file, std::move(keys));
+}
+
+void DBKeysModel::restore_records(QString file)
+{
+    emit cmRestoreRecordsfromFile(file);
+}
+
+void DBKeysModel::backup_graph(QString file, std::vector<std::string> &&keys)
+{
+    emit cmBackupGraphtoFile(file, std::move(keys));
+}
+
+void DBKeysModel::restore_graph(QString file)
+{
+    emit cmRestoreGraphfromFile(file);
+}
+
+void DBKeysModel::delete_records(std::vector<std::string> &&keys)
+{
+    emit cmDeleteList(std::move(keys));
 }
 
 std::string DBKeysModel::get_id(size_t row) const

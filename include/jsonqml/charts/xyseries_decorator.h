@@ -25,6 +25,7 @@ signals:
 public slots:
     void updateMinMax();
 
+    void updateSeriesLine(size_t nline);
 public:
     explicit QXYSeriesDecorator(const ChartData *graphdata, QObject *parent = nullptr);
     ~QXYSeriesDecorator();
@@ -43,6 +44,8 @@ public:
 
     Q_INVOKABLE void renderPdf(const QString &file_name);
     Q_INVOKABLE void renderSvg(QSize size, const QString &file_name);
+
+    void setFragent(bool new_fragment);
 
 protected:
     bool is_fragment = false;
@@ -65,6 +68,8 @@ protected:
 
     void update_scatter_series(QScatterSeries *series, const SeriesLineData &linedata);
     void update_area_series(QAreaSeries *series, const SeriesLineData &linedata);
+    void update_series_line(QXYSeries *series, const SeriesLineData &linedata);
+
     QXYSeries *new_series_line(const SeriesLineData &linedata);
     QVXYModelMapper *map_series_line(QXYSeries *series, ChartDataModel *datamodel, int modelline, int xcolumn);
     void resize_series();

@@ -8,13 +8,13 @@ extern std::shared_ptr<spdlog::logger> ui_logger;
 std::string ArangoDatabase::resources_database_name = "resources";
 
 std::map<std::string, ArangoDatabase::CollectionData> ArangoDatabase::user_defined_collections=
-{
-    {"queries", {{"Query"}, {"name", "qschema", "comment"}}},
-    {"docpages", {{"DocPages"}, {"type", "name", "ext"}}},
-    {"impexdefs", {{"ImpexFormat"}, {"direction", "name", "impexschema", "schema", "comment"}}}
+    {
+        {"queries", {{"Query"}, {"name", "qschema", "comment"}}},
+        {"docpages", {{"DocPages"}, {"type", "name", "ext"}}},
+        {"impexdefs", {{"ImpexFormat"}, {"direction", "name", "impexschema", "schema", "comment"}}}
 };
 std::map<std::string, ArangoDatabase::CollectionData> ArangoDatabase::defined_collections=
-        ArangoDatabase::user_defined_collections;
+    ArangoDatabase::user_defined_collections;
 
 
 ArangoDatabase& arango_db()
@@ -182,7 +182,9 @@ void ArangoDatabasePrivate::update_work_database(const arangocpp::ArangoDBConnec
             return;
         }
 
-        create_collection_if_no_exist(db_driver.get());
+        if(!db_data.db_access) {
+            create_collection_if_no_exist(db_driver.get());
+        }
         if(work_database.get() == nullptr) {
             work_database.reset(new jsonio::DataBase(db_driver));
         }
@@ -214,7 +216,7 @@ bool ArangoDatabasePrivate::update_database(std::string& error_message)
         }
         update_work_database(db_connect, error_message);
         if(resourse_database) { // change only if used before
-          update_resource_database();
+            update_resource_database();
         }
 
         ui_logger->info("Update database connect to: {} {}", db_connect.serverUrl, db_connect.databaseName);
@@ -248,14 +250,24 @@ bool ArangoDatabase::dbConnected() const
 
 void ArangoDatabase::afterUpdatedDocument(std::string schema_name, std::string doc_id)
 {
-    Q_UNUSED(schema_name);
-    Q_UNUSED(doc_id);
+    emit cmReloadTable(schema_name, doc_id);
 }
 
-void ArangoDatabase::afterDeletedDocument(std::string schema_name, std::string doc_id)
+void ArangoDatabase::afterDeletedDocument(bool is_vertex, std::string schema_name, std::string doc_id)
 {
-    Q_UNUSED(schema_name);
-    Q_UNUSED(doc_id);
+    if(is_vertex){
+        // need refresh edges for vertex deleting
+        emit cmReloadTable("", doc_id);
+    }
+    else  {
+        emit cmReloadTable(schema_name, doc_id);
+    }
+}
+
+void ArangoDatabase::afterLoadedGraph()
+{
+    // reload all open models
+    emit cmReloadTable("", "");
 }
 
 void ArangoDatabase::ConnectFromSettings()
@@ -285,7 +297,7 @@ void ArangoDatabase::ConnectFromSettings()
 ArangoDBDocument* ArangoDatabase::createDocument(DocumentType type, const QString &document_schema_name)
 {
     ArangoDBDocument* new_doc = new ArangoDBDocument(this,
-             new ArangoDBDocumentPrivate(type, document_schema_name, impl_func()));
+                                                     new ArangoDBDocumentPrivate(type, document_schema_name, impl_func()));
     return new_doc;
 }
 
@@ -344,14 +356,14 @@ void ArangoDatabase::resetCollectionsList()
 
 jsonio::values_t ArangoDatabase::make_query_fields(std::string schema_name) const
 {
-    jsonio::values_t key_fields = {"_label", "_id"};
+    jsonio::values_t key_fields = {"_id", "_label"};
     const jsonio::StructDef* schema_struct=jsonio::ioSettings().Schema().getStruct(schema_name);
 
     if(schema_struct != nullptr) {
         auto ids_or_names = schema_struct->getSelectedList();
         if(!ids_or_names.empty()) {
-            key_fields.clear();
-            key_fields.push_back("_label");
+            //key_fields.clear();
+            //key_fields.push_back("_label");
             for(const auto& id_or_key: ids_or_names) {
                 auto pos = id_or_key.find_first_not_of("0123456789.");
                 if(pos == std::string::npos)  {
@@ -360,7 +372,7 @@ jsonio::values_t ArangoDatabase::make_query_fields(std::string schema_name) cons
                     key_fields.push_back(the_name);
                 }
                 else  {
-                    key_fields.push_back( id_or_key );
+                    key_fields.push_back(id_or_key);
                 }
             }
         }
@@ -371,23 +383,47 @@ jsonio::values_t ArangoDatabase::make_query_fields(std::string schema_name) cons
 QStringList ArangoDatabase::getEdgesList()
 {
     auto std_schema_list = jsonio::DataBase::getEdgesList();
-    QStringList new_list;
     //new_list.append(no_schema_name);
-    std::transform(std_schema_list.begin(), std_schema_list.end(),
-                   std::back_inserter(new_list),
-                   [](const std::string &v){ return QString::fromStdString(v); });
-    return new_list;
+    return transform2qt(std_schema_list);
 }
 
 QStringList ArangoDatabase::getVertexesList()
 {
     auto std_schema_list = jsonio::DataBase::getVertexesList();
-    QStringList new_list;
-    //new_list.append(no_schema_name);
-    std::transform(std_schema_list.begin(), std_schema_list.end(),
-                   std::back_inserter(new_list),
-                   [](const std::string &v){ return QString::fromStdString(v); });
-    return new_list;
+    return transform2qt(std_schema_list);
+}
+
+QStringList ArangoDatabase::getResourcesList()
+{
+    QStringList list;
+    list << "Query" << "DocPages" << "ImpexFormat";
+    return list;
+}
+
+QStringList ArangoDatabase::getSchemasList()
+{
+    QStringList list;
+    auto resource_lst = getResourcesList();
+    for(const auto& item: defined_collections) {
+        QString schema = QString::fromStdString(item.second.schema_name);
+        if(!resource_lst.contains(schema)) {
+            list << schema;
+        }
+    }
+    return list;
+}
+
+jsonio::values_t ArangoDatabase::getCollectionList(bool with_chema)
+{
+    jsonio::values_t list;
+    for(const auto& item: defined_collections) {
+        auto name = item.first;
+        if(with_chema) {
+            name+=";"+item.second.schema_name;
+        }
+        list.push_back(name);
+    }
+    return list;
 }
 
 std::string ArangoDatabase::collectionFromSchema(const std::string &schema_name)
@@ -426,22 +462,18 @@ std::string ArangoDatabase::anyVertexSchema()
 {
     auto list = jsonio::DataBase::usedVertexCollections();
     if(!list.empty()) {
-        return  list.begin()->first;
+        return  list.rbegin()->first;
     }
-    else {
-        return "";
-    }
+    return "";
 }
 
 std::string ArangoDatabase::anyEdgeSchema()
 {
     auto list = jsonio::DataBase::usedEdgeCollections();
     if(!list.empty()) {
-        return  list.begin()->first;
+        return  list.rbegin()->first;
     }
-    else {
-        return "";
-    }
+    return "";
 }
 
 }

@@ -211,6 +211,8 @@ protected:
     ChartData& operator=(const ChartData&); // not defined
 
     friend class PlotChartViewPrivate;
+    friend class PlotChartView;  // to do functions
+    friend class LegendDialog;
 
     void connect_data_changed();
     void model_update_y_xcolumns();

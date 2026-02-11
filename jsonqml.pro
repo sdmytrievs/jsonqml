@@ -4,6 +4,8 @@ TEMPLATE = app
 CONFIG += thread
 CONFIG += c++20
 
+DEFINES += IMPEX_OFF
+
 QT += quick
 QT += charts printsupport svg
 CONFIG += qmltypes
@@ -30,8 +32,11 @@ HEADERS += \
     include/jsonqml/charts/legend_data.h \
     include/jsonqml/charts/legend_model.h \
     include/jsonqml/charts/xyseries_decorator.h \
+    include/jsonqml/clients/csv_client.h \
     include/jsonqml/models/base_model.h \
+    include/jsonqml/models/fields_model.h \
     include/jsonqml/models/json_model.h \
+    include/jsonqml/models/query_model.h \
     include/jsonqml/models/schema_model.h \
     include/jsonqml/models/select_model.h \
     include/jsonqml/models/db_keys_model.h \
@@ -46,6 +51,7 @@ HEADERS += \
     src/arango_database_p.h \
     src/arango_document_p.h \
     src/charts/markershapes.h \
+    src/clients/csv_client_p.h \
     src/clients/json_client_p.h \
     src/clients/vertex_client_p.h \
     src/clients/edge_client_p.h \
@@ -61,8 +67,11 @@ SOURCES += \
     src/charts/legend_model.cpp \
     src/charts/markershapes.cpp \
     src/charts/xyseries_decorator.cpp \
+    src/clients/csv_client.cpp \
     src/models/base_model.cpp \
+    src/models/fields_model.cpp \
     src/models/json_model.cpp \
+    src/models/query_model.cpp \
     src/models/schema_model.cpp \
     src/models/select_model.cpp \
     src/models/db_query_model.cpp \
@@ -74,9 +83,9 @@ SOURCES += \
     src/clients/json_client.cpp \
     src/clients/table_client.cpp \
     src/clients/chart_client.cpp \
-    #tools/db_view_main.cpp \
+    tools/db_view_main.cpp \
     #tools/charts_view_main.cpp \
-    tools/json_editor_main.cpp
+    #tools/json_editor_main.cpp
 
 #resources.files = main.qml
 resources.prefix = /$${TARGET}

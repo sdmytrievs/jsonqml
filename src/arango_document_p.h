@@ -28,11 +28,21 @@ public:
                        const jsonio::values_t &query_fields);
     bool clear_document();
 
-    virtual std::string read(const std::string& doc_id);
-    virtual std::string read_query(const std::string& doc_id);
+    virtual std::string read_doc(const std::string& doc_id);
+    virtual std::string read_query_doc(const std::string& doc_id);
     // true if new doc_id
-    virtual bool save(const std::string &json_data, std::string& doc_id);
-    virtual void remove(const std::string& doc_id);
+    virtual bool save_doc(const std::string &json_data, std::string& doc_id);
+    virtual void remove_doc(const std::string& doc_id);
+
+    void delete_list(const std::vector<std::string> &keys);
+    void restore_records_from_file(const QString &file);
+    void backup_records_to_file(const QString &file, const std::vector<std::string> &keys);
+    void restore_graph(const QString &file);
+    void backup_graph(const QString &file, const std::vector<std::string> &keys);
+    bool is_vertex_document()
+    {
+        return  doc_type == Vertex;
+    }
 
 protected:
     friend class ArangoDBDocument;

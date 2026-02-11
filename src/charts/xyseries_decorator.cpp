@@ -124,6 +124,18 @@ void QXYSeriesDecorator::updateSeries(size_t nline, QScatterSeries *series)
     line_mapper[nline].reset(map_series_line(line_series[nline], datamodel, modelline, linedata.xColumn()));
 }
 
+void QXYSeriesDecorator::updateSeriesLine(size_t nline)
+{
+    if(nline >=point_series.size()) {
+        return;
+    }
+    const auto& linedata = chart_data->lineData(nline);
+    update_scatter_series(point_series[nline], linedata);
+    point_mapper[nline]->setXColumn(linedata.xColumn()+1);
+    update_series_line(line_series[nline], linedata);
+    line_mapper[nline]->setXColumn(linedata.xColumn()+1);
+}
+
 void QXYSeriesDecorator::updateAreaSeries(size_t nline, QAreaSeries *series)
 {
     // extract data from QML
@@ -292,11 +304,16 @@ QXYSeries* QXYSeriesDecorator::new_series_line(const SeriesLineData& linedata)
     series->attachAxis(axisX);
     series->attachAxis(axisY);
 
+    update_series_line(series, linedata);
+    return series;
+}
+
+void QXYSeriesDecorator::update_series_line(QXYSeries* series, const SeriesLineData& linedata)
+{
     series->setName(linedata.name());
     QPen pen = series->pen();
     getLinePen(pen, linedata);
     series->setPen(pen);
-    return series;
 }
 
 void QXYSeriesDecorator::update_area_series(QAreaSeries* series, const SeriesLineData& linedata)
@@ -357,6 +374,12 @@ void QXYSeriesDecorator::renderSvg(QSize size, const QString &file_name)
     painter.begin(&generator);
     series_chart->paint(&painter, nullptr);
     painter.end();
+}
+
+void QXYSeriesDecorator::setFragent(bool new_fragment)
+{
+    is_fragment = new_fragment;
+    emit fragmentChanged();
 }
 
 } // namespace jsonqml

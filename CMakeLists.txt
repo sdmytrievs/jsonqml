@@ -75,6 +75,8 @@ set(JSONQML_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 # Set the include directories
 include_directories(${JSONQML_HEADER_DIR})
 
+add_definitions(-DIMPEX_OFF)
+
 # Build jsonqml library
 add_subdirectory(src)
 

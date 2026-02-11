@@ -1,5 +1,6 @@
 
 #include "jsonqml/charts/legend_model.h"
+#include "markershapes.h"
 
 namespace jsonqml {
 

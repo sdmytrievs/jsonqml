@@ -2,7 +2,6 @@
 #define VERTEXCLIENT_P_H
 
 #include "jsonqml/clients/vertex_client.h"
-#include "jsonqml/models/db_keys_model.h"
 #include "json_client_p.h"
 
 namespace jsonqml {
@@ -13,10 +12,13 @@ class VertexClientPrivate : public JsonClientPrivate
 
 public:
 
-    explicit VertexClientPrivate();
+    explicit VertexClientPrivate(DocumentType dtype,
+                                 const jsonio::DBQueryBase& query=jsonio::DBQueryBase::emptyQuery(),
+                                 const model_line_t& query_fields={});
     virtual ~VertexClientPrivate() {}
 
     void init() override;
+    virtual void init_keys(const QString& aschema);
 
     QStringList gen_schema_list() const override;
     QString new_list_default_schema() const  override
@@ -39,9 +41,12 @@ public:
     bool set_json(const std::string& json_string, const QString& schema_name="") override;
 
 protected:
+    DocumentType doc_type;
     int keys_table_mode = RowSortingEnabled;
     QSharedPointer<DBKeysModel> keys_model;
     QSharedPointer<SortFilterProxyModel> sort_proxy_model;
+    jsonio::DBQueryBase init_query;
+    model_line_t init_fields;
 
     friend class VertexClient;
 };

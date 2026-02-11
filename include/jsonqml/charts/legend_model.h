@@ -18,7 +18,7 @@ public:
         IdRole = Qt::UserRole + 1,
         ShapeIconRole,
         AbscissaIndexRole,
-        NameRole,
+        NameRole
     };
     Q_ENUM(LegendRoles)
 
